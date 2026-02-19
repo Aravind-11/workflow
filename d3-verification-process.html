@@ -18,14 +18,6 @@
   .export-btn { background: #6366f1; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
   .export-btn:hover { background: #4f46e5; }
 
-  .nav { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 10px 40px; position: sticky; top: 88px; z-index: 99; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .nav-btn { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; background: #f1f5f9; color: #475569; transition: all 0.2s; border: 1px solid #e2e8f0; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
-  .nav-btn:hover { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
-  .nav-btn.active { background: #4338ca; color: #fff; border-color: #4338ca; }
-  .nav-btn.master { background: #1e293b; color: #fff; border-color: #1e293b; }
-  .nav-btn.master:hover { background: #334155; }
-  .nav-divider { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; }
-
   .legend { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 1500px; margin: 20px auto; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
   .legend h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
   .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; }
@@ -96,7 +88,6 @@
   .footer { text-align: center; padding: 28px; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; margin-top: 32px; }
   @media (max-width: 768px) {
     .header { padding: 16px 20px; }
-    .nav { padding: 8px 16px; top: 70px; }
     .section-wrap, .exc-section, .exc-jump-bar { padding: 0 16px; }
   }
 </style>
@@ -113,9 +104,6 @@
   </div>
 </div>
 
-<div class="nav">
-  <a class="nav-btn master" href="#">Master Overview</a>
-  <div class="nav-divider"></div>
   <a class="nav-btn" href="#">D1: Inbound</a>
   <a class="nav-btn" href="#">D2: Cameras</a>
   <a class="nav-btn active" href="#">D3: Verification</a>
