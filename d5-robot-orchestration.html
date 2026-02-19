@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D5: Robot Orchestration + Battery — nventr</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+  .header { background: #1e293b; color: #fff; padding: 28px 40px 20px; position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: #94a3b8; }
+  .header-badge { display: inline-block; background: #059669; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-right: 8px; }
+  .export-btn { background: #6366f1; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .export-btn:hover { background: #4f46e5; }
+  .nav { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 10px 40px; position: sticky; top: 88px; z-index: 99; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .nav-btn { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 6px; background: #f1f5f9; color: #475569; transition: all 0.2s; border: 1px solid #e2e8f0; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-block; }
+  .nav-btn:hover { background: #e0e7ff; color: #4338ca; border-color: #a5b4fc; }
+  .nav-btn.active { background: #4338ca; color: #fff; border-color: #4338ca; }
+  .nav-btn.master { background: #1e293b; color: #fff; border-color: #1e293b; }
+  .nav-btn.master:hover { background: #334155; }
+  .nav-divider { width: 1px; height: 20px; background: #cbd5e1; margin: 0 4px; }
+  .legend { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 1500px; margin: 20px auto; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .legend h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .legend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .legend-box { width: 44px; height: 24px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 600; }
+  .section-wrap { max-width: 1500px; margin: 24px auto; padding: 0 24px; }
+  .diagram-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 28px; }
+  .diagram-header { padding: 18px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .diagram-header h2 { font-size: 16px; font-weight: 700; }
+  .diagram-tag { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .tag-happy { background: #eef2ff; color: #4338ca; }
+  .tag-exception { background: #fee2e2; color: #991b1b; }
+  .diagram-meta { font-size: 12px; color: #64748b; padding: 8px 24px; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+  .diagram-meta span { display: inline-block; margin-right: 16px; }
+  .diagram-body { padding: 24px; overflow-x: auto; }
+  .diagram-body svg { max-width: 100%; height: auto; }
+  .exc-jump-bar { max-width: 1500px; margin: 0 auto 20px; padding: 0 24px; }
+  .exc-jump-bar h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .exc-jump-bar h3 .cnt { font-size: 11px; background: #ef4444; color: #fff; padding: 2px 10px; border-radius: 20px; }
+  .exc-jump-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .exc-jump-btn { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; background: #fff; border: 1.5px solid #e2e8f0; cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600; color: #1e293b; transition: all 0.2s; }
+  .exc-jump-btn:hover { border-color: #ef4444; background: #fef2f2; color: #991b1b; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(239,68,68,0.12); }
+  .exc-jump-btn .num { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
+  .n1 { background: #22c55e; }
+  .n2 { background: #6366f1; }
+  .n3 { background: #db2777; }
+  .n4 { background: #dc2626; }
+  .n5 { background: #f59e0b; }
+  .n6 { background: #0284c7; }
+  .exc-section { max-width: 1500px; margin: 0 auto; padding: 0 24px 20px; }
+  .exc-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.04); scroll-margin-top: 140px; }
+  .exc-card-header { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f1f5f9; background: #fafbfc; }
+  .exc-card-header-left { display: flex; align-items: center; gap: 10px; }
+  .exc-card-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+  .exc-card-sub { font-size: 11px; color: #94a3b8; font-weight: 500; }
+  .exc-card-icon { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; }
+  .exc-card .diagram-body { padding: 20px; }
+  .exc-highlight { animation: excPulse 1.5s ease-in-out 2; }
+  @keyframes excPulse {
+    0%, 100% { border-color: #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    50% { border-color: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.12), 0 4px 16px rgba(239,68,68,0.1); }
+  }
+  .footer { text-align: center; padding: 28px; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; margin-top: 32px; }
+  @media (max-width: 768px) {
+    .header { padding: 16px 20px; }
+    .nav { padding: 8px 16px; top: 70px; }
+    .section-wrap, .exc-section, .exc-jump-bar { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1><span class="header-badge">D5</span> Robot Orchestration + Battery Management</h1>
+      <p>Fleet manager + Task lifecycle + Battery swap + Teleop fallback — 6 exception flows</p>
+    </div>
+    <div><button class="export-btn" onclick="exportDiagram()">Download PNG</button></div>
+  </div>
+</div>
+
+<div class="nav">
+  <a class="nav-btn master" href="#">Master Overview</a>
+  <div class="nav-divider"></div>
+  <a class="nav-btn" href="#">D1: Inbound</a>
+  <a class="nav-btn" href="#">D2: Cameras</a>
+  <a class="nav-btn" href="#">D3: Verification</a>
+  <a class="nav-btn" href="#">D4: Putaway</a>
+  <a class="nav-btn active" href="#">D5: Orchestration</a>
+  <a class="nav-btn" href="#">D6: Forklift+Arm</a>
+  <a class="nav-btn" href="#">D7: Outbound</a>
+</div>
+
+<div class="legend">
+  <h3>Legend</h3>
+  <div class="legend-grid">
+    <div class="legend-item"><div class="legend-box" style="background:#eef2ff;border:2px solid #6366f1;">Core</div>Core / Terminal</div>
+    <div class="legend-item"><div class="legend-box" style="background:#e6f7ee;border:2px solid #22c55e;">Bot</div>Robot (24/7)</div>
+    <div class="legend-item"><div class="legend-box" style="background:#fffbeb;border:1.5px solid #f59e0b;">WMS</div>WMS / Fleet Mgr</div>
+    <div class="legend-item"><div class="legend-box" style="background:#fce7f3;border:2px solid #db2777;">Batt</div>Battery system</div>
+    <div class="legend-item"><div class="legend-box" style="background:#ecfeff;border:1px solid #06b6d4;">Step</div>Manual (9-5)</div>
+    <div class="legend-item"><svg width="52" height="32" viewBox="0 0 52 32" style="flex-shrink:0;"><polygon points="26,2 50,16 26,30 2,16" fill="#FFF3BF" stroke="#B7791F" stroke-width="2"/><text x="26" y="20" text-anchor="middle" font-size="10" font-weight="600" fill="#111827">?</text></svg>Decision</div>
+    <div class="legend-item"><div class="legend-box" style="background:#fee2e2;border:2px solid #ef4444;">!</div>Exception</div>
+    <div class="legend-item"><div class="legend-box" style="background:#f0fdf4;border:2px solid #16a34a;">OK</div>Recovery</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- HAPPY PATH -->
+<!-- ════════════════════════════════════════ -->
+<div class="section-wrap">
+  <div class="diagram-card" id="d5-happy">
+    <div class="diagram-header">
+      <h2>Happy Path — Task Orchestration + Battery Swap</h2>
+      <span class="diagram-tag tag-happy">HAPPY PATH</span>
+    </div>
+    <div class="diagram-meta">
+      <span style="color:#059669;">In: D1 D4 D6 task triggers</span>
+      <span style="color:#7c3aed;">Out: D3 Verification / Returns to source diagram</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '13px'}, 'flowchart': {'rankSpacing': 50, 'nodeSpacing': 35, 'curve': 'basis'}}}%%
+flowchart TB
+    D_IN(["From D1 D4 D6: Task trigger"]):::core
+    D_IN --> WMS_TASK["Generate task in WMS\nType: unload putaway box-move sort"]:::wms
+
+    WMS_TASK --> FM_SEL["Fleet manager selects robot\nBy type battery proximity"]:::wms
+    FM_SEL --> FM_AVAIL{"Robot\navailable?"}:::decision
+    FM_AVAIL -- Yes --> FM_ASSIGN
+    FM_AVAIL -- "None available" --> EXC_NOBOT["EXC-1 No robot available"]:::exception
+    EXC_NOBOT -.-> FM_ASSIGN
+
+    FM_ASSIGN["Assign task packet\nPick loc drop loc load ID priority"]:::wms
+    FM_ASSIGN --> CONFLICT{"Task conflict?\nDuplicate assignment?"}:::decision
+    CONFLICT -- No --> R_CHECK
+    CONFLICT -- Yes --> EXC_CONFLICT["EXC-2 Task conflict"]:::exception
+    EXC_CONFLICT -.-> R_CHECK
+
+    R_CHECK["Robot self-check\nMotors sensors comms ~5s"]:::robot
+    R_CHECK --> R_OK{"Self-check\npass?"}:::decision
+    R_OK -- Pass --> R_READY["Register ready in fleet"]:::robot
+    R_OK -- Fail --> EXC_SELFCHK["EXC-6 Self-check fail"]:::exception
+    EXC_SELFCHK -.-> R_READY
+
+    R_READY --> R_PACKET["Receive task packet"]:::robot
+    R_PACKET --> R_MODE{"Execution\nmode?"}:::decision
+
+    R_MODE -- "Autonomy 24/7" --> A_GUARD["Engage autonomy guardrails\nObstacle avoid speed zones"]:::robot
+    R_MODE -- Teleop --> T_UI["Open operator UI\nVideo LIDAR overlay"]:::robot
+    T_UI --> T_OK{"Teleop\nconnection OK?"}:::decision
+    T_OK -- "Yes latency under 200ms" --> T_DRV["Operator drives and supervises"]:::robot
+    T_OK -- "Fail" --> EXC_TELEOP["EXC-5 Teleop gateway fail"]:::exception
+    EXC_TELEOP -.-> A_GUARD
+    T_DRV --> A_GUARD
+
+    A_GUARD --> A_ALIGN["Alignment assist vision\nFork pocket or load detection\n5mm accuracy"]:::robot
+    A_ALIGN --> A_LOAD["Confirm load\nWeight tilt presence sensors"]:::robot
+    A_LOAD --> A_MOVE["Transport to target\nSpeed by robot type"]:::robot
+    A_MOVE --> A_DOCK["Dock and position lock"]:::robot
+    A_DOCK --> R_CLAIM["Robot claims task complete"]:::robot
+
+    R_CLAIM --> VVS_REQ["D3: Request verification\nTask context and evidence"]:::core
+    VVS_REQ --> R_VER{"VVS\nresult?"}:::decision
+    R_VER -- Verified --> R_DONE["Record in WMS\nTimestamp evidence confidence"]:::wms
+    R_VER -- "Review 9-5 only" --> R_HUMAN["Queue for human review\nAfter hrs queue until 9am"]:::process
+    R_VER -- Rejected --> R_FAIL["Verification failed\nRetry max 3 or escalate"]:::exception
+    R_HUMAN --> R_DONE
+    R_FAIL --> RETRY{"Retry\ncount?"}:::decision
+    RETRY -- "Under 3" --> A_GUARD
+    RETRY -- "3 or more" --> T_UI
+
+    R_DONE --> R_READY
+
+    R_READY --> BATT_MON["Monitor battery SOC\nContinuous check"]:::battery
+    BATT_MON --> BATT_LOW{"Below\n15%?"}:::decision
+    BATT_LOW -- No --> BATT_MON
+    BATT_LOW -- Yes --> BATT_DOCK["Auto-dock at swap bay\nEject depleted insert charged"]:::battery
+    BATT_DOCK --> BATT_OK{"Swap\nOK?"}:::decision
+    BATT_OK -- "Yes CAN comms good" --> BATT_BOOT["Fast boot self-check\n~20 sec resume queue"]:::battery
+    BATT_OK -- Fail --> EXC_SWAP["EXC-3 Battery swap fail"]:::exception
+    EXC_SWAP -.-> BATT_BOOT
+    BATT_BOOT --> R_READY
+
+    BATT_DOCK --> CAROUSEL["Charging carousel\n8-12 packs\n48V: 90 min 24V: 60 min"]:::battery
+    CAROUSEL --> CAR_OK{"Charged packs\navailable?"}:::decision
+    CAR_OK -- Yes --> BATT_DOCK
+    CAR_OK -- "None ready" --> EXC_CAROUSEL["EXC-4 Carousel empty"]:::exception
+    EXC_CAROUSEL -.-> BATT_DOCK
+
+    classDef core fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#111827
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef battery fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- EXCEPTION JUMP BUTTONS -->
+<!-- ════════════════════════════════════════ -->
+<div class="exc-jump-bar">
+  <h3>Exception Flows <span class="cnt">6</span></h3>
+  <div class="exc-jump-grid">
+    <button class="exc-jump-btn" onclick="jumpToExc('exc1')"><span class="num n1">1</span>No robot available</button>
+    <button class="exc-jump-btn" onclick="jumpToExc('exc2')"><span class="num n2">2</span>Task conflict</button>
+    <button class="exc-jump-btn" onclick="jumpToExc('exc3')"><span class="num n3">3</span>Battery swap fail</button>
+    <button class="exc-jump-btn" onclick="jumpToExc('exc4')"><span class="num n4">4</span>Carousel empty</button>
+    <button class="exc-jump-btn" onclick="jumpToExc('exc5')"><span class="num n5">5</span>Teleop gateway fail</button>
+    <button class="exc-jump-btn" onclick="jumpToExc('exc6')"><span class="num n6">6</span>Self-check fail</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- EXCEPTION CARDS -->
+<!-- ════════════════════════════════════════ -->
+<div class="exc-section">
+
+  <!-- EXC-1 -->
+  <div class="exc-card" id="exc1">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n1">1</div>
+        <div><div class="exc-card-title">EXC-1: No Robot Available</div><div class="exc-card-sub">All busy - All charging - Wrong type available - Fleet exhausted</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["No robot available\nfor task assignment"]:::exception
+    T --> WHY{"Why\nunavailable?"}:::decision
+    WHY -- "All busy on tasks" --> ETA["Check ETAs\nWhich robot finishes soonest?"]:::wms
+    ETA --> SOON{"ETA under\n5 min?"}:::decision
+    SOON -- Yes --> QUEUE["Queue task\nAssign when robot frees"]:::wms
+    QUEUE --> OK["Robot assigned"]:::fallback
+    SOON -- No --> PRIORITY["Compare task priorities\nCan lower priority task yield?"]:::wms
+    PRIORITY --> PREEMPT{"Preemptable\ntask found?"}:::decision
+    PREEMPT -- Yes --> REASSIGN["Preempt lower task\nPause and reassign robot"]:::wms
+    REASSIGN --> OK
+    PREEMPT -- No --> MANUAL["Fallback: manual operation\nHuman forklift or hand carry"]:::process
+    WHY -- "All charging\nbelow 15% SOC" --> CHARGE["Check carousel\nAny packs nearly ready?"]:::battery
+    CHARGE --> READY{"Pack ready\nin under 10 min?"}:::decision
+    READY -- Yes --> RUSH["Rush swap on\nhighest SOC robot"]:::battery
+    RUSH --> OK
+    READY -- No --> PARTIAL["Deploy at 10-15% SOC\nReduced speed mode\nReturn to swap after task"]:::robot
+    PARTIAL --> OK
+    WHY -- "Wrong type available\nNeed forklift got tote" --> CROSS["Check if task can be\nsplit across available types"]:::wms
+    CROSS --> SPLIT{"Splittable?"}:::decision
+    SPLIT -- Yes --> MULTI["Assign multiple smaller robots\nCoordinate handoff"]:::wms
+    MULTI --> OK
+    SPLIT -- No --> MANUAL
+    MANUAL --> OK
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef battery fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+  <!-- EXC-2 -->
+  <div class="exc-card" id="exc2">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n2">2</div>
+        <div><div class="exc-card-title">EXC-2: Task Assignment Conflict</div><div class="exc-card-sub">Duplicate assignment - Race condition - Two robots same target</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["Task conflict detected\nTwo robots assigned same task"]:::exception
+    T --> DETECT{"How\ndetected?"}:::decision
+    DETECT -- "Fleet manager catches\nbefore dispatch" --> CANCEL["Cancel duplicate assignment\nRelease second robot"]:::wms
+    CANCEL --> REASSIGN["Reassign freed robot\nto next queued task"]:::wms
+    REASSIGN --> OK["Conflict resolved"]:::fallback
+    DETECT -- "Robots both en route\nto same location" --> PROXIMITY["Proximity alert\nBoth approaching same point"]:::critical
+    PROXIMITY --> HALT["Halt second robot\nSafe stop"]:::robot
+    HALT --> CHECK["Fleet manager resolves\nWhich robot closer?"]:::wms
+    CHECK --> KEEP{"Keep\nwhich?"}:::decision
+    KEEP -- "Robot A closer" --> CONTINUE_A["Robot A continues\nRobot B gets new task"]:::robot
+    KEEP -- "Robot B closer" --> CONTINUE_B["Robot B continues\nRobot A gets new task"]:::robot
+    CONTINUE_A --> OK
+    CONTINUE_B --> OK
+    DETECT -- "Both arrive\nat same spot" --> DEADLOCK["Physical deadlock\nBoth at target"]:::critical
+    DEADLOCK --> BACK["One robot backs off\nFleet manager picks"]:::robot
+    BACK --> REROUTE["Backed robot rerouted\nNew task or holding zone"]:::wms
+    REROUTE --> OK
+    OK --> LOG["Log conflict in system\nRoot cause for prevention"]:::wms
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef critical fill:#fecaca,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+  <!-- EXC-3 -->
+  <div class="exc-card" id="exc3">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n3">3</div>
+        <div><div class="exc-card-title">EXC-3: Battery Swap Failure</div><div class="exc-card-sub">Bad pack - Bay occupied - CAN comms error - Mechanical jam</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["Battery swap failed"]:::exception
+    T --> TYPE{"Failure\ntype?"}:::decision
+    TYPE -- "CAN comms error\nPack not recognized" --> RESEAT["Eject and reseat pack\nClean contacts"]:::repair
+    RESEAT --> RETRY{"Comms\nestablished?"}:::decision
+    RETRY -- Yes --> BOOT["Fast boot and self-check\nResume operations"]:::battery
+    BOOT --> OK["Swap complete"]:::fallback
+    RETRY -- No --> BAD_PACK["Mark pack as faulty\nRemove from carousel"]:::critical
+    BAD_PACK --> NEXT["Try next available pack"]:::battery
+    NEXT --> OK
+    TYPE -- "Bay occupied\nAnother robot docked" --> WAIT["Wait 60s for bay\nCheck other bays"]:::robot
+    WAIT --> ALT{"Other bay\navailable?"}:::decision
+    ALT -- Yes --> MOVE["Move to alternate bay"]:::robot
+    MOVE --> OK
+    ALT -- "No all occupied" --> QUEUE_BAY["Queue for next available\nPriority by SOC level"]:::wms
+    QUEUE_BAY --> CRIT{"SOC\nbelow 5%?"}:::decision
+    CRIT -- No --> QUEUE_BAY
+    CRIT -- Yes --> ESTOP["Emergency: park robot\nSafe location low power mode"]:::critical
+    ESTOP --> MANUAL_SWAP["Human manually swaps\nbattery at parked location"]:::process
+    MANUAL_SWAP --> OK
+    TYPE -- "Mechanical jam\nPack stuck in robot" --> JAM["Retry eject mechanism\n3 attempts"]:::repair
+    JAM --> FREE{"Pack\nejected?"}:::decision
+    FREE -- Yes --> NEXT
+    FREE -- No --> MAINT["Alert maintenance\nManual extraction needed"]:::critical
+    MAINT --> PULL["Pull robot from fleet\nRepair eject mechanism"]:::critical
+    PULL --> OK
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef battery fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef critical fill:#fecaca,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef repair fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+  <!-- EXC-4 -->
+  <div class="exc-card" id="exc4">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n4">4</div>
+        <div><div class="exc-card-title">EXC-4: Charging Carousel Empty</div><div class="exc-card-sub">No charged packs - All packs charging - Charger fault</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["No charged packs available\nin carousel"]:::exception
+    T --> CHECK["Check all pack states\nSOC charge time remaining"]:::battery
+    CHECK --> CLOSEST{"Closest to\nfull charge?"}:::decision
+    CLOSEST -- "Under 15 min" --> WAIT["Wait for pack to finish\nRobot in low-power hold"]:::battery
+    WAIT --> OK["Pack ready swap proceeds"]:::fallback
+    CLOSEST -- "Over 15 min" --> TRIAGE{"How many robots\nwaiting?"}:::decision
+    TRIAGE -- "1 robot" --> PARTIAL_CHG["Use highest SOC pack\neven if not 100%\n60% minimum"]:::battery
+    PARTIAL_CHG --> REDUCED["Robot operates reduced mode\nSchedule early return for swap"]:::robot
+    REDUCED --> OK
+    TRIAGE -- "Multiple robots" --> PRIORITY_Q["Priority queue by task SLA\nMost critical gets first pack"]:::wms
+    PRIORITY_Q --> PARTIAL_CHG
+    PRIORITY_Q --> MANUAL_OP["Lower priority tasks:\nFallback to manual operation"]:::process
+    CHECK --> CHARGER{"Any charger\nfaults?"}:::decision
+    CHARGER -- "Yes charger offline" --> FIX["Reset or bypass faulty charger\nAlert maintenance"]:::repair
+    FIX --> CAPACITY["Reduced charging capacity\nExtend swap intervals"]:::battery
+    CAPACITY --> OK
+    CHARGER -- "No all working" --> DEMAND["Demand exceeds capacity\nAlert ops manager"]:::critical
+    DEMAND --> ADD["Request additional packs\nFrom backup storage"]:::process
+    ADD --> OK
+    MANUAL_OP --> OK
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef battery fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef critical fill:#fecaca,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef repair fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+  <!-- EXC-5 -->
+  <div class="exc-card" id="exc5">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n5">5</div>
+        <div><div class="exc-card-title">EXC-5: Teleop Gateway Failure</div><div class="exc-card-sub">Video lag - Connection drop - Operator UI crash</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["Teleop connection issue"]:::exception
+    T --> TYPE{"Issue\ntype?"}:::decision
+    TYPE -- "Latency spike\n200-500ms" --> DEGRADE["Degrade to lower framerate\nReduce video quality"]:::process
+    DEGRADE --> STABLE{"Stabilized?"}:::decision
+    STABLE -- Yes --> CONTINUE["Continue teleop\nat reduced quality"]:::robot
+    CONTINUE --> OK["Task proceeds"]:::fallback
+    STABLE -- No --> SAFESTOP
+    TYPE -- "Connection drop\ntotal loss" --> SAFESTOP["Robot auto safe stop\nHold position hazard lights"]:::critical
+    SAFESTOP --> RECONNECT["Auto-reconnect attempt\nEvery 5s for 60s"]:::process
+    RECONNECT --> BACK{"Connection\nrestored?"}:::decision
+    BACK -- Yes --> RESUME["Operator resumes control\nVerify robot state first"]:::robot
+    RESUME --> OK
+    BACK -- No --> SWITCH{"Switch to\nautonomy?"}:::decision
+    SWITCH -- "Task is simple enough" --> AUTO["Switch to autonomous mode\nComplete task without operator"]:::robot
+    AUTO --> OK
+    SWITCH -- "Task requires operator" --> PARK["Park robot safely\nRelease task back to queue"]:::critical
+    PARK --> REQUEUE["Requeue task\nAssign different robot"]:::wms
+    REQUEUE --> OK
+    TYPE -- "Operator UI crash" --> RESTART_UI["Restart operator console\nReconnect to same robot"]:::repair
+    RESTART_UI --> STATE["Verify robot state\nPosition load status"]:::robot
+    STATE --> OK
+    classDef wms fill:#fffbeb,stroke:#f59e0b,stroke-width:1.5px,color:#111827
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef critical fill:#fecaca,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef repair fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+  <!-- EXC-6 -->
+  <div class="exc-card" id="exc6">
+    <div class="exc-card-header">
+      <div class="exc-card-header-left">
+        <div class="exc-card-icon n6">6</div>
+        <div><div class="exc-card-title">EXC-6: Robot Self-Check Fails Repeatedly</div><div class="exc-card-sub">Cannot join fleet - Sensor drift - Comms failure - Hardware degradation</div></div>
+      </div>
+      <span class="diagram-tag tag-exception">EXCEPTION</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '12px'}, 'flowchart': {'rankSpacing': 45, 'nodeSpacing': 30}}}%%
+flowchart TB
+    T["Self-check failed\nRobot cannot register ready"]:::exception
+    T --> RETRY["Retry self-check\nMax 3 attempts 10s cooldown"]:::robot
+    RETRY --> PASS{"Pass on\nretry?"}:::decision
+    PASS -- Yes --> OK["Robot joins fleet"]:::fallback
+    PASS -- "No all 3 fail" --> DIAG["Run extended diagnostics\nFull sensor motor comms test"]:::repair
+    DIAG --> FAULT{"Fault\nidentified?"}:::decision
+    FAULT -- "Sensor drift\nrecalibration needed" --> RECAL["Auto-recalibrate sensors\nUse known reference points"]:::repair
+    RECAL --> RETEST["Retest self-check"]:::robot
+    RETEST --> OK2{"Pass?"}:::decision
+    OK2 -- Yes --> OK
+    OK2 -- No --> PULL
+    FAULT -- "Comms failure\nWiFi or fleet link" --> NETWORK["Reset network module\nReconnect to fleet"]:::repair
+    NETWORK --> PING{"Fleet\nconnected?"}:::decision
+    PING -- Yes --> RETEST
+    PING -- No --> REBOOT["Full robot reboot\nCold restart all systems"]:::critical
+    REBOOT --> RETEST
+    FAULT -- "Motor or hardware\ndegradation" --> PULL["Pull from fleet\nMark out of service"]:::critical
+    PULL --> MAINT["On-site maintenance\nDiagnose and repair"]:::repair
+    MAINT --> SEV{"Fixable\non-site?"}:::decision
+    SEV -- Yes --> FIX["Repair and full recertification"]:::repair
+    FIX --> CERT{"Recert\npass?"}:::decision
+    CERT -- Yes --> OK
+    CERT -- No --> MAINT
+    SEV -- No --> RMA["Vendor RMA\nAssign spare from pool"]:::critical
+    RMA --> OK
+    classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
+    classDef process fill:#ecfeff,stroke:#06b6d4,stroke-width:1px,color:#111827
+    classDef decision fill:#FFF3BF,stroke:#B7791F,stroke-width:2px,color:#111827
+    classDef exception fill:#fee2e2,stroke:#ef4444,stroke-width:1.5px,color:#991b1b
+    classDef critical fill:#fecaca,stroke:#dc2626,stroke-width:2px,color:#7f1d1d
+    classDef repair fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#831843
+    classDef fallback fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#064e3b
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">nventr — D5: Robot Orchestration + Battery Management — Happy Path + 6 Exception Flows</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif',
+      fontSize: '13px'
+    }
+  });
+
+  function jumpToExc(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    el.classList.remove('exc-highlight');
+    void el.offsetWidth;
+    el.classList.add('exc-highlight');
+    setTimeout(function() { el.classList.remove('exc-highlight'); }, 3500);
+  }
+
+  var excMap = {
+    'exc-1': 'exc1', 'exc-2': 'exc2', 'exc-3': 'exc3',
+    'exc-4': 'exc4', 'exc-5': 'exc5', 'exc-6': 'exc6'
+  };
+
+  setTimeout(function() {
+    var happySvg = document.querySelector('#d5-happy svg');
+    if (!happySvg) return;
+    var nodes = happySvg.querySelectorAll('.node');
+    nodes.forEach(function(node) {
+      var label = node.querySelector('.nodeLabel');
+      if (!label) return;
+      var txt = (label.textContent || '').toLowerCase();
+      for (var key in excMap) {
+        if (txt.indexOf(key) !== -1) {
+          node.style.cursor = 'pointer';
+          node.setAttribute('title', 'Click to view exception details');
+          (function(targetId) {
+            node.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              jumpToExc(targetId);
+            });
+            node.addEventListener('mouseenter', function() {
+              var r = node.querySelector('rect, polygon');
+              if (r) r.style.filter = 'brightness(0.85)';
+              label.style.textDecoration = 'underline';
+            });
+            node.addEventListener('mouseleave', function() {
+              var r = node.querySelector('rect, polygon');
+              if (r) r.style.filter = '';
+              label.style.textDecoration = '';
+            });
+          })(excMap[key]);
+          break;
+        }
+      }
+    });
+  }, 1500);
+
+  async function exportDiagram() {
+    var el = document.getElementById('d5-happy').querySelector('.diagram-body');
+    try {
+      var canvas = await html2canvas(el, { scale: 3, backgroundColor: '#fff', logging: false, useCORS: true });
+      canvas.toBlob(function(b) {
+        var u = URL.createObjectURL(b);
+        var a = document.createElement('a');
+        a.href = u; a.download = 'D5_Robot_Orchestration.png';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(u);
+      });
+    } catch(e) { alert('Export failed'); }
+  }
+</script>
+
+</body>
+</html>

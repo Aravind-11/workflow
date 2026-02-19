@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nventr — Warehouse Operations Hub</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  .header {
+    background: #1e293b;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #334155;
+    flex-shrink: 0;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 18px; font-weight: 700; color: #fff; }
+  .header-sub { font-size: 12px; color: #94a3b8; }
+  .header-right { font-size: 11px; color: #64748b; }
+
+  .tab-bar {
+    background: #1e293b;
+    padding: 0 24px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-bottom: 2px solid #334155;
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #94a3b8;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: #6366f1;
+    background: rgba(99,102,241,0.08);
+  }
+  .tab-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    color: #fff;
+  }
+  .b-d1 { background: #6366f1; }
+  .b-d2 { background: #f59e0b; }
+  .b-d3 { background: #0284c7; }
+  .b-d4 { background: #8b5cf6; }
+  .b-d5 { background: #059669; }
+  .b-d6 { background: #dc2626; }
+  .b-d7 { background: #0891b2; }
+  .tab-exc {
+    font-size: 9px;
+    color: #fca5a5;
+    font-weight: 600;
+  }
+
+  .tab-divider {
+    width: 1px;
+    background: #334155;
+    margin: 6px 4px;
+    flex-shrink: 0;
+  }
+
+  .iframe-wrap {
+    flex: 1;
+    position: relative;
+    background: #f8fafc;
+  }
+  .iframe-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 40px;
+    background: #f8fafc;
+    color: #1e293b;
+  }
+  .welcome h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; color: #1e293b; }
+  .welcome p { font-size: 14px; color: #64748b; margin-bottom: 32px; max-width: 500px; }
+  .welcome-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    max-width: 800px;
+    width: 100%;
+  }
+  .welcome-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .welcome-card:hover {
+    border-color: #6366f1;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.12);
+    transform: translateY(-2px);
+  }
+  .welcome-card-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 8px;
+    border-radius: 8px; color: #fff; display: inline-block; margin-bottom: 8px;
+  }
+  .welcome-card-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .welcome-card-sub { font-size: 11px; color: #94a3b8; }
+  .welcome-card-exc { font-size: 11px; color: #ef4444; font-weight: 600; margin-top: 6px; }
+
+  .loading {
+    display: none;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    z-index: 10;
+  }
+  .loading.visible { display: block; }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 768px) {
+    .header { padding: 12px 16px; }
+    .header h1 { font-size: 15px; }
+    .tab-bar { padding: 0 12px; }
+    .tab-btn { padding: 8px 14px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>nventr — Warehouse Operations Hub</h1>
+    <span class="header-sub">7 modules with detailed exception flows</span>
+  </div>
+  <div class="header-right">Select a module tab to begin</div>
+</div>
+
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" onclick="showWelcome()">
+    Home
+  </button>
+  <div class="tab-divider"></div>
+  <button class="tab-btn" onclick="loadModule('d1','d1-inbound-receiving.html',this)">
+    <span class="tab-badge b-d1">D1</span>Inbound + Labeling<span class="tab-exc">9 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d2','d2-camera-infrastructure.html',this)">
+    <span class="tab-badge b-d2">D2</span>Camera Infra<span class="tab-exc">7 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d3','d3-verification-process.html',this)">
+    <span class="tab-badge b-d3">D3</span>Verification<span class="tab-exc">6 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d4','d4-putaway-docprep.html',this)">
+    <span class="tab-badge b-d4">D4</span>Putaway + Doc<span class="tab-exc">2 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d5','d5-robot-orchestration.html',this)">
+    <span class="tab-badge b-d5">D5</span>Orchestration<span class="tab-exc">6 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d6','d6-forklift-arm-sort.html',this)">
+    <span class="tab-badge b-d6">D6</span>Forklift + Arm<span class="tab-exc">8 exc</span>
+  </button>
+  <button class="tab-btn" onclick="loadModule('d7','d7-prep-outbound.html',this)">
+    <span class="tab-badge b-d7">D7</span>Prep + Outbound<span class="tab-exc">TBD</span>
+  </button>
+</div>
+
+<div class="iframe-wrap" id="iframeWrap">
+  <div class="welcome" id="welcomeScreen">
+    <h2>Warehouse Operations Hub</h2>
+    <p>Click a module tab above or a card below to view detailed flowcharts with full exception handling.</p>
+    <div class="welcome-grid">
+      <div class="welcome-card" onclick="loadModuleByIndex(1)">
+        <span class="welcome-card-badge b-d1">D1</span>
+        <div class="welcome-card-title">Inbound Receiving + Labeling</div>
+        <div class="welcome-card-sub">Truck arrival, unload, manifest, barcode labeling</div>
+        <div class="welcome-card-exc">9 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(2)">
+        <span class="welcome-card-badge b-d2">D2</span>
+        <div class="welcome-card-title">Camera Infrastructure</div>
+        <div class="welcome-card-sub">Fixed cameras, robot cameras, evidence storage</div>
+        <div class="welcome-card-exc">7 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(3)">
+        <span class="welcome-card-badge b-d3">D3</span>
+        <div class="welcome-card-title">Verification Process</div>
+        <div class="welcome-card-sub">VVS engine, ML models, confidence scoring</div>
+        <div class="welcome-card-exc">6 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(4)">
+        <span class="welcome-card-badge b-d4">D4</span>
+        <div class="welcome-card-title">Putaway, Doc Prep + Disposition</div>
+        <div class="welcome-card-sub">Rack storage, scanning, retention, destroy/archive</div>
+        <div class="welcome-card-exc">2 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(5)">
+        <span class="welcome-card-badge b-d5">D5</span>
+        <div class="welcome-card-title">Robot Orchestration + Battery</div>
+        <div class="welcome-card-sub">Fleet manager, task lifecycle, battery swap</div>
+        <div class="welcome-card-exc">6 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(6)">
+        <span class="welcome-card-badge b-d6">D6</span>
+        <div class="welcome-card-title">Forklift AMR + Arm Sorting</div>
+        <div class="welcome-card-sub">Rack retrieval, robotic arm sort, lane management</div>
+        <div class="welcome-card-exc">8 exception flows</div>
+      </div>
+      <div class="welcome-card" onclick="loadModuleByIndex(7)">
+        <span class="welcome-card-badge b-d7">D7</span>
+        <div class="welcome-card-title">Prep, Staging + Outbound</div>
+        <div class="welcome-card-sub">JIT delivery, prep stations, staging, shipping</div>
+        <div class="welcome-card-exc">Coming soon</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loadingIndicator">
+    <div class="spinner"></div>
+    Loading module...
+  </div>
+
+  <iframe id="moduleFrame" style="display:none;" onload="onFrameLoad()"></iframe>
+</div>
+
+<script>
+  var currentModule = null;
+
+  function showWelcome() {
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('moduleFrame').style.display = 'none';
+    document.getElementById('loadingIndicator').classList.remove('visible');
+    setActiveTab(0);
+    currentModule = null;
+  }
+
+  function loadModule(id, filename, btn) {
+    if (currentModule === id) return;
+    currentModule = id;
+
+    var welcome = document.getElementById('welcomeScreen');
+    var frame = document.getElementById('moduleFrame');
+    var loading = document.getElementById('loadingIndicator');
+
+    welcome.style.display = 'none';
+    frame.style.display = 'none';
+    loading.classList.add('visible');
+
+    frame.src = filename;
+
+    // Set active tab
+    var btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(function(b) { b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+  }
+
+  function loadModuleByIndex(idx) {
+    // idx: 1=D1, 2=D2, etc. Tab buttons start at index 2 (after Home + divider)
+    var btns = document.querySelectorAll('.tab-btn');
+    var tabIdx = idx + 1; // +1 because Home is index 0, then divider
+    if (btns[tabIdx]) btns[tabIdx].click();
+  }
+
+  function onFrameLoad() {
+    var frame = document.getElementById('moduleFrame');
+    var loading = document.getElementById('loadingIndicator');
+    if (currentModule) {
+      loading.classList.remove('visible');
+      frame.style.display = 'block';
+    }
+  }
+
+  function setActiveTab(idx) {
+    var btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(function(b, i) { b.classList.toggle('active', i === idx); });
+  }
+</script>
+
+</body>
+</html>
