@@ -284,8 +284,8 @@ flowchart TB
     PW --> PWR{"Power\nrestored?"}:::decision
     PWR -- Yes --> REBOOT["Reboot camera\nVerify feed quality"]:::repair
     PWR -- No --> ELEC["Escalate to electrician\nSLA 4hr"]:::critical
-    DG -- "Lens damage or\nimage degraded" --> SWAP["Swap camera unit\nSpare from inventory"]:::repair
-    DG -- "Full offline\nno heartbeat" --> NET["Check network port\nSwitch and cabling"]:::repair
+    DG -- "Lens damage or image degraded" --> SWAP["Swap camera unit\nSpare from inventory"]:::repair
+    DG -- "Full offline no heartbeat" --> NET["Check network port\nSwitch and cabling"]:::repair
     NET --> NETR{"Network\nrestored?"}:::decision
     NETR -- Yes --> REBOOT
     NETR -- No --> VENDOR["Vendor dispatch\nRMA camera unit"]:::critical
@@ -326,8 +326,8 @@ flowchart TB
     NS --> PULL["Pull robot from task\nAlert fleet manager"]:::critical
     W -- "Load camera down" --> LD["Robot can nav but\ncannot verify loads"]:::exception
     LD --> MODE{"Task\ntype?"}:::decision
-    MODE -- "Transport only\nno load verify needed" --> CONT["Continue in reduced mode\nFlag for fixed cam verification"]:::process
-    MODE -- "Pick or place\nload verify required" --> PULL
+    MODE -- "Transport only no load verify needed" --> CONT["Continue in reduced mode\nFlag for fixed cam verification"]:::process
+    MODE -- "Pick or place load verify required" --> PULL
     PULL --> DIAG["On-site camera diagnostic\nClean lens check cable"]:::repair
     DIAG --> FIX{"Fixable\nquickly?"}:::decision
     FIX -- "Yes lens or cable" --> RECAL["Clean or replace\nRecalibrate vision"]:::repair
@@ -365,15 +365,15 @@ flowchart TB
 flowchart TB
     T["Network feed issue detected\nLatency or dropped frames"]:::exception
     T --> TY{"Issue\ntype?"}:::decision
-    TY -- "Latency spike\nabove 500ms" --> BUF["Increase buffer window\nCache frames locally on camera"]:::process
+    TY -- "Latency spike above 500ms" --> BUF["Increase buffer window\nCache frames locally on camera"]:::process
     BUF --> MON["Monitor for 5 min"]:::process
     MON --> REC{"Recovered?"}:::decision
     REC -- Yes --> SYNC["Re-sync timestamps\nValidate frame sequence"]:::process
     SYNC --> OK["Feed restored"]:::fallback
     REC -- No --> SW["Check network switch\nPort and bandwidth"]:::repair
-    TY -- "Dropped frames\ngaps in feed" --> LOC["Activate local recording\non camera SD card"]:::process
+    TY -- "Dropped frames gaps in feed" --> LOC["Activate local recording\non camera SD card"]:::process
     LOC --> SW
-    TY -- "Sync drift\ntimestamps misaligned" --> NTP["Force NTP resync\nAll cameras to master clock"]:::repair
+    TY -- "Sync drift timestamps misaligned" --> NTP["Force NTP resync\nAll cameras to master clock"]:::repair
     NTP --> VAL{"Sync within\n100ms?"}:::decision
     VAL -- Yes --> OK
     VAL -- No --> HW["Check camera clock hardware\nReplace if faulty"]:::repair
@@ -450,7 +450,7 @@ flowchart TB
     VER -- Yes --> RESTORE["Restore file\nRe-verify checksum"]:::repair
     RESTORE --> OK["Evidence restored"]:::fallback
     VER -- No --> FLAG["Flag affected verifications\nMark evidence as incomplete"]:::critical
-    SCOPE -- "Multiple files\nsector damage" --> DISK["Disk health check\nSMART diagnostics"]:::repair
+    SCOPE -- "Multiple files sector damage" --> DISK["Disk health check\nSMART diagnostics"]:::repair
     DISK --> SEV{"Disk\nfailing?"}:::decision
     SEV -- "No isolated event" --> REBUILD["Rebuild from RAID parity\nor backup replicas"]:::repair
     REBUILD --> OK

@@ -333,11 +333,11 @@ flowchart TB
 flowchart TB
     T["ML model result suspicious\nConfidence anomaly or contradiction"]:::exception
     T --> DET{"Detection\ntype?"}:::decision
-    DET -- "False positive\nModel says OK but\nother signals disagree" --> FP["Flag as suspect\nDo not auto-approve"]:::critical
+    DET -- "False positive Model says OK but other signals disagree" --> FP["Flag as suspect\nDo not auto-approve"]:::critical
     FP --> HUMAN["Force human review\nShow all evidence"]:::process
-    DET -- "False negative\nModel says fail but\nvisuals look OK" --> FN["Flag as suspect\nDo not auto-reject"]:::critical
+    DET -- "False negative Model says fail but visuals look OK" --> FN["Flag as suspect\nDo not auto-reject"]:::critical
     FN --> HUMAN
-    DET -- "Model timeout\nor garbage output" --> CRASH["Model inference failed"]:::critical
+    DET -- "Model timeout or garbage output" --> CRASH["Model inference failed"]:::critical
     CRASH --> RELOAD["Reload model weights\nRetry inference"]:::repair
     RELOAD --> RETRY{"Retry\npass?"}:::decision
     RETRY -- Yes --> OK["Continue with result"]:::fallback
@@ -374,17 +374,17 @@ flowchart TB
 flowchart TB
     T["Camera angles disagree\non verification result"]:::exception
     T --> WHY{"Root\ncause?"}:::decision
-    WHY -- "Occlusion\none cam blocked" --> OCC["Identify blocked camera\nExclude from correlation"]:::process
+    WHY -- "Occlusion one cam blocked" --> OCC["Identify blocked camera\nExclude from correlation"]:::process
     OCC --> ENOUGH{"Remaining cameras\nsufficient?"}:::decision
     ENOUGH -- "Yes 2+ agree" --> RECALC["Recalculate confidence\nwithout blocked camera"]:::vvs
     RECALC --> OK["Proceed with adjusted score"]:::fallback
     ENOUGH -- "No only 1 left" --> HUMAN["Force human review\nSingle camera evidence"]:::process
-    WHY -- "Timestamp mismatch\ncams out of sync" --> RESYNC["Force NTP resync\non disagreeing cameras"]:::repair
+    WHY -- "Timestamp mismatch cams out of sync" --> RESYNC["Force NTP resync\non disagreeing cameras"]:::repair
     RESYNC --> REQUERY["Re-query feeds\nwith corrected timestamps"]:::vvs
     REQUERY --> AGREE{"Now\nagree?"}:::decision
     AGREE -- Yes --> OK
     AGREE -- No --> HUMAN
-    WHY -- "Genuine disagreement\ndifferent views show\ndifferent things" --> MULTI["Run each camera through\nmodels independently"]:::vvs
+    WHY -- "Genuine disagreement different views show different things" --> MULTI["Run each camera through\nmodels independently"]:::vvs
     MULTI --> VOTE["Majority vote\n2 of 3 cameras agree"]:::vvs
     VOTE --> MAJ{"Majority\nreached?"}:::decision
     MAJ -- Yes --> LOWER["Accept with lowered\nconfidence score"]:::vvs
@@ -416,7 +416,7 @@ flowchart TB
 flowchart TB
     T["Human review needed\nbut reviewer unavailable"]:::exception
     T --> WHY{"Why\nunavailable?"}:::decision
-    WHY -- "After hours\nno staff on site" --> QUEUE["Queue until 9am\nPriority by SLA urgency"]:::process
+    WHY -- "After hours no staff on site" --> QUEUE["Queue until 9am\nPriority by SLA urgency"]:::process
     QUEUE --> SLA{"SLA at\nrisk?"}:::decision
     SLA -- No --> WAIT["Hold in queue\nProcess at 9am"]:::process
     SLA -- Yes --> ONCALL["Page on-call reviewer\nRemote dashboard access"]:::critical
@@ -424,7 +424,7 @@ flowchart TB
     ACCEPT -- Yes --> REVIEW["Review via remote dashboard"]:::process
     ACCEPT -- No --> AUTO_LOW["Auto-approve at lower\nconfidence with flag"]:::vvs
     AUTO_LOW --> RECHECK["Add to morning recheck\nhigh priority"]:::process
-    WHY -- "Overloaded\nqueue too long" --> COUNT{"Queue\nsize?"}:::decision
+    WHY -- "Overloaded queue too long" --> COUNT{"Queue\nsize?"}:::decision
     COUNT -- "Under 20" --> WAIT2["Wait in queue\nFIFO by priority"]:::process
     COUNT -- "Over 20" --> REDISTRIBUTE["Redistribute to\nother reviewers"]:::process
     REDISTRIBUTE --> AVAIL{"Others\navailable?"}:::decision
@@ -507,12 +507,12 @@ flowchart TB
 flowchart TB
     T["Sensor vs camera conflict\nData sources disagree"]:::exception
     T --> TYPE{"Conflict\ntype?"}:::decision
-    TYPE -- "Weight mismatch\nLoad cell vs visual est" --> WT["Compare tolerance\nLoad cell accuracy 2%\nVisual estimate 10%"]:::vvs
+    TYPE -- "Weight mismatch Load cell vs visual est" --> WT["Compare tolerance\nLoad cell accuracy 2%\nVisual estimate 10%"]:::vvs
     WT --> TOL{"Within combined\ntolerance?"}:::decision
     TOL -- Yes --> ACCEPT["Accept with note\nFlag minor discrepancy"]:::process
     TOL -- No --> REWEIGH["Request re-weigh\nRobot returns to scale"]:::critical
     REWEIGH --> OK["Conflict resolved"]:::fallback
-    TYPE -- "Position disagree\nLIDAR vs camera" --> POS["Check LIDAR calibration\nLast calibration date"]:::repair
+    TYPE -- "Position disagree LIDAR vs camera" --> POS["Check LIDAR calibration\nLast calibration date"]:::repair
     POS --> STALE{"Calibration\nstale?"}:::decision
     STALE -- Yes --> RECAL["Recalibrate LIDAR\nUse known reference point"]:::repair
     RECAL --> RECHECK["Re-verify position"]:::vvs
@@ -520,7 +520,7 @@ flowchart TB
     STALE -- No --> BOTH["Both sources valid\nUse higher precision source"]:::vvs
     BOTH --> PRIORITY["LIDAR for distance\nCamera for visual confirm"]:::vvs
     PRIORITY --> OK
-    TYPE -- "Tilt anomaly\nTilt sensor vs visual level" --> TILT["Check tilt sensor zero\nCalibrate on flat surface"]:::repair
+    TYPE -- "Tilt anomaly Tilt sensor vs visual level" --> TILT["Check tilt sensor zero\nCalibrate on flat surface"]:::repair
     TILT --> SAFE{"Load\nsafe?"}:::decision
     SAFE -- "Yes within 5 deg" --> ACCEPT
     SAFE -- "No over 5 deg" --> ESTOP["Emergency stop robot\nSecure load manually"]:::critical

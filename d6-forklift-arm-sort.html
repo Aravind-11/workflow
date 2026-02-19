@@ -260,20 +260,20 @@ flowchart TB
 flowchart TB
     T["Gripper failure\nItem dropped or not secured"]:::exception
     T --> TYPE{"Failure\ntype?"}:::decision
-    TYPE -- "Vacuum loss\nSuction failed" --> VCHECK["Check vacuum pump\nPressure reading"]:::repair
+    TYPE -- "Vacuum loss Suction failed" --> VCHECK["Check vacuum pump\nPressure reading"]:::repair
     VCHECK --> SEAL{"Seal\nintact?"}:::decision
     SEAL -- "Dirty or debris" --> CLEAN["Auto-purge vacuum line\nRetry grip"]:::repair
     CLEAN --> OK["Resume picking"]:::fallback
     SEAL -- "Pump fault" --> SWITCH["Switch to mechanical gripper\nDual mode available"]:::robot
     SWITCH --> OK
-    TYPE -- "Mechanical jam\nFingers stuck" --> UNJAM["Reverse gripper motion\nCycle open-close 3x"]:::repair
+    TYPE -- "Mechanical jam Fingers stuck" --> UNJAM["Reverse gripper motion\nCycle open-close 3x"]:::repair
     UNJAM --> FREE{"Freed?"}:::decision
     FREE -- Yes --> OK
     FREE -- No --> ESTOP["E-stop arm\nAlert maintenance"]:::critical
     ESTOP --> MAINT["On-site repair\nReplace gripper assembly"]:::repair
     MAINT --> RECERT["Recertify with test picks"]:::repair
     RECERT --> OK
-    TYPE -- "Item dropped\nmid-transport" --> LOCATE["Camera locates dropped item\n3D scan sort zone floor"]:::camera
+    TYPE -- "Item dropped mid-transport" --> LOCATE["Camera locates dropped item\n3D scan sort zone floor"]:::camera
     LOCATE --> SAFE{"Safe to\nre-pick?"}:::decision
     SAFE -- Yes --> REPICK["Re-pick from floor\nAdjusted grip plan"]:::robot
     REPICK --> OK
@@ -327,15 +327,15 @@ flowchart TB
     T["Lane jam detected\nSensor shows blockage"]:::exception
     T --> PAUSE["Arm pauses picks\nfor jammed lane"]:::robot
     PAUSE --> TYPE{"Jam\ntype?"}:::decision
-    TYPE -- "Items piled up\nmisaligned stack" --> PUSH["Arm repositions top items\nGentle push to clear"]:::robot
+    TYPE -- "Items piled up misaligned stack" --> PUSH["Arm repositions top items\nGentle push to clear"]:::robot
     PUSH --> CLR{"Cleared?"}:::decision
     CLR -- Yes --> RESUME["Resume sorting\nto this lane"]:::fallback
     CLR -- No --> HUMAN
-    TYPE -- "Conveyor stuck\nmechanical fault" --> RESET["Reset conveyor motor\nReverse then forward"]:::repair
+    TYPE -- "Conveyor stuck mechanical fault" --> RESET["Reset conveyor motor\nReverse then forward"]:::repair
     RESET --> MOVE{"Moving?"}:::decision
     MOVE -- Yes --> RESUME
     MOVE -- No --> HUMAN["Human clears jam\n9-5 immediate after-hrs on-call"]:::process
-    TYPE -- "Sensor blocked\nfalse jam signal" --> CLEAN_S["Clean sensor lens\nVerify with test item"]:::repair
+    TYPE -- "Sensor blocked false jam signal" --> CLEAN_S["Clean sensor lens\nVerify with test item"]:::repair
     CLEAN_S --> RESUME
     HUMAN --> INSPECT["Inspect lane for damage\nReplace parts if needed"]:::repair
     INSPECT --> RESUME
@@ -420,18 +420,18 @@ flowchart TB
 flowchart TB
     T["Lane pickup robot failure\nCannot collect sorted items"]:::exception
     T --> TYPE{"Failure\ntype?"}:::decision
-    TYPE -- "No robot available\nAll busy or charging" --> QUEUE["Queue pickup request\nLane on hold arm skips lane"]:::wms
+    TYPE -- "No robot available All busy or charging" --> QUEUE["Queue pickup request\nLane on hold arm skips lane"]:::wms
     QUEUE --> ETA{"ETA under\n10 min?"}:::decision
     ETA -- Yes --> WAIT["Wait for robot\nArm sorts to other lanes"]:::robot
     WAIT --> OK["Pickup proceeds"]:::fallback
     ETA -- No --> MANUAL["Manual pickup\nHuman collects from lane"]:::process
     MANUAL --> OK
-    TYPE -- "Cannot dock at lane\nAlignment or obstacle" --> REDOCK["Retry dock approach\nAlternate angle"]:::robot
+    TYPE -- "Cannot dock at lane Alignment or obstacle" --> REDOCK["Retry dock approach\nAlternate angle"]:::robot
     REDOCK --> DOCK{"Docked?"}:::decision
     DOCK -- Yes --> OK
     DOCK -- No --> ADJACENT["Try adjacent pickup point\nSlightly offset position"]:::robot
     ADJACENT --> OK
-    TYPE -- "Load exceeds tote limit\n150 lbs Tote Mover" --> UPGRADE["Switch to Jack Robot\n250 lbs capacity"]:::robot
+    TYPE -- "Load exceeds tote limit 150 lbs Tote Mover" --> UPGRADE["Switch to Jack Robot\n250 lbs capacity"]:::robot
     UPGRADE --> AVAIL{"Jack Robot\navailable?"}:::decision
     AVAIL -- Yes --> OK
     AVAIL -- No --> SPLIT["Split into 2 smaller loads\nTote Mover handles each"]:::robot
@@ -458,9 +458,9 @@ flowchart TB
     ESTOP --> SAFE["Retract arm to safe position\nClear of debris"]:::robot
     SAFE --> ASSESS["Camera assessment\n3D scan fallen items"]:::camera
     ASSESS --> SEV{"Severity?"}:::decision
-    SEV -- "Minor shift\nItems tilted but contained" --> RESTACK["Arm restacks items\nCareful low-speed picks"]:::robot
+    SEV -- "Minor shift Items tilted but contained" --> RESTACK["Arm restacks items\nCareful low-speed picks"]:::robot
     RESTACK --> RESUME["Resume normal sorting"]:::fallback
-    SEV -- "Major collapse\nItems scattered on floor" --> ZONE_CLEAR["Clear sort zone\nHalt all lane robots"]:::critical
+    SEV -- "Major collapse Items scattered on floor" --> ZONE_CLEAR["Clear sort zone\nHalt all lane robots"]:::critical
     ZONE_CLEAR --> TIME{"Time?"}:::decision
     TIME -- "9-5" --> HUMAN["Human team clears zone\nInspect for damage"]:::process
     TIME -- "After hours" --> ONCALL["Page on-call crew\nRobots hold until clear"]:::critical
@@ -471,7 +471,7 @@ flowchart TB
     DMG -- "All OK" --> REPALLETIZE["Repalletize items\nNew pallet if broken"]:::process
     SEPARATE --> REPALLETIZE
     REPALLETIZE --> RESUME
-    SEV -- "Pallet broken\nwood splintered" --> REMOVE["Remove broken pallet\nTransfer items to new pallet"]:::process
+    SEV -- "Pallet broken wood splintered" --> REMOVE["Remove broken pallet\nTransfer items to new pallet"]:::process
     REMOVE --> ZONE_CLEAR
     classDef robot fill:#e6f7ee,stroke:#22c55e,stroke-width:2px,color:#064e3b
     classDef camera fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#111827

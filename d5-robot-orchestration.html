@@ -250,13 +250,13 @@ flowchart TB
     PREEMPT -- Yes --> REASSIGN["Preempt lower task\nPause and reassign robot"]:::wms
     REASSIGN --> OK
     PREEMPT -- No --> MANUAL["Fallback: manual operation\nHuman forklift or hand carry"]:::process
-    WHY -- "All charging\nbelow 15% SOC" --> CHARGE["Check carousel\nAny packs nearly ready?"]:::battery
+    WHY -- "All charging below 15% SOC" --> CHARGE["Check carousel\nAny packs nearly ready?"]:::battery
     CHARGE --> READY{"Pack ready\nin under 10 min?"}:::decision
     READY -- Yes --> RUSH["Rush swap on\nhighest SOC robot"]:::battery
     RUSH --> OK
     READY -- No --> PARTIAL["Deploy at 10-15% SOC\nReduced speed mode\nReturn to swap after task"]:::robot
     PARTIAL --> OK
-    WHY -- "Wrong type available\nNeed forklift got tote" --> CROSS["Check if task can be\nsplit across available types"]:::wms
+    WHY -- "Wrong type available Need forklift got tote" --> CROSS["Check if task can be\nsplit across available types"]:::wms
     CROSS --> SPLIT{"Splittable?"}:::decision
     SPLIT -- Yes --> MULTI["Assign multiple smaller robots\nCoordinate handoff"]:::wms
     MULTI --> OK
@@ -288,10 +288,10 @@ flowchart TB
 flowchart TB
     T["Task conflict detected\nTwo robots assigned same task"]:::exception
     T --> DETECT{"How\ndetected?"}:::decision
-    DETECT -- "Fleet manager catches\nbefore dispatch" --> CANCEL["Cancel duplicate assignment\nRelease second robot"]:::wms
+    DETECT -- "Fleet manager catches before dispatch" --> CANCEL["Cancel duplicate assignment\nRelease second robot"]:::wms
     CANCEL --> REASSIGN["Reassign freed robot\nto next queued task"]:::wms
     REASSIGN --> OK["Conflict resolved"]:::fallback
-    DETECT -- "Robots both en route\nto same location" --> PROXIMITY["Proximity alert\nBoth approaching same point"]:::critical
+    DETECT -- "Robots both en route to same location" --> PROXIMITY["Proximity alert\nBoth approaching same point"]:::critical
     PROXIMITY --> HALT["Halt second robot\nSafe stop"]:::robot
     HALT --> CHECK["Fleet manager resolves\nWhich robot closer?"]:::wms
     CHECK --> KEEP{"Keep\nwhich?"}:::decision
@@ -299,7 +299,7 @@ flowchart TB
     KEEP -- "Robot B closer" --> CONTINUE_B["Robot B continues\nRobot A gets new task"]:::robot
     CONTINUE_A --> OK
     CONTINUE_B --> OK
-    DETECT -- "Both arrive\nat same spot" --> DEADLOCK["Physical deadlock\nBoth at target"]:::critical
+    DETECT -- "Both arrive at same spot" --> DEADLOCK["Physical deadlock\nBoth at target"]:::critical
     DEADLOCK --> BACK["One robot backs off\nFleet manager picks"]:::robot
     BACK --> REROUTE["Backed robot rerouted\nNew task or holding zone"]:::wms
     REROUTE --> OK
@@ -330,14 +330,14 @@ flowchart TB
 flowchart TB
     T["Battery swap failed"]:::exception
     T --> TYPE{"Failure\ntype?"}:::decision
-    TYPE -- "CAN comms error\nPack not recognized" --> RESEAT["Eject and reseat pack\nClean contacts"]:::repair
+    TYPE -- "CAN comms error Pack not recognized" --> RESEAT["Eject and reseat pack\nClean contacts"]:::repair
     RESEAT --> RETRY{"Comms\nestablished?"}:::decision
     RETRY -- Yes --> BOOT["Fast boot and self-check\nResume operations"]:::battery
     BOOT --> OK["Swap complete"]:::fallback
     RETRY -- No --> BAD_PACK["Mark pack as faulty\nRemove from carousel"]:::critical
     BAD_PACK --> NEXT["Try next available pack"]:::battery
     NEXT --> OK
-    TYPE -- "Bay occupied\nAnother robot docked" --> WAIT["Wait 60s for bay\nCheck other bays"]:::robot
+    TYPE -- "Bay occupied Another robot docked" --> WAIT["Wait 60s for bay\nCheck other bays"]:::robot
     WAIT --> ALT{"Other bay\navailable?"}:::decision
     ALT -- Yes --> MOVE["Move to alternate bay"]:::robot
     MOVE --> OK
@@ -347,7 +347,7 @@ flowchart TB
     CRIT -- Yes --> ESTOP["Emergency: park robot\nSafe location low power mode"]:::critical
     ESTOP --> MANUAL_SWAP["Human manually swaps\nbattery at parked location"]:::process
     MANUAL_SWAP --> OK
-    TYPE -- "Mechanical jam\nPack stuck in robot" --> JAM["Retry eject mechanism\n3 attempts"]:::repair
+    TYPE -- "Mechanical jam Pack stuck in robot" --> JAM["Retry eject mechanism\n3 attempts"]:::repair
     JAM --> FREE{"Pack\nejected?"}:::decision
     FREE -- Yes --> NEXT
     FREE -- No --> MAINT["Alert maintenance\nManual extraction needed"]:::critical
@@ -427,12 +427,12 @@ flowchart TB
 flowchart TB
     T["Teleop connection issue"]:::exception
     T --> TYPE{"Issue\ntype?"}:::decision
-    TYPE -- "Latency spike\n200-500ms" --> DEGRADE["Degrade to lower framerate\nReduce video quality"]:::process
+    TYPE -- "Latency spike 200-500ms" --> DEGRADE["Degrade to lower framerate\nReduce video quality"]:::process
     DEGRADE --> STABLE{"Stabilized?"}:::decision
     STABLE -- Yes --> CONTINUE["Continue teleop\nat reduced quality"]:::robot
     CONTINUE --> OK["Task proceeds"]:::fallback
     STABLE -- No --> SAFESTOP
-    TYPE -- "Connection drop\ntotal loss" --> SAFESTOP["Robot auto safe stop\nHold position hazard lights"]:::critical
+    TYPE -- "Connection drop total loss" --> SAFESTOP["Robot auto safe stop\nHold position hazard lights"]:::critical
     SAFESTOP --> RECONNECT["Auto-reconnect attempt\nEvery 5s for 60s"]:::process
     RECONNECT --> BACK{"Connection\nrestored?"}:::decision
     BACK -- Yes --> RESUME["Operator resumes control\nVerify robot state first"]:::robot
@@ -477,17 +477,17 @@ flowchart TB
     PASS -- Yes --> OK["Robot joins fleet"]:::fallback
     PASS -- "No all 3 fail" --> DIAG["Run extended diagnostics\nFull sensor motor comms test"]:::repair
     DIAG --> FAULT{"Fault\nidentified?"}:::decision
-    FAULT -- "Sensor drift\nrecalibration needed" --> RECAL["Auto-recalibrate sensors\nUse known reference points"]:::repair
+    FAULT -- "Sensor drift recalibration needed" --> RECAL["Auto-recalibrate sensors\nUse known reference points"]:::repair
     RECAL --> RETEST["Retest self-check"]:::robot
     RETEST --> OK2{"Pass?"}:::decision
     OK2 -- Yes --> OK
     OK2 -- No --> PULL
-    FAULT -- "Comms failure\nWiFi or fleet link" --> NETWORK["Reset network module\nReconnect to fleet"]:::repair
+    FAULT -- "Comms failure WiFi or fleet link" --> NETWORK["Reset network module\nReconnect to fleet"]:::repair
     NETWORK --> PING{"Fleet\nconnected?"}:::decision
     PING -- Yes --> RETEST
     PING -- No --> REBOOT["Full robot reboot\nCold restart all systems"]:::critical
     REBOOT --> RETEST
-    FAULT -- "Motor or hardware\ndegradation" --> PULL["Pull from fleet\nMark out of service"]:::critical
+    FAULT -- "Motor or hardware degradation" --> PULL["Pull from fleet\nMark out of service"]:::critical
     PULL --> MAINT["On-site maintenance\nDiagnose and repair"]:::repair
     MAINT --> SEV{"Fixable\non-site?"}:::decision
     SEV -- Yes --> FIX["Repair and full recertification"]:::repair

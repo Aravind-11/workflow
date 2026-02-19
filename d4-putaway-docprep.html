@@ -232,7 +232,7 @@ flowchart TB
     T["AMR putaway fault detected"]:::exception
     T --> TYPE{"Fault\ntype?"}:::decision
 
-    TYPE -- "Wrong rack location\nBarcode mismatch" --> SCAN["AMR rescans rack barcode\nCompare to task assignment"]:::robot
+    TYPE -- "Wrong rack location Barcode mismatch" --> SCAN["AMR rescans rack barcode\nCompare to task assignment"]:::robot
     SCAN --> SCANR{"Correct rack\nfound nearby?"}:::decision
     SCANR -- Yes --> REROUTE["Reroute to correct rack\nUpdate path"]:::robot
     REROUTE --> OK["Putaway complete"]:::fallback
@@ -242,26 +242,26 @@ flowchart TB
     ASSIGN --> REROUTE
     ALT -- No --> STAGE_TEMP["Return to staging\nAlert ops for reassignment"]:::critical
 
-    TYPE -- "Cannot reach location\nAisle blocked or obstacle" --> OBSTACLE["Safe stop\n360 scan aisle"]:::critical
+    TYPE -- "Cannot reach location Aisle blocked or obstacle" --> OBSTACLE["Safe stop\n360 scan aisle"]:::critical
     OBSTACLE --> CLEAR{"Obstacle\nclearable?"}:::decision
-    CLEAR -- "Yes another robot\nor temp item" --> WAIT["Wait 60s for path\nRetry approach"]:::robot
+    CLEAR -- "Yes another robot or temp item" --> WAIT["Wait 60s for path\nRetry approach"]:::robot
     WAIT --> RETRY{"Path\nclear?"}:::decision
     RETRY -- Yes --> OK
     RETRY -- No --> ALT_AISLE["Try alternate aisle\nto same rack"]:::robot
     ALT_AISLE --> REACH{"Reachable?"}:::decision
     REACH -- Yes --> OK
     REACH -- No --> STAGE_TEMP
-    CLEAR -- "No permanent block\nfallen item or damage" --> HUMAN["Alert human to clear\n9-5 immediate\nAfter hrs on-call"]:::process
+    CLEAR -- "No permanent block fallen item or damage" --> HUMAN["Alert human to clear\n9-5 immediate\nAfter hrs on-call"]:::process
     HUMAN --> OK
 
-    TYPE -- "Load too heavy\nWeight exceeds AMR limit" --> WEIGH["Confirm weight\nLoad cell reading"]:::robot
+    TYPE -- "Load too heavy Weight exceeds AMR limit" --> WEIGH["Confirm weight\nLoad cell reading"]:::robot
     WEIGH --> OVER{"Over 1000 lbs?"}:::decision
-    OVER -- "Slightly over\n1000-1100" --> SLOW["Proceed at reduced speed\nLog overweight warning"]:::robot
+    OVER -- "Slightly over 1000-1100" --> SLOW["Proceed at reduced speed\nLog overweight warning"]:::robot
     SLOW --> OK
     OVER -- "Significantly over" --> SWAP["Transfer to Forklift AMR\n800 lbs rack capacity"]:::robot
     SWAP --> D6["D6: Forklift handles\nputaway instead"]:::core
 
-    TYPE -- "Nav system error\nLIDAR or map mismatch" --> NAV["Stop and relocalize\nScan fiducial markers"]:::robot
+    TYPE -- "Nav system error LIDAR or map mismatch" --> NAV["Stop and relocalize\nScan fiducial markers"]:::robot
     NAV --> LOC{"Position\nconfirmed?"}:::decision
     LOC -- Yes --> RESUME["Resume navigation\nto target rack"]:::robot
     RESUME --> OK
@@ -300,7 +300,7 @@ flowchart TB
     T["Forklift placement error\nVVS or sensor rejects"]:::exception
     T --> TYPE{"Error\ntype?"}:::decision
 
-    TYPE -- "Fork misalignment\nPallet not centered" --> RETRACT["Retract forks\nLower and reposition"]:::robot
+    TYPE -- "Fork misalignment Pallet not centered" --> RETRACT["Retract forks\nLower and reposition"]:::robot
     RETRACT --> REALIGN["Vision-assisted realignment\n5mm tolerance"]:::robot
     REALIGN --> RETRY{"Aligned?"}:::decision
     RETRY -- Yes --> PLACE["Place pallet in rack"]:::robot
@@ -309,17 +309,17 @@ flowchart TB
     RETRY -- "No after 3 tries" --> TELEOP["Teleop operator\ntakes control"]:::robot
     TELEOP --> PLACE
 
-    TYPE -- "Rack position full\nPallet already there" --> DETECT["Forklift detects obstacle\nin target position"]:::robot
+    TYPE -- "Rack position full Pallet already there" --> DETECT["Forklift detects obstacle\nin target position"]:::robot
     DETECT --> WMS["Query WMS for\nrack occupancy"]:::wms
     WMS --> GHOST{"Ghost inventory?\nWMS says empty"}:::decision
     GHOST -- "WMS wrong" --> UPDATE["Update WMS\nMark position occupied"]:::wms
     UPDATE --> NEW_LOC["Request new location\nNearest available same zone"]:::wms
     NEW_LOC --> NAV["Navigate to new location"]:::robot
     NAV --> PLACE
-    GHOST -- "Physical blockage\ndebris or damage" --> HUMAN["Alert human to clear\nSafety check on rack"]:::process
+    GHOST -- "Physical blockage debris or damage" --> HUMAN["Alert human to clear\nSafety check on rack"]:::process
     HUMAN --> PLACE
 
-    TYPE -- "Height error\nEncoder disagrees with target" --> HEIGHT["Recalibrate height encoder\nReference known position"]:::repair
+    TYPE -- "Height error Encoder disagrees with target" --> HEIGHT["Recalibrate height encoder\nReference known position"]:::repair
     HEIGHT --> RECAL{"Calibration\nOK?"}:::decision
     RECAL -- Yes --> RELIFT["Re-lift to correct height"]:::robot
     RELIFT --> PLACE
@@ -327,7 +327,7 @@ flowchart TB
     MAINT --> BACKUP["Assign backup forklift\nor manual forklift"]:::repair
     BACKUP --> PLACE
 
-    TYPE -- "Pallet stuck on forks\nWill not release" --> TILT["Check tilt and fork spread\nAdjust hydraulics"]:::robot
+    TYPE -- "Pallet stuck on forks Will not release" --> TILT["Check tilt and fork spread\nAdjust hydraulics"]:::robot
     TILT --> FREE{"Pallet\nfree?"}:::decision
     FREE -- Yes --> PLACE
     FREE -- No --> LOWER["Lower to ground level\nSafe position"]:::critical

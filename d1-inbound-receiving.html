@@ -338,12 +338,12 @@ flowchart TB
     R --> RO{"Pass?"}:::decision
     RO -- Yes --> OK["Resume task"]:::fallback
     RO -- No --> BK
-    S -- "Mid-task load shift\nor obstacle" --> SF["Emergency safe stop\n360 rescan"]:::critical
+    S -- "Mid-task load shift or obstacle" --> SF["Emergency safe stop\n360 rescan"]:::critical
     SF --> RC{"Obstacle\ncleared?"}:::decision
     RC -- Yes --> OK
     RC -- "Need human" --> AS["Human repositions load"]:::process
     AS --> OK
-    S -- "Hard motor or\nstructural" --> PL["Pull from fleet\nSafe stop"]:::critical
+    S -- "Hard motor or structural" --> PL["Pull from fleet\nSafe stop"]:::critical
     PL --> MT["On-site maintenance\ntriage 30 min"]:::repair
     MT --> FX{"Fixable\non-site?"}:::decision
     FX -- "Yes sensor wheel" --> RP["On-site repair"]:::repair
@@ -422,7 +422,7 @@ flowchart TB
     T --> TK["Create exception ticket\nType count delta photos"]:::exception
     TK --> S{"Severity?"}:::decision
     S -- "Minor 1-2 items" --> A["Accept with variance\nNote in WMS and proceed"]:::process
-    S -- "Major wrong SKU\nor large shortage" --> Q["Quarantine shipment\nHold area"]:::critical
+    S -- "Major wrong SKU or large shortage" --> Q["Quarantine shipment\nHold area"]:::critical
     Q --> N["Notify account mgr\ncarrier and customer"]:::exception
     N --> RS{"Resolution?"}:::decision
     RS -- "Carrier corrects" --> RD["Schedule redelivery"]:::process
@@ -458,7 +458,7 @@ flowchart TB
     S -- Cosmetic --> N["Note in WMS\nProceed"]:::process
     S -- Functional --> Q["Quarantine items"]:::critical
     Q --> CL["File carrier claim\nEvidence package"]:::exception
-    S -- "Hazardous leaking\nor biohazard" --> H["Hazard protocol\nClear area page safety"]:::critical
+    S -- "Hazardous leaking or biohazard" --> H["Hazard protocol\nClear area page safety"]:::critical
     H --> CN["Contain document report"]:::critical
     N --> OK["Resume inbound"]:::fallback
     CL --> OK
