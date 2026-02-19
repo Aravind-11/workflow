@@ -590,7 +590,7 @@ flowchart TB
 
 <script>
   mermaid.initialize({
-    startOnLoad: true,
+    startOnLoad: false,
     theme: 'base',
     flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
     themeVariables: {
@@ -598,6 +598,7 @@ flowchart TB
       fontSize: '13px'
     }
   });
+  mermaid.run();
 
   function jumpToExc(id) {
     var el = document.getElementById(id);

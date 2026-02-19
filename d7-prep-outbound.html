@@ -414,10 +414,11 @@ flowchart TB
 
 <script>
   mermaid.initialize({
-    startOnLoad: true, theme: 'base',
+    startOnLoad: false, theme: 'base',
     flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' },
     themeVariables: { fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif', fontSize: '13px' }
   });
+  mermaid.run();
 
   function jumpToExc(id) {
     var el = document.getElementById(id);
