@@ -1,0 +1,779 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum WarehouseStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum ShiftType {
+  MORNING
+  EVENING
+  NIGHT
+}
+
+enum ScheduleStatus {
+  PLANNED
+  ASSIGNED
+  CLOCKED_IN
+  CLOCKED_OUT
+  MISSED
+}
+
+enum ScheduleConfirmation {
+  TENTATIVE
+  CONFIRMED
+}
+
+enum TimeOffStatus {
+  REQUESTED
+  APPROVED
+  DENIED
+  CANCELLED
+}
+
+enum InventoryTransactionType {
+  RECEIPT
+  PUTAWAY
+  PICK
+  PACK
+  SHIP
+  RETURN
+  ADJUSTMENT
+  CYCLE_COUNT
+  TRANSFER
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  OPEN
+  PARTIAL
+  RECEIVED
+  CANCELLED
+}
+
+enum ReceiptStatus {
+  DRAFT
+  RECEIVED
+  POSTED
+  CANCELLED
+}
+
+enum ReceiptLineCondition {
+  GOOD
+  DAMAGED
+  HOLD
+  REJECTED
+}
+
+/** Inbound line workflow: receive → inspect → putaway */
+enum InboundLineStatus {
+  PENDING
+  INSPECTED
+  PUTAWAY_COMPLETE
+}
+
+enum DeliveryDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum DeliveryStatus {
+  SCHEDULED
+  ARRIVED
+  IN_PROGRESS
+  RELEASED
+  CANCELLED
+}
+
+enum ShipmentStatus {
+  CREATED
+  PICKED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum ReturnStatus {
+  OPEN
+  AUTHORIZED
+  RECEIVED
+  QC
+  CLOSED
+  REJECTED
+}
+
+enum ReturnDisposition {
+  RESTOCK
+  REFURBISH
+  QUARANTINE
+  SCRAP
+  RETURN_TO_VENDOR
+}
+
+enum TaskType {
+  RECEIPT
+  PUTAWAY
+  PICK
+  PACK
+  SHIPMENT
+  RETURN
+  CYCLE_COUNT
+  MAINTENANCE
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PickListStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PackListStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DockAppointmentStatus {
+  SCHEDULED
+  CHECKED_IN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum InventoryBalanceStatus {
+  AVAILABLE
+  HOLD
+  DAMAGED
+  QUARANTINE
+}
+
+model User {
+  id                    String                 @id @default(cuid())
+  email                 String                 @unique
+  fullName              String
+  passwordHash          String?
+  status                UserStatus             @default(ACTIVE)
+  roleMappings          UserRole[]
+  worker                WorkerProfile?
+  auditLogs             AuditLog[]
+  returnComments        ReturnComment[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  inventoryTransactions InventoryTransaction[]
+}
+
+model Role {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  users       UserRole[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model UserRole {
+  id          String    @id @default(cuid())
+  userId      String
+  roleId      String
+  warehouseId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, roleId, warehouseId])
+  @@index([warehouseId, roleId])
+}
+
+model Warehouse {
+  id               String                       @id @default(cuid())
+  code             String                       @unique
+  name             String
+  country          String
+  state            String
+  city             String
+  region           String?
+  zip              String
+  timezone         String
+  openTime         String
+  closeTime        String
+  addressLine1     String
+  addressLine2     String?
+  status           WarehouseStatus              @default(ACTIVE)
+  roleAssignments  UserRole[]
+  locationTree     WarehouseLocationHierarchy[]
+  workers          WorkerProfile[]
+  shifts           Shift[]
+  schedules        Schedule[]
+  timeOffBlocks    TimeOffBlock[]
+  inventoryBalance InventoryBalance[]
+  inventoryTxns    InventoryTransaction[]
+  purchaseOrders   PurchaseOrder[]
+  receipts         Receipt[]
+  deliveries       Delivery[]
+  shipments        Shipment[]
+  pickLists        PickList[]
+  packLists        PackList[]
+  returns          ReturnRMA[]
+  tasks            Task[]
+  dockAppointments DockAppointment[]
+  auditLogs        AuditLog[]
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  @@index([state])
+  @@index([country, state, city])
+}
+
+model WarehouseLocationHierarchy {
+  id            String                 @id @default(cuid())
+  warehouseId   String
+  zone          String
+  aisle         String
+  rack          String
+  bin           String
+  locationCode  String
+  isActive      Boolean                @default(true)
+  inventory     InventoryBalance[]
+  transactions  InventoryTransaction[]
+  receiptLines  ReceiptLine[]
+  pickListLines PickListLine[]
+  workerTasks   Task[]
+  schedules     Schedule[]
+  returnRestocks ReturnLine[]          @relation("ReturnRestockLocation")
+  warehouse     Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([warehouseId, zone, aisle, rack, bin])
+  @@unique([warehouseId, locationCode])
+  @@index([warehouseId, zone, aisle])
+}
+
+model WorkerProfile {
+  id             String       @id @default(cuid())
+  userId         String?      @unique
+  warehouseId    String
+  employeeCode   String
+  firstName      String
+  lastName       String
+  email          String?      @unique
+  phone          String?
+  status         WorkerStatus @default(ACTIVE)
+  hireDate       DateTime?
+  certifications String[]
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  warehouse      Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  schedules      Schedule[]
+  timeOffBlocks  TimeOffBlock[]
+  tasks          Task[]
+  pickLists      PickList[]
+  packLists      PackList[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([warehouseId, employeeCode])
+  @@index([warehouseId, status])
+}
+
+model Shift {
+  id          String     @id @default(cuid())
+  warehouseId String
+  name        String
+  shiftType   ShiftType
+  startTime   String
+  endTime     String
+  isOvernight Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  warehouse   Warehouse  @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  schedules   Schedule[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([warehouseId, shiftType])
+}
+
+model Schedule {
+  id                   String                @id @default(cuid())
+  warehouseId          String
+  workerProfileId      String
+  shiftId              String
+  /** Work area / dock / zone for this assignment */
+  locationId           String?
+  scheduleDate         DateTime
+  status               ScheduleStatus        @default(PLANNED)
+  confirmationStatus   ScheduleConfirmation  @default(TENTATIVE)
+  plannedStart         DateTime?
+  plannedEnd           DateTime?
+  /** Clock in / out (labor actuals) */
+  actualStart          DateTime?
+  actualEnd            DateTime?
+  breakMinutes         Int                   @default(0)
+  totalWorkedMinutes   Int?
+  warehouse            Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  workerProfile        WorkerProfile               @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  shift                  Shift                       @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  location               WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@unique([workerProfileId, scheduleDate, shiftId])
+  @@index([scheduleDate])
+  @@index([warehouseId, scheduleDate])
+  @@index([locationId])
+}
+
+model TimeOffBlock {
+  id                String        @id @default(cuid())
+  workerProfileId   String
+  warehouseId       String
+  startAt           DateTime
+  endAt             DateTime
+  reason            String?
+  status            TimeOffStatus @default(REQUESTED)
+  workerProfile     WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  warehouse         Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([workerProfileId, startAt])
+  @@index([warehouseId, startAt])
+}
+
+model InventoryItem {
+  id            String                 @id @default(cuid())
+  skuCode       String                 @unique
+  barcode       String?                @unique
+  name          String
+  description   String?
+  category      String?
+  uom           String                 @default("EA")
+  unitWeightKg  Decimal?               @db.Decimal(10, 3)
+  reorderPoint  Int?
+  lotTracked    Boolean                @default(true)
+  batchTracked  Boolean                @default(true)
+  expiryTracked Boolean                @default(false)
+  balances      InventoryBalance[]
+  transactions  InventoryTransaction[]
+  purchaseLines PurchaseOrderLine[]
+  receiptLines  ReceiptLine[]
+  shipmentLines ShipmentLine[]
+  pickListLines PickListLine[]
+  packListLines PackListLine[]
+  returnLines   ReturnLine[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+}
+
+model InventoryBalance {
+  id              String                     @id @default(cuid())
+  warehouseId     String
+  locationId      String
+  inventoryItemId String
+  lotNumber       String?
+  batchNumber     String?
+  expiryDate      DateTime?
+  status          InventoryBalanceStatus     @default(AVAILABLE)
+  onHandQty       Int
+  reservedQty     Int                        @default(0)
+  warehouse       Warehouse                  @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  location        WarehouseLocationHierarchy @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  inventoryItem   InventoryItem              @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
+
+  @@unique([warehouseId, locationId, inventoryItemId, lotNumber, batchNumber])
+  @@index([inventoryItemId])
+  @@index([warehouseId, inventoryItemId])
+}
+
+model InventoryTransaction {
+  id              String                      @id @default(cuid())
+  warehouseId     String
+  locationId      String?
+  inventoryItemId String
+  transactionType InventoryTransactionType
+  referenceType   String?
+  referenceId     String?
+  lotNumber       String?
+  batchNumber     String?
+  expiryDate      DateTime?
+  quantityBefore  Int
+  quantityDelta   Int
+  quantityAfter   Int
+  notes           String?
+  occurredAt      DateTime                    @default(now())
+  performedById   String?
+  warehouse       Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  location        WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  inventoryItem   InventoryItem               @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  performedBy     User?                       @relation(fields: [performedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime                    @default(now())
+
+  @@index([warehouseId, occurredAt])
+  @@index([inventoryItemId, occurredAt])
+}
+
+model PurchaseOrder {
+  id           String              @id @default(cuid())
+  warehouseId  String
+  poNumber     String              @unique
+  supplierName String
+  status       PurchaseOrderStatus @default(OPEN)
+  orderedAt    DateTime            @default(now())
+  expectedDate DateTime?
+  warehouse    Warehouse           @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  lines        PurchaseOrderLine[]
+  receipts     Receipt[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([warehouseId, status])
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  inventoryItemId String
+  orderedQty      Int
+  receivedQty     Int           @default(0)
+  unitCost        Decimal?      @db.Decimal(10, 2)
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  receiptLines    ReceiptLine[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([purchaseOrderId])
+}
+
+model Receipt {
+  id              String         @id @default(cuid())
+  warehouseId     String
+  purchaseOrderId String?
+  deliveryId      String?
+  receiptNumber   String         @unique
+  status          ReceiptStatus  @default(DRAFT)
+  receivedAt      DateTime       @default(now())
+  notes           String?
+  warehouse       Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  delivery        Delivery?      @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
+  lines           ReceiptLine[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([warehouseId, receivedAt])
+  @@index([deliveryId])
+}
+
+model ReceiptLine {
+  id                  String                      @id @default(cuid())
+  receiptId           String
+  purchaseOrderLineId String?
+  inventoryItemId     String
+  locationId          String?
+  receivedQty         Int
+  lotNumber           String?
+  batchNumber         String?
+  expiryDate          DateTime?
+  condition           ReceiptLineCondition        @default(GOOD)
+  inboundStatus       InboundLineStatus           @default(PENDING)
+  receipt             Receipt                     @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  purchaseOrderLine   PurchaseOrderLine?          @relation(fields: [purchaseOrderLineId], references: [id], onDelete: SetNull)
+  inventoryItem       InventoryItem               @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  location            WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+
+  @@index([receiptId, inventoryItemId])
+}
+
+model DockAppointment {
+  id              String                @id @default(cuid())
+  warehouseId     String
+  appointmentCode String                @unique
+  carrier         String
+  dockDoor        String
+  scheduledStart  DateTime
+  scheduledEnd    DateTime
+  checkedInAt     DateTime?
+  status          DockAppointmentStatus @default(SCHEDULED)
+  warehouse       Warehouse             @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  deliveries      Delivery[]
+  shipments       Shipment[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([warehouseId, scheduledStart])
+}
+
+model Delivery {
+  id                String            @id @default(cuid())
+  warehouseId       String
+  dockAppointmentId String?
+  deliveryNumber    String            @unique
+  direction         DeliveryDirection
+  carrier           String
+  status            DeliveryStatus    @default(SCHEDULED)
+  scheduledAt       DateTime
+  arrivedAt         DateTime?
+  releasedAt        DateTime?
+  warehouse         Warehouse         @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  dockAppointment   DockAppointment?  @relation(fields: [dockAppointmentId], references: [id], onDelete: SetNull)
+  receipts          Receipt[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([warehouseId, status, scheduledAt])
+}
+
+model Shipment {
+  id                String           @id @default(cuid())
+  warehouseId       String
+  dockAppointmentId String?
+  shipmentNumber    String           @unique
+  salesOrderRef     String?
+  carrier           String
+  serviceLevel      String?
+  trackingNumber    String?
+  status            ShipmentStatus   @default(CREATED)
+  plannedShipAt     DateTime?
+  shippedAt         DateTime?
+  deliveredAt       DateTime?
+  warehouse         Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  dockAppointment   DockAppointment? @relation(fields: [dockAppointmentId], references: [id], onDelete: SetNull)
+  shipmentLines     ShipmentLine[]
+  pickLists         PickList[]
+  packLists         PackList[]
+  returns           ReturnRMA[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([warehouseId])
+  @@index([warehouseId, status])
+}
+
+model ShipmentLine {
+  id              String        @id @default(cuid())
+  shipmentId      String
+  inventoryItemId String
+  quantity        Int
+  lotNumber       String?
+  batchNumber     String?
+  expiryDate      DateTime?
+  shipment        Shipment      @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([shipmentId])
+}
+
+model PickList {
+  id               String         @id @default(cuid())
+  warehouseId      String
+  shipmentId       String?
+  assignedWorkerId String?
+  pickListNumber   String         @unique
+  status           PickListStatus @default(OPEN)
+  scheduledDate    DateTime
+  startedAt        DateTime?
+  completedAt      DateTime?
+  warehouse        Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  shipment         Shipment?      @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  assignedWorker   WorkerProfile? @relation(fields: [assignedWorkerId], references: [id], onDelete: SetNull)
+  lines            PickListLine[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([warehouseId, status])
+}
+
+model PickListLine {
+  id              String                      @id @default(cuid())
+  pickListId      String
+  inventoryItemId String
+  fromLocationId  String?
+  requestedQty    Int
+  pickedQty       Int                         @default(0)
+  lotNumber       String?
+  batchNumber     String?
+  pickList        PickList                    @relation(fields: [pickListId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem               @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  fromLocation    WarehouseLocationHierarchy? @relation(fields: [fromLocationId], references: [id], onDelete: SetNull)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([pickListId])
+}
+
+model PackList {
+  id               String         @id @default(cuid())
+  warehouseId      String
+  shipmentId       String
+  assignedWorkerId String?
+  packListNumber   String         @unique
+  status           PackListStatus @default(OPEN)
+  packedAt         DateTime?
+  warehouse        Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  shipment         Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  assignedWorker   WorkerProfile? @relation(fields: [assignedWorkerId], references: [id], onDelete: SetNull)
+  lines            PackListLine[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([warehouseId, status])
+}
+
+model PackListLine {
+  id              String        @id @default(cuid())
+  packListId      String
+  inventoryItemId String
+  packedQty       Int
+  lotNumber       String?
+  batchNumber     String?
+  packList        PackList      @relation(fields: [packListId], references: [id], onDelete: Cascade)
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([packListId])
+}
+
+model ReturnRMA {
+  id                   String       @id @default(cuid())
+  warehouseId          String
+  rmaNumber            String       @unique
+  customerName         String
+  reason               String?
+  /** Link to original outbound shipment */
+  shipmentId           String?
+  /** Original sales / order reference if no shipment link */
+  originalOrderRef     String?
+  /** Standardized exception code e.g. DAMAGED, NOT_AS_DESCRIBED */
+  exceptionReasonCode  String?
+  notes                String?
+  status               ReturnStatus @default(OPEN)
+  receivedAt           DateTime?
+  closedAt             DateTime?
+  warehouse            Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  shipment             Shipment?    @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  lines                ReturnLine[]
+  comments             ReturnComment[]
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@index([warehouseId, status])
+  @@index([shipmentId])
+}
+
+model ReturnLine {
+  id                 String             @id @default(cuid())
+  returnRmaId        String
+  inventoryItemId    String
+  /** Expected return quantity (authorization) */
+  quantity           Int
+  /** Physical quantity received at dock */
+  receivedQty        Int                @default(0)
+  disposition        String?
+  dispositionType    ReturnDisposition?
+  dispositionNote    String?
+  lotNumber          String?
+  batchNumber        String?
+  expiryDate         DateTime?
+  restockLocationId  String?
+  /** Set when inventory impact has been posted for this line */
+  inventoryAppliedAt DateTime?
+  returnRma          ReturnRMA          @relation(fields: [returnRmaId], references: [id], onDelete: Cascade)
+  inventoryItem      InventoryItem      @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  restockLocation    WarehouseLocationHierarchy? @relation("ReturnRestockLocation", fields: [restockLocationId], references: [id], onDelete: SetNull)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([returnRmaId])
+  @@index([restockLocationId])
+}
+
+model ReturnComment {
+  id          String    @id @default(cuid())
+  returnRmaId String
+  body        String
+  isInternal  Boolean   @default(true)
+  userId      String?
+  createdAt   DateTime  @default(now())
+  returnRma   ReturnRMA @relation(fields: [returnRmaId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([returnRmaId, createdAt])
+}
+
+model Task {
+  id              String                      @id @default(cuid())
+  warehouseId     String
+  workerProfileId String?
+  locationId      String?
+  title           String
+  taskType        TaskType
+  status          TaskStatus                  @default(OPEN)
+  priority        Int                         @default(3)
+  dueDate         DateTime?
+  completedAt     DateTime?
+  relatedEntity   String?
+  relatedEntityId String?
+  warehouse       Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  workerProfile   WorkerProfile?              @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  location        WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  @@index([status])
+  @@index([warehouseId, status])
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  userId      String?
+  warehouseId String?
+  entityType  String
+  entityId    String?
+  action      String
+  oldValues   Json?
+  newValues   Json?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+
+  @@index([warehouseId, createdAt])
+  @@index([entityType, entityId])
+}
