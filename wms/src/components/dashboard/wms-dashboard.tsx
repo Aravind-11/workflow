@@ -31,9 +31,9 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
   const k = kpis;
 
   return (
-    <div className="-mx-4 min-h-[calc(100dvh-6rem)] bg-gradient-to-br from-slate-50 via-white to-slate-100/90 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="min-h-[calc(100dvh-6rem)] overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100/90">
       <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-sm">
-        <div className="mx-auto max-w-7xl py-6 sm:py-8">
+        <div className="py-6 sm:py-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Control tower</p>
@@ -53,11 +53,11 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl space-y-8 py-8">
+      <div className="space-y-8 py-8">
         {/* KPI strip */}
         <section>
           <h2 className="mb-4 text-sm font-semibold text-slate-900">Key metrics</h2>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <MetricTile
               href="/warehouses"
               label="Warehouses"

@@ -11,8 +11,16 @@ export function pickString(v: string | string[] | undefined): string | undefined
   return v;
 }
 
-/** Deep-clone via JSON round-trip — used to strip Prisma class instances before passing to client components. */
-export function serialize<T>(value: T): T {
+type Serialized<T> = T extends Date
+  ? string
+  : T extends Array<infer U>
+    ? Serialized<U>[]
+    : T extends object
+      ? { [K in keyof T]: Serialized<T[K]> }
+      : T;
+
+/** Deep-clone via JSON round-trip — strips Prisma class instances and converts Dates to strings. */
+export function serialize<T>(value: T): Serialized<T> {
   return JSON.parse(JSON.stringify(value));
 }
 

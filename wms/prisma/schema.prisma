@@ -3,7 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 enum UserStatus {
@@ -83,7 +84,7 @@ enum ReceiptLineCondition {
   REJECTED
 }
 
-/** Inbound line workflow: receive → inspect → putaway */
+/// Inbound line workflow: receive → inspect → putaway
 enum InboundLineStatus {
   PENDING
   INSPECTED
@@ -177,13 +178,13 @@ enum InventoryBalanceStatus {
 }
 
 model User {
-  id                    String                 @id @default(cuid())
+  id                    String                 @id @default(auto()) @map("_id") @db.ObjectId
   email                 String                 @unique
   fullName              String
   passwordHash          String?
   status                UserStatus             @default(ACTIVE)
   roleMappings          UserRole[]
-  worker                WorkerProfile?
+  workers               WorkerProfile[]
   auditLogs             AuditLog[]
   returnComments        ReturnComment[]
   createdAt             DateTime               @default(now())
@@ -192,7 +193,7 @@ model User {
 }
 
 model Role {
-  id          String     @id @default(cuid())
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String     @unique
   description String?
   users       UserRole[]
@@ -201,10 +202,10 @@ model Role {
 }
 
 model UserRole {
-  id          String    @id @default(cuid())
-  userId      String
-  roleId      String
-  warehouseId String
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  roleId      String    @db.ObjectId
+  warehouseId String    @db.ObjectId
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   role        Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
@@ -216,7 +217,7 @@ model UserRole {
 }
 
 model Warehouse {
-  id               String                       @id @default(cuid())
+  id               String                       @id @default(auto()) @map("_id") @db.ObjectId
   code             String                       @unique
   name             String
   country          String
@@ -256,24 +257,24 @@ model Warehouse {
 }
 
 model WarehouseLocationHierarchy {
-  id            String                 @id @default(cuid())
-  warehouseId   String
-  zone          String
-  aisle         String
-  rack          String
-  bin           String
-  locationCode  String
-  isActive      Boolean                @default(true)
-  inventory     InventoryBalance[]
-  transactions  InventoryTransaction[]
-  receiptLines  ReceiptLine[]
-  pickListLines PickListLine[]
-  workerTasks   Task[]
-  schedules     Schedule[]
-  returnRestocks ReturnLine[]          @relation("ReturnRestockLocation")
-  warehouse     Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @updatedAt
+  id             String                 @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId    String                 @db.ObjectId
+  zone           String
+  aisle          String
+  rack           String
+  bin            String
+  locationCode   String
+  isActive       Boolean                @default(true)
+  inventory      InventoryBalance[]
+  transactions   InventoryTransaction[]
+  receiptLines   ReceiptLine[]
+  pickListLines  PickListLine[]
+  workerTasks    Task[]
+  schedules      Schedule[]
+  returnRestocks ReturnLine[]           @relation("ReturnRestockLocation")
+  warehouse      Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
 
   @@unique([warehouseId, zone, aisle, rack, bin])
   @@unique([warehouseId, locationCode])
@@ -281,13 +282,13 @@ model WarehouseLocationHierarchy {
 }
 
 model WorkerProfile {
-  id             String       @id @default(cuid())
-  userId         String?      @unique
-  warehouseId    String
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String?      @db.ObjectId
+  warehouseId    String       @db.ObjectId
   employeeCode   String
   firstName      String
   lastName       String
-  email          String?      @unique
+  email          String?
   phone          String?
   status         WorkerStatus @default(ACTIVE)
   hireDate       DateTime?
@@ -307,8 +308,8 @@ model WorkerProfile {
 }
 
 model Shift {
-  id          String     @id @default(cuid())
-  warehouseId String
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId String     @db.ObjectId
   name        String
   shiftType   ShiftType
   startTime   String
@@ -324,28 +325,26 @@ model Shift {
 }
 
 model Schedule {
-  id                   String                @id @default(cuid())
-  warehouseId          String
-  workerProfileId      String
-  shiftId              String
-  /** Work area / dock / zone for this assignment */
-  locationId           String?
+  id                   String                         @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId          String                         @db.ObjectId
+  workerProfileId      String                         @db.ObjectId
+  shiftId              String                         @db.ObjectId
+  locationId           String?                        @db.ObjectId
   scheduleDate         DateTime
-  status               ScheduleStatus        @default(PLANNED)
-  confirmationStatus   ScheduleConfirmation  @default(TENTATIVE)
+  status               ScheduleStatus                 @default(PLANNED)
+  confirmationStatus   ScheduleConfirmation           @default(TENTATIVE)
   plannedStart         DateTime?
   plannedEnd           DateTime?
-  /** Clock in / out (labor actuals) */
   actualStart          DateTime?
   actualEnd            DateTime?
-  breakMinutes         Int                   @default(0)
+  breakMinutes         Int                            @default(0)
   totalWorkedMinutes   Int?
-  warehouse            Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  workerProfile        WorkerProfile               @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
-  shift                  Shift                       @relation(fields: [shiftId], references: [id], onDelete: Restrict)
-  location               WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
+  warehouse            Warehouse                      @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  workerProfile        WorkerProfile                  @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  shift                Shift                          @relation(fields: [shiftId], references: [id], onDelete: Restrict)
+  location             WarehouseLocationHierarchy?    @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
 
   @@unique([workerProfileId, scheduleDate, shiftId])
   @@index([scheduleDate])
@@ -354,31 +353,31 @@ model Schedule {
 }
 
 model TimeOffBlock {
-  id                String        @id @default(cuid())
-  workerProfileId   String
-  warehouseId       String
-  startAt           DateTime
-  endAt             DateTime
-  reason            String?
-  status            TimeOffStatus @default(REQUESTED)
-  workerProfile     WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
-  warehouse         Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  workerProfileId String        @db.ObjectId
+  warehouseId     String        @db.ObjectId
+  startAt         DateTime
+  endAt           DateTime
+  reason          String?
+  status          TimeOffStatus @default(REQUESTED)
+  workerProfile   WorkerProfile @relation(fields: [workerProfileId], references: [id], onDelete: Cascade)
+  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([workerProfileId, startAt])
   @@index([warehouseId, startAt])
 }
 
 model InventoryItem {
-  id            String                 @id @default(cuid())
+  id            String                 @id @default(auto()) @map("_id") @db.ObjectId
   skuCode       String                 @unique
-  barcode       String?                @unique
+  barcode       String?
   name          String
   description   String?
   category      String?
   uom           String                 @default("EA")
-  unitWeightKg  Decimal?               @db.Decimal(10, 3)
+  unitWeightKg  Float?
   reorderPoint  Int?
   lotTracked    Boolean                @default(true)
   batchTracked  Boolean                @default(true)
@@ -396,10 +395,10 @@ model InventoryItem {
 }
 
 model InventoryBalance {
-  id              String                     @id @default(cuid())
-  warehouseId     String
-  locationId      String
-  inventoryItemId String
+  id              String                     @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId     String                     @db.ObjectId
+  locationId      String                     @db.ObjectId
+  inventoryItemId String                     @db.ObjectId
   lotNumber       String?
   batchNumber     String?
   expiryDate      DateTime?
@@ -418,10 +417,10 @@ model InventoryBalance {
 }
 
 model InventoryTransaction {
-  id              String                      @id @default(cuid())
-  warehouseId     String
-  locationId      String?
-  inventoryItemId String
+  id              String                      @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId     String                      @db.ObjectId
+  locationId      String?                     @db.ObjectId
+  inventoryItemId String                      @db.ObjectId
   transactionType InventoryTransactionType
   referenceType   String?
   referenceId     String?
@@ -433,7 +432,7 @@ model InventoryTransaction {
   quantityAfter   Int
   notes           String?
   occurredAt      DateTime                    @default(now())
-  performedById   String?
+  performedById   String?                     @db.ObjectId
   warehouse       Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   location        WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
   inventoryItem   InventoryItem               @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
@@ -445,8 +444,8 @@ model InventoryTransaction {
 }
 
 model PurchaseOrder {
-  id           String              @id @default(cuid())
-  warehouseId  String
+  id           String              @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId  String              @db.ObjectId
   poNumber     String              @unique
   supplierName String
   status       PurchaseOrderStatus @default(OPEN)
@@ -462,12 +461,12 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderLine {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  inventoryItemId String
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  purchaseOrderId String        @db.ObjectId
+  inventoryItemId String        @db.ObjectId
   orderedQty      Int
   receivedQty     Int           @default(0)
-  unitCost        Decimal?      @db.Decimal(10, 2)
+  unitCost        Float?
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
   receiptLines    ReceiptLine[]
@@ -478,10 +477,10 @@ model PurchaseOrderLine {
 }
 
 model Receipt {
-  id              String         @id @default(cuid())
-  warehouseId     String
-  purchaseOrderId String?
-  deliveryId      String?
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId     String         @db.ObjectId
+  purchaseOrderId String?        @db.ObjectId
+  deliveryId      String?        @db.ObjectId
   receiptNumber   String         @unique
   status          ReceiptStatus  @default(DRAFT)
   receivedAt      DateTime       @default(now())
@@ -498,11 +497,11 @@ model Receipt {
 }
 
 model ReceiptLine {
-  id                  String                      @id @default(cuid())
-  receiptId           String
-  purchaseOrderLineId String?
-  inventoryItemId     String
-  locationId          String?
+  id                  String                      @id @default(auto()) @map("_id") @db.ObjectId
+  receiptId           String                      @db.ObjectId
+  purchaseOrderLineId String?                     @db.ObjectId
+  inventoryItemId     String                      @db.ObjectId
+  locationId          String?                     @db.ObjectId
   receivedQty         Int
   lotNumber           String?
   batchNumber         String?
@@ -520,8 +519,8 @@ model ReceiptLine {
 }
 
 model DockAppointment {
-  id              String                @id @default(cuid())
-  warehouseId     String
+  id              String                @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId     String                @db.ObjectId
   appointmentCode String                @unique
   carrier         String
   dockDoor        String
@@ -539,9 +538,9 @@ model DockAppointment {
 }
 
 model Delivery {
-  id                String            @id @default(cuid())
-  warehouseId       String
-  dockAppointmentId String?
+  id                String            @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId       String            @db.ObjectId
+  dockAppointmentId String?           @db.ObjectId
   deliveryNumber    String            @unique
   direction         DeliveryDirection
   carrier           String
@@ -559,9 +558,9 @@ model Delivery {
 }
 
 model Shipment {
-  id                String           @id @default(cuid())
-  warehouseId       String
-  dockAppointmentId String?
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId       String           @db.ObjectId
+  dockAppointmentId String?          @db.ObjectId
   shipmentNumber    String           @unique
   salesOrderRef     String?
   carrier           String
@@ -585,9 +584,9 @@ model Shipment {
 }
 
 model ShipmentLine {
-  id              String        @id @default(cuid())
-  shipmentId      String
-  inventoryItemId String
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  shipmentId      String        @db.ObjectId
+  inventoryItemId String        @db.ObjectId
   quantity        Int
   lotNumber       String?
   batchNumber     String?
@@ -601,10 +600,10 @@ model ShipmentLine {
 }
 
 model PickList {
-  id               String         @id @default(cuid())
-  warehouseId      String
-  shipmentId       String?
-  assignedWorkerId String?
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId      String         @db.ObjectId
+  shipmentId       String?        @db.ObjectId
+  assignedWorkerId String?        @db.ObjectId
   pickListNumber   String         @unique
   status           PickListStatus @default(OPEN)
   scheduledDate    DateTime
@@ -621,10 +620,10 @@ model PickList {
 }
 
 model PickListLine {
-  id              String                      @id @default(cuid())
-  pickListId      String
-  inventoryItemId String
-  fromLocationId  String?
+  id              String                      @id @default(auto()) @map("_id") @db.ObjectId
+  pickListId      String                      @db.ObjectId
+  inventoryItemId String                      @db.ObjectId
+  fromLocationId  String?                     @db.ObjectId
   requestedQty    Int
   pickedQty       Int                         @default(0)
   lotNumber       String?
@@ -639,10 +638,10 @@ model PickListLine {
 }
 
 model PackList {
-  id               String         @id @default(cuid())
-  warehouseId      String
-  shipmentId       String
-  assignedWorkerId String?
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId      String         @db.ObjectId
+  shipmentId       String         @db.ObjectId
+  assignedWorkerId String?        @db.ObjectId
   packListNumber   String         @unique
   status           PackListStatus @default(OPEN)
   packedAt         DateTime?
@@ -657,9 +656,9 @@ model PackList {
 }
 
 model PackListLine {
-  id              String        @id @default(cuid())
-  packListId      String
-  inventoryItemId String
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  packListId      String        @db.ObjectId
+  inventoryItemId String        @db.ObjectId
   packedQty       Int
   lotNumber       String?
   batchNumber     String?
@@ -672,16 +671,13 @@ model PackListLine {
 }
 
 model ReturnRMA {
-  id                   String       @id @default(cuid())
-  warehouseId          String
+  id                   String       @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId          String       @db.ObjectId
   rmaNumber            String       @unique
   customerName         String
   reason               String?
-  /** Link to original outbound shipment */
-  shipmentId           String?
-  /** Original sales / order reference if no shipment link */
+  shipmentId           String?      @db.ObjectId
   originalOrderRef     String?
-  /** Standardized exception code e.g. DAMAGED, NOT_AS_DESCRIBED */
   exceptionReasonCode  String?
   notes                String?
   status               ReturnStatus @default(OPEN)
@@ -699,38 +695,35 @@ model ReturnRMA {
 }
 
 model ReturnLine {
-  id                 String             @id @default(cuid())
-  returnRmaId        String
-  inventoryItemId    String
-  /** Expected return quantity (authorization) */
+  id                 String                      @id @default(auto()) @map("_id") @db.ObjectId
+  returnRmaId        String                      @db.ObjectId
+  inventoryItemId    String                      @db.ObjectId
   quantity           Int
-  /** Physical quantity received at dock */
-  receivedQty        Int                @default(0)
+  receivedQty        Int                         @default(0)
   disposition        String?
   dispositionType    ReturnDisposition?
   dispositionNote    String?
   lotNumber          String?
   batchNumber        String?
   expiryDate         DateTime?
-  restockLocationId  String?
-  /** Set when inventory impact has been posted for this line */
+  restockLocationId  String?                     @db.ObjectId
   inventoryAppliedAt DateTime?
-  returnRma          ReturnRMA          @relation(fields: [returnRmaId], references: [id], onDelete: Cascade)
-  inventoryItem      InventoryItem      @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  returnRma          ReturnRMA                   @relation(fields: [returnRmaId], references: [id], onDelete: Cascade)
+  inventoryItem      InventoryItem               @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
   restockLocation    WarehouseLocationHierarchy? @relation("ReturnRestockLocation", fields: [restockLocationId], references: [id], onDelete: SetNull)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
 
   @@index([returnRmaId])
   @@index([restockLocationId])
 }
 
 model ReturnComment {
-  id          String    @id @default(cuid())
-  returnRmaId String
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  returnRmaId String    @db.ObjectId
   body        String
   isInternal  Boolean   @default(true)
-  userId      String?
+  userId      String?   @db.ObjectId
   createdAt   DateTime  @default(now())
   returnRma   ReturnRMA @relation(fields: [returnRmaId], references: [id], onDelete: Cascade)
   user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
@@ -739,10 +732,10 @@ model ReturnComment {
 }
 
 model Task {
-  id              String                      @id @default(cuid())
-  warehouseId     String
-  workerProfileId String?
-  locationId      String?
+  id              String                      @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId     String                      @db.ObjectId
+  workerProfileId String?                     @db.ObjectId
+  locationId      String?                     @db.ObjectId
   title           String
   taskType        TaskType
   status          TaskStatus                  @default(OPEN)
@@ -762,9 +755,9 @@ model Task {
 }
 
 model AuditLog {
-  id          String     @id @default(cuid())
-  userId      String?
-  warehouseId String?
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String?    @db.ObjectId
+  warehouseId String?    @db.ObjectId
   entityType  String
   entityId    String?
   action      String

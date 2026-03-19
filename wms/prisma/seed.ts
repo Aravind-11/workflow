@@ -1,3 +1,10 @@
+import { config } from "dotenv";
+import { resolve } from "node:path";
+
+const dir = new URL(".", import.meta.url).pathname;
+config({ path: resolve(dir, "../.env"), quiet: true });
+config({ path: resolve(dir, "../.env.local"), override: true, quiet: true });
+
 import {
   DeliveryDirection,
   DeliveryStatus,
@@ -20,12 +27,9 @@ import {
   TimeOffStatus,
   WorkerStatus,
 } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
 import { addDays, addHours, startOfDay } from "date-fns";
 
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
-});
+const prisma = new PrismaClient();
 
 const warehouses = [
   { code: "PHX-01", name: "Phoenix Distribution Center", state: "AZ", city: "Phoenix", region: "Southwest", zip: "85001", timezone: "America/Phoenix" },
@@ -111,7 +115,7 @@ async function main() {
         data: {
           ...sku,
           description: `Seeded SKU ${i + 1}`,
-          unitWeightKg: ((i + 1) * 0.25).toFixed(3),
+          unitWeightKg: (i + 1) * 0.25,
         },
       }),
     ),
@@ -269,8 +273,8 @@ async function main() {
         expectedDate: addDays(now, 2),
         lines: {
           create: [
-            { inventoryItemId: items[(warehouseIdx + 1) % items.length].id, orderedQty: 120, receivedQty: 80, unitCost: "12.50" },
-            { inventoryItemId: items[(warehouseIdx + 2) % items.length].id, orderedQty: 60, receivedQty: 30, unitCost: "18.25" },
+            { inventoryItemId: items[(warehouseIdx + 1) % items.length].id, orderedQty: 120, receivedQty: 80, unitCost: 12.50 },
+            { inventoryItemId: items[(warehouseIdx + 2) % items.length].id, orderedQty: 60, receivedQty: 30, unitCost: 18.25 },
           ],
         },
       },
