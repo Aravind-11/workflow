@@ -42,6 +42,11 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
+      await fetch("/api/auth/provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, fullName: email.split("@")[0] }),
+      });
     }
 
     window.location.href = "/";
