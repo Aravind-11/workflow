@@ -2,6 +2,8 @@
 
 A production-style operations demo: inventory, inbound/outbound logistics, labor scheduling, returns, and role-based access — built for **Next.js on Vercel** with **MongoDB Atlas** and **Prisma**.
 
+**Live:** [wms-peach.vercel.app](https://wms-peach.vercel.app)
+
 ## Stack
 
 | Layer | Tech |
