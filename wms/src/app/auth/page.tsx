@@ -3,6 +3,23 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+async function provisionUser(email: string, fullName: string): Promise<string | null> {
+  try {
+    const res = await fetch("/api/auth/provision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, fullName }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return body.error ?? "Failed to provision user record";
+    }
+    return null;
+  } catch {
+    return "Network error during user provisioning";
+  }
+}
+
 export default function AuthPage() {
   const supabase = createClient();
   const [email, setEmail] = useState("");
@@ -24,17 +41,6 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      const res = await fetch("/api/auth/provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, fullName: fullName || email.split("@")[0] }),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        setError(body.error ?? "Failed to provision user record");
-        setLoading(false);
-        return;
-      }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
@@ -42,23 +48,13 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      try {
-        const res = await fetch("/api/auth/provision", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, fullName: email.split("@")[0] }),
-        });
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          setError(body.error ?? "Failed to provision user record");
-          setLoading(false);
-          return;
-        }
-      } catch {
-        setError("Network error during user provisioning");
-        setLoading(false);
-        return;
-      }
+    }
+
+    const provisionError = await provisionUser(email, fullName || email.split("@")[0]);
+    if (provisionError) {
+      setError(provisionError);
+      setLoading(false);
+      return;
     }
 
     window.location.href = "/";

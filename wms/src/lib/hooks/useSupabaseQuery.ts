@@ -12,10 +12,14 @@ export function useSupabaseQuery<T>(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let current = true;
+
     new Promise<{ data: T[] | null }>((resolve) => resolve(build(supabase)))
-      .then(({ data: rows }) => setData(rows ?? []))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+      .then(({ data: rows }) => { if (current) setData(rows ?? []); })
+      .catch((e: Error) => { if (current) setError(e.message); })
+      .finally(() => { if (current) setLoading(false); });
+
+    return () => { current = false; };
   }, [supabase, build]);
 
   return { data, loading, error };
