@@ -1,7 +1,8 @@
 import { config } from "dotenv";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const dir = new URL(".", import.meta.url).pathname;
+const dir = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(dir, "../.env"), quiet: true });
 config({ path: resolve(dir, "../.env.local"), override: true, quiet: true });
 
@@ -273,8 +274,8 @@ async function main() {
         expectedDate: addDays(now, 2),
         lines: {
           create: [
-            { inventoryItemId: items[(warehouseIdx + 1) % items.length].id, orderedQty: 120, receivedQty: 80, unitCost: 12.50 },
-            { inventoryItemId: items[(warehouseIdx + 2) % items.length].id, orderedQty: 60, receivedQty: 30, unitCost: 18.25 },
+            { inventoryItemId: items[(warehouseIdx + 1) % items.length].id, orderedQty: 120, receivedQty: 80, unitCostCents: 1250 },
+            { inventoryItemId: items[(warehouseIdx + 2) % items.length].id, orderedQty: 60, receivedQty: 30, unitCostCents: 1825 },
           ],
         },
       },

@@ -1,8 +1,9 @@
 import { config } from "dotenv";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 
-const dir = new URL(".", import.meta.url).pathname;
+const dir = dirname(fileURLToPath(import.meta.url));
 config({ path: resolve(dir, "../.env") });
 config({ path: resolve(dir, "../.env.local"), override: true });
 

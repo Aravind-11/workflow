@@ -42,11 +42,23 @@ export default function AuthPage() {
         setLoading(false);
         return;
       }
-      await fetch("/api/auth/provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, fullName: email.split("@")[0] }),
-      });
+      try {
+        const res = await fetch("/api/auth/provision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, fullName: email.split("@")[0] }),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          setError(body.error ?? "Failed to provision user record");
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setError("Network error during user provisioning");
+        setLoading(false);
+        return;
+      }
     }
 
     window.location.href = "/";
