@@ -110,4 +110,4 @@ See [`src/features/README.md`](./src/features/README.md) for feature-module conv
 
 ## License
 
-Private / demo — adjust as needed.
+Private / demo — all rights reserved.
