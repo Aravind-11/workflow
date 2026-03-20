@@ -22,21 +22,33 @@ async function main() {
   const db = client.db();
   const collection = db.collection("PurchaseOrderLine");
 
-  const docs = await collection.find({ unitCost: { $exists: true }, unitCostCents: { $exists: false } }).toArray();
-  console.log(`Found ${docs.length} document(s) to backfill`);
+  const cursor = collection.find({
+    unitCost: { $exists: true, $type: "number" },
+    unitCostCents: { $exists: false },
+  });
 
-  for (const doc of docs) {
-    const cents = Math.round((doc.unitCost as number) * 100);
+  let count = 0;
+  for await (const doc of cursor) {
+    const raw = doc.unitCost as number;
+    if (!Number.isFinite(raw)) {
+      console.warn(`  ${doc._id}: skipping non-finite unitCost (${raw})`);
+      continue;
+    }
+    const cents = Math.round(raw * 100);
     await collection.updateOne(
       { _id: doc._id },
       { $set: { unitCostCents: cents }, $unset: { unitCost: "" } },
     );
-    console.log(`  ${doc._id}: ${doc.unitCost} → ${cents} cents`);
+    console.log(`  ${doc._id}: ${raw} → ${cents} cents`);
+    count++;
   }
 
-  console.log("Backfill complete");
+  console.log(`Backfill complete — ${count} document(s) converted`);
 }
 
 main()
-  .catch(console.error)
+  .catch((err) => {
+    console.error(err);
+    process.exitCode = 1;
+  })
   .finally(() => client.close());
