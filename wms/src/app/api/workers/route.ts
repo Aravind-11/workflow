@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { WorkerStatus } from "@prisma/client";
 import { listWorkers } from "@/features/workers/service";
 import { P } from "@/lib/auth/permissions";
-import { getAuthContext } from "@/lib/auth/session";
+import { canAccessWarehouse, getAuthContext } from "@/lib/auth/session";
 
 function parseStatus(raw: string | null): WorkerStatus | undefined {
   if (!raw) return undefined;
@@ -16,17 +16,19 @@ export async function GET(request: Request) {
   if (!ctx?.permissions.has(P.workers.manage)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
   const { searchParams } = new URL(request.url);
   const search = searchParams.get("search") ?? undefined;
-  const warehouseId = searchParams.get("warehouseId") ?? undefined;
   const status = parseStatus(searchParams.get("status"));
 
+  const requestedWarehouse = searchParams.get("warehouseId") ?? undefined;
+  if (requestedWarehouse && !canAccessWarehouse(ctx, requestedWarehouse)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const warehouseId = requestedWarehouse ?? (ctx.roleNames.includes("admin") ? undefined : ctx.warehouseIds[0]);
+
   try {
-    const workers = await listWorkers({
-      search,
-      warehouseId,
-      status,
-    });
+    const workers = await listWorkers({ search, warehouseId, status });
     return NextResponse.json(workers);
   } catch (e) {
     return NextResponse.json(

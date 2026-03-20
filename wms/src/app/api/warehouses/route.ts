@@ -1,19 +1,22 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { P } from "@/lib/auth/permissions";
 import { getAuthContext } from "@/lib/auth/session";
+import { prisma } from "@/server/db/prisma";
 
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx?.permissions.has(P.warehouses.view)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("warehouses").select("*").order("name");
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const where = ctx.roleNames.includes("admin")
+    ? {}
+    : { id: { in: ctx.warehouseIds } };
 
-  return NextResponse.json(data);
+  const data = await prisma.warehouse.findMany({
+    where,
+    orderBy: { name: "asc" },
+  });
+
+  return NextResponse.json(JSON.parse(JSON.stringify(data)));
 }

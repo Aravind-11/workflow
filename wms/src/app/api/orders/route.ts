@@ -1,23 +1,32 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { P } from "@/lib/auth/permissions";
 import { getAuthContext } from "@/lib/auth/session";
+import { prisma } from "@/server/db/prisma";
 
 export async function GET() {
   const ctx = await getAuthContext();
   if (!ctx?.permissions.has(P.dashboard.view)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sales_orders")
-    .select("id,order_number,customer_name,status,ship_by_date,carrier,tracking")
-    .order("created_at", { ascending: false })
-    .limit(100);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const where = ctx.roleNames.includes("admin")
+    ? {}
+    : { warehouseId: { in: ctx.warehouseIds } };
 
-  return NextResponse.json(data);
+  const shipments = await prisma.shipment.findMany({
+    where,
+    select: {
+      id: true,
+      shipmentNumber: true,
+      salesOrderRef: true,
+      status: true,
+      carrier: true,
+      trackingNumber: true,
+      plannedShipAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 100,
+  });
+
+  return NextResponse.json(JSON.parse(JSON.stringify(shipments)));
 }
