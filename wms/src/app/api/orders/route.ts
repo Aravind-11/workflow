@@ -13,20 +13,26 @@ export async function GET() {
     ? {}
     : { warehouseId: { in: ctx.warehouseIds } };
 
-  const shipments = await prisma.shipment.findMany({
-    where,
-    select: {
-      id: true,
-      shipmentNumber: true,
-      salesOrderRef: true,
-      status: true,
-      carrier: true,
-      trackingNumber: true,
-      plannedShipAt: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
-
-  return NextResponse.json(JSON.parse(JSON.stringify(shipments)));
+  try {
+    const shipments = await prisma.shipment.findMany({
+      where,
+      select: {
+        id: true,
+        shipmentNumber: true,
+        salesOrderRef: true,
+        status: true,
+        carrier: true,
+        trackingNumber: true,
+        plannedShipAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+    return NextResponse.json(JSON.parse(JSON.stringify(shipments)));
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to load orders" },
+      { status: 500 },
+    );
+  }
 }

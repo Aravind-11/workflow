@@ -21,30 +21,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Cannot provision a different user" }, { status: 403 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ ok: true });
-  }
-
-  const adminRole = await prisma.role.findUnique({ where: { name: "admin" } });
-  const warehouses = await prisma.warehouse.findMany({ select: { id: true } });
-
-  const created = await prisma.user.create({
-    data: {
-      email,
-      fullName: fullName || email.split("@")[0],
-      ...(adminRole && warehouses.length > 0
-        ? {
-            roleMappings: {
-              create: warehouses.map((w) => ({
-                roleId: adminRole.id,
-                warehouseId: w.id,
-              })),
-            },
-          }
-        : {}),
-    },
+  const result = await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: { email, fullName: fullName || email.split("@")[0] },
   });
 
-  return NextResponse.json({ ok: true, userId: created.id }, { status: 201 });
+  return NextResponse.json({ ok: true, userId: result.id });
 }

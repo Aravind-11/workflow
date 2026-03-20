@@ -13,10 +13,13 @@ export async function GET() {
     ? {}
     : { id: { in: ctx.warehouseIds } };
 
-  const data = await prisma.warehouse.findMany({
-    where,
-    orderBy: { name: "asc" },
-  });
-
-  return NextResponse.json(JSON.parse(JSON.stringify(data)));
+  try {
+    const data = await prisma.warehouse.findMany({ where, orderBy: { name: "asc" } });
+    return NextResponse.json(JSON.parse(JSON.stringify(data)));
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to load warehouses" },
+      { status: 500 },
+    );
+  }
 }
