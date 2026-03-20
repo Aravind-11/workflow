@@ -51,4 +51,6 @@ main()
     console.error(err);
     process.exitCode = 1;
   })
-  .finally(() => client.close());
+  .finally(async () => {
+    try { await client.close(); } catch (e) { console.error("Failed to close MongoDB client:", e); }
+  });
