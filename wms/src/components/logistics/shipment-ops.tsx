@@ -143,11 +143,11 @@ export function ShipmentOps({
   return (
     <div className="space-y-6 text-sm">
       {msg ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-red-800">{msg}</p>
+        <p className="rounded-md border border-danger-100 bg-danger-50 px-3 py-2 text-danger-700">{msg}</p>
       ) : null}
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
-        <h2 className="font-semibold text-gray-900">Carrier &amp; tracking</h2>
+      <section className="rounded-xl border border-border bg-surface-raised p-4">
+        <h2 className="font-semibold text-neutral-900">Carrier &amp; tracking</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <label className="block text-xs">
             Carrier
@@ -179,9 +179,9 @@ export function ShipmentOps({
         </Button>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
+      <section className="rounded-xl border border-border bg-surface-raised p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold text-gray-900">Pick</h2>
+          <h2 className="font-semibold text-neutral-900">Pick</h2>
           {!pick ? (
             <div className="flex flex-wrap items-center gap-2">
               <input
@@ -195,7 +195,7 @@ export function ShipmentOps({
               </Button>
             </div>
           ) : (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-neutral-500">
               {pick.pickListNumber} · {pick.status}
             </span>
           )}
@@ -205,7 +205,7 @@ export function ShipmentOps({
             {pick.lines.map((ln) => (
               <div
                 key={ln.id}
-                className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-2"
+                className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-2"
               >
                 <span className="font-mono text-xs">{ln.inventoryItem.skuCode}</span>
                 <div className="flex items-center gap-2 text-xs">
@@ -236,23 +236,23 @@ export function ShipmentOps({
             </Button>
           </div>
         ) : (
-          <p className="mt-2 text-xs text-gray-500">Create a pick list from shipment lines.</p>
+          <p className="mt-2 text-xs text-neutral-500">Create a pick list from shipment lines.</p>
         )}
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
+      <section className="rounded-xl border border-border bg-surface-raised p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold text-gray-900">Pack</h2>
+          <h2 className="font-semibold text-neutral-900">Pack</h2>
           {pick?.status === PickListStatus.COMPLETED && !pack ? (
             <Button type="button" size="sm" onClick={startPack}>
               Generate pack list
             </Button>
           ) : pack ? (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-neutral-500">
               {pack.packListNumber} · {pack.status}
             </span>
           ) : (
-            <span className="text-xs text-amber-700">Complete pick first</span>
+            <span className="text-xs text-warning-700">Complete pick first</span>
           )}
         </div>
         {pack ? (
@@ -260,7 +260,7 @@ export function ShipmentOps({
             {pack.lines.map((ln) => (
               <div
                 key={ln.id}
-                className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-2"
+                className="flex flex-wrap items-center justify-between gap-2 border-t border-neutral-100 pt-2"
               >
                 <span className="font-mono text-xs">{ln.inventoryItem.skuCode}</span>
                 <span className="text-xs">
@@ -288,9 +288,9 @@ export function ShipmentOps({
         ) : null}
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
-        <h2 className="font-semibold text-gray-900">Ship</h2>
-        <p className="mt-1 text-xs text-gray-500">
+      <section className="rounded-xl border border-border bg-surface-raised p-4">
+        <h2 className="font-semibold text-neutral-900">Ship</h2>
+        <p className="mt-1 text-xs text-neutral-500">
           Mark carrier handoff after pack is complete. Status: {shipment.status}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -306,14 +306,14 @@ export function ShipmentOps({
           </Button>
           <Link
             href={`/shipping/${shipmentId}/label`}
-            className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+            className="inline-flex items-center rounded-md border border-border-strong px-3 py-1.5 text-sm hover:bg-neutral-50"
             target="_blank"
           >
             Shipping label (print)
           </Link>
           <Link
             href={`/shipping/${shipmentId}/packing-slip`}
-            className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
+            className="inline-flex items-center rounded-md border border-border-strong px-3 py-1.5 text-sm hover:bg-neutral-50"
             target="_blank"
           >
             Packing slip (print)

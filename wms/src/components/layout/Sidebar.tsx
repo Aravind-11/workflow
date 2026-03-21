@@ -47,10 +47,10 @@ export function Sidebar({
   const path = usePathname();
 
   return (
-    <aside className="flex h-full w-full min-w-0 flex-col border-r border-gray-200 bg-white md:h-screen md:w-56">
+    <aside className="flex h-full w-full min-w-0 flex-col border-r border-border bg-surface-raised md:h-screen md:w-56">
       <div className="border-b p-5 pr-12 md:pr-5">
-        <span className="font-semibold text-gray-900">WMS</span>
-        <p className="mt-2 truncate text-xs text-gray-500" title={userLabel}>
+        <span className="font-semibold text-neutral-900">WMS</span>
+        <p className="mt-2 truncate text-xs text-neutral-500" title={userLabel}>
           {userLabel}
         </p>
       </div>
@@ -66,7 +66,7 @@ export function Sidebar({
               href={href}
               onClick={() => onNavigate?.()}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                active ? "bg-blue-50 font-medium text-blue-700" : "text-gray-600 hover:bg-gray-50"
+                active ? "bg-primary-50 font-medium text-primary-700" : "text-neutral-600 hover:bg-neutral-50"
               }`}
             >
               <Icon size={16} />

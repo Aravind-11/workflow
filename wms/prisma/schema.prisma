@@ -770,3 +770,19 @@ model AuditLog {
   @@index([warehouseId, createdAt])
   @@index([entityType, entityId])
 }
+
+model Document {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  entityType  String
+  entityId    String   @db.ObjectId
+  fileName    String
+  mimeType    String
+  sizeBytes   Int
+  storagePath String
+  publicUrl   String
+  uploadedBy  String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([entityType, entityId])
+}

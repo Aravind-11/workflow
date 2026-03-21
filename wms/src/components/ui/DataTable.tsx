@@ -6,9 +6,9 @@ export default function DataTable({
   children: React.ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-border bg-surface-raised shadow-sm">
       <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-left text-gray-500">
+        <thead className="bg-neutral-50 text-left text-neutral-500">
           <tr>
             {headers.map((header) => (
               <th key={header} className="px-4 py-3">
