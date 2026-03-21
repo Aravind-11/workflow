@@ -142,7 +142,13 @@ export async function getPackList(id: string) {
     where: { id },
     include: {
       warehouse: true,
-      shipment: true,
+      shipment: {
+        include: {
+          pickLists: {
+            include: { lines: { select: { requestedQty: true } } },
+          },
+        },
+      },
       assignedWorker: true,
       lines: { include: { inventoryItem: true } },
     },

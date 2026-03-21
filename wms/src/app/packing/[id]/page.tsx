@@ -14,7 +14,16 @@ export default async function PackListDetailPage({
   const pl = await getPackList(id);
   if (!pl) notFound();
 
-  const totalPacked = pl.lines.reduce((sum, ln) => sum + ln.packedQty, 0);
+  const totalPacked = pl.lines.reduce(
+    (sum: number, ln: { packedQty: number }) => sum + ln.packedQty,
+    0,
+  );
+  const totalToPack = pl.shipment.pickLists
+    .flatMap((pk: { lines: { requestedQty: number }[] }) => pk.lines)
+    .reduce(
+      (sum: number, ln: { requestedQty: number }) => sum + ln.requestedQty,
+      0,
+    );
 
   return (
     <div className="space-y-6 p-6">
@@ -36,7 +45,7 @@ export default async function PackListDetailPage({
         currentStep={pl.status}
       />
 
-      <ProgressBar value={totalPacked} max={totalPacked || 1} label="Units packed" />
+      <ProgressBar value={totalPacked} max={totalToPack || 1} label="Units packed" />
 
       <div className="overflow-x-auto rounded-xl border border-border bg-surface-raised shadow-sm">
         <table className="w-full text-sm">
@@ -47,7 +56,7 @@ export default async function PackListDetailPage({
             </tr>
           </thead>
           <tbody>
-            {pl.lines.map((ln) => (
+            {pl.lines.map((ln: { id: string; inventoryItem: { skuCode: string }; packedQty: number }) => (
               <tr key={ln.id} className="border-t border-neutral-100">
                 <td className="px-4 py-3 font-mono text-xs">{ln.inventoryItem.skuCode}</td>
                 <td className="px-4 py-3">{ln.packedQty}</td>

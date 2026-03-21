@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Children, type ReactNode } from "react";
+import { Children, isValidElement, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const MAX_STAGGER_ITEMS = 15;
@@ -23,10 +23,12 @@ export function AnimatedList({
     <div className={cn(className)}>
       {items.map((child, index) => {
         const cappedIndex = Math.min(index, MAX_STAGGER_ITEMS);
+        const childKey =
+          isValidElement(child) && child.key != null ? child.key : index;
 
         return (
           <motion.div
-            key={index}
+            key={childKey}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
