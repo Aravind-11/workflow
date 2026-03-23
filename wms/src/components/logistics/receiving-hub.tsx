@@ -98,16 +98,16 @@ export function ReceivingHub({
   return (
     <div className="space-y-6">
       {msg ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{msg}</p>
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{msg}</p>
       ) : null}
 
-      <section className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4">
-        <h2 className="text-sm font-semibold text-emerald-900">Inbound flow</h2>
-        <p className="mt-1 text-sm text-emerald-800">
+      <section className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+        <h2 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">Inbound flow</h2>
+        <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">
           Delivery / PO → <strong>Receive</strong> → <strong>Inspect</strong> (condition &amp; line status) →{" "}
           <strong>Putaway</strong> → Post to inventory.
         </p>
-        <ol className="mt-2 list-decimal pl-5 text-xs text-emerald-900/90">
+        <ol className="mt-2 list-decimal pl-5 text-xs text-emerald-900/90 dark:text-emerald-200/90">
           <li>Create receipt (draft) — link PO and/or inbound delivery.</li>
           <li>Add lines with qty, lot, condition; move line status through inspection / putaway.</li>
           <li>Post receipt to update PO received quantities.</li>
@@ -117,11 +117,11 @@ export function ReceivingHub({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <form className="flex flex-wrap items-end gap-2" method="get">
           <label className="text-sm">
-            <span className="text-gray-600">Warehouse</span>
+            <span className="text-gray-600 dark:text-gray-400">Warehouse</span>
             <select
               name="warehouseId"
               defaultValue={initialWarehouseId}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -139,9 +139,9 @@ export function ReceivingHub({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-600">
+          <thead className="bg-gray-50 text-left text-gray-600 dark:bg-navy dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Receipt #</th>
               <th className="px-4 py-3">Status</th>
@@ -153,16 +153,16 @@ export function ReceivingHub({
           </thead>
           <tbody>
             {receipts.map((r) => (
-              <tr key={r.id} className="border-t border-gray-100">
+              <tr key={r.id} className="border-t border-gray-100 dark:border-navy-border">
                 <td className="px-4 py-3 font-mono text-xs font-medium">{r.receiptNumber}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       r.status === ReceiptStatus.POSTED
-                        ? "bg-green-100 text-green-800"
+                        ? "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300"
                         : r.status === ReceiptStatus.DRAFT
-                          ? "bg-amber-100 text-amber-800"
-                          : "bg-gray-100 text-gray-800"
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+                          : "bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-gray-300"
                     }`}
                   >
                     {r.status.replace("_", " ")}
@@ -174,13 +174,13 @@ export function ReceivingHub({
                   {!r.purchaseOrder && !r.delivery ? "—" : null}
                 </td>
                 <td className="px-4 py-3">{r.lines.length}</td>
-                <td className="px-4 py-3 text-xs text-gray-500">
+                <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                   {new Date(r.receivedAt).toLocaleString()}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
-                    className="text-sm font-medium text-blue-700 hover:underline"
+                    className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
                     onClick={() => openDrawer(r.id)}
                   >
                     Open
@@ -190,7 +190,7 @@ export function ReceivingHub({
             ))}
             {receipts.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                   No receipts for this warehouse.
                 </td>
               </tr>
@@ -199,7 +199,7 @@ export function ReceivingHub({
         </table>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Tip: <strong>Draft</strong> = pending receipt; <strong>Received</strong> = lines captured;{" "}
         <strong>Posted</strong> = finalized and PO quantities updated.
       </p>
@@ -214,13 +214,13 @@ export function ReceivingHub({
         widthClassName="max-w-xl"
       >
         {loading ? (
-          <p className="text-sm text-gray-500">Loading…</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
         ) : d ? (
           <div className="space-y-4 text-sm">
             <div className="flex flex-wrap gap-2">
               <Link
                 href={`/receiving/receipts/${d.id}`}
-                className="text-sm font-medium text-blue-700 hover:underline"
+                className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
               >
                 Full page →
               </Link>
@@ -236,7 +236,7 @@ export function ReceivingHub({
               ) : null}
             </div>
             <table className="w-full text-xs">
-              <thead className="text-left text-gray-500">
+              <thead className="text-left text-gray-500 dark:text-gray-400">
                 <tr>
                   <th className="py-1">SKU</th>
                   <th className="py-1">Qty</th>
@@ -246,13 +246,13 @@ export function ReceivingHub({
               </thead>
               <tbody>
                 {d.lines.map((ln) => (
-                  <tr key={ln.id} className="border-t border-gray-100">
+                  <tr key={ln.id} className="border-t border-gray-100 dark:border-navy-border">
                     <td className="py-2 font-mono">{ln.inventoryItem.skuCode}</td>
                     <td className="py-2">{ln.receivedQty}</td>
                     <td className="py-2">
                       {d.status !== ReceiptStatus.POSTED ? (
                         <select
-                          className="rounded border px-1 py-0.5"
+                          className="rounded border px-1 py-0.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
                           value={ln.condition}
                           onChange={(e) =>
                             patchLine(ln.id, d.id, {
@@ -273,7 +273,7 @@ export function ReceivingHub({
                     <td className="py-2">
                       {d.status !== ReceiptStatus.POSTED ? (
                         <select
-                          className="rounded border px-1 py-0.5"
+                          className="rounded border px-1 py-0.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
                           value={ln.inboundStatus}
                           onChange={(e) =>
                             patchLine(ln.id, d.id, {

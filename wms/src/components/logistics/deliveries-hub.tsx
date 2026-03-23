@@ -69,10 +69,10 @@ export function DeliveriesHub({
   return (
     <div className="space-y-6">
       {msg ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{msg}</p>
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{msg}</p>
       ) : null}
 
-      <section className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 text-sm text-violet-900">
+      <section className="rounded-xl border border-violet-200 bg-violet-50/80 p-4 text-sm text-violet-900 dark:border-violet-500/20 dark:bg-violet-500/10 dark:text-violet-200">
         <p className="font-semibold">Dock workflow</p>
         <p className="mt-1">
           Schedule dock → carrier arrives → <strong>check-in</strong> → link inbound delivery → receive
@@ -87,7 +87,7 @@ export function DeliveriesHub({
             <select
               name="warehouseId"
               defaultValue={warehouseId}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -102,12 +102,12 @@ export function DeliveriesHub({
               type="date"
               name="week"
               defaultValue={format(weekStart, "yyyy-MM-dd")}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
             />
           </label>
           <button
             type="submit"
-            className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-900"
+            className="rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-900 dark:bg-white/10 dark:text-gray-200"
           >
             Apply
           </button>
@@ -131,14 +131,14 @@ export function DeliveriesHub({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <h2 className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
+        <h2 className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 dark:border-navy-border dark:bg-navy dark:text-gray-300">
           Dock calendar (
           {format(startOfWeek(weekStart, { weekStartsOn: 1 }), "MMM d")} –{" "}
           {format(endOfWeek(weekStart, { weekStartsOn: 1 }), "MMM d, yyyy")})
         </h2>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-600">
+          <thead className="text-left text-gray-600 dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Code</th>
               <th className="px-4 py-3">Door</th>
@@ -149,17 +149,17 @@ export function DeliveriesHub({
           </thead>
           <tbody>
             {appointments.map((a) => (
-              <tr key={a.id} className="border-t border-gray-100">
+              <tr key={a.id} className="border-t border-gray-100 dark:border-navy-border">
                 <td className="px-4 py-3 font-mono text-xs">{a.appointmentCode}</td>
                 <td className="px-4 py-3">{a.dockDoor}</td>
-                <td className="px-4 py-3 text-xs text-gray-600">
+                <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                   {new Date(a.scheduledStart).toLocaleString()} –{" "}
                   {new Date(a.scheduledEnd).toLocaleTimeString()}
                 </td>
                 <td className="px-4 py-3">{a.status}</td>
                 <td className="px-4 py-3">
                   {a.checkedInAt ? (
-                    <span className="text-xs text-green-700">
+                    <span className="text-xs text-green-700 dark:text-green-400">
                       {new Date(a.checkedInAt).toLocaleString()}
                     </span>
                   ) : a.status === DockAppointmentStatus.SCHEDULED ? (
@@ -174,7 +174,7 @@ export function DeliveriesHub({
             ))}
             {appointments.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                   No appointments this week.
                 </td>
               </tr>
@@ -183,12 +183,12 @@ export function DeliveriesHub({
         </table>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <h2 className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
+        <h2 className="border-b bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 dark:border-navy-border dark:bg-navy dark:text-gray-300">
           Deliveries
         </h2>
         <table className="w-full text-sm">
-          <thead className="text-left text-gray-600">
+          <thead className="text-left text-gray-600 dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">#</th>
               <th className="px-4 py-3">Warehouse</th>
@@ -200,18 +200,18 @@ export function DeliveriesHub({
           </thead>
           <tbody>
             {deliveries.map((d) => (
-              <tr key={d.id} className="border-t border-gray-100">
+              <tr key={d.id} className="border-t border-gray-100 dark:border-navy-border">
                 <td className="px-4 py-3 font-mono text-xs">{d.deliveryNumber}</td>
                 <td className="px-4 py-3">{d.warehouse.code}</td>
                 <td className="px-4 py-3">{d.carrier}</td>
                 <td className="px-4 py-3">{d.status}</td>
-                <td className="px-4 py-3 text-xs text-gray-500">
+                <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                   {new Date(d.scheduledAt).toLocaleString()}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
-                    className="text-blue-700 hover:underline"
+                    className="text-blue-700 hover:underline dark:text-blue-400"
                     onClick={() => setDrawerId(d.id)}
                   >
                     Details
@@ -221,7 +221,7 @@ export function DeliveriesHub({
             ))}
             {deliveries.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                   No deliveries.
                 </td>
               </tr>
@@ -238,10 +238,10 @@ export function DeliveriesHub({
         {selected ? (
           <div className="space-y-3 text-sm">
             <p>
-              <span className="text-gray-500">Direction:</span> {selected.direction}
+              <span className="text-gray-500 dark:text-gray-400">Direction:</span> {selected.direction}
             </p>
             <p>
-              <span className="text-gray-500">Dock:</span>{" "}
+              <span className="text-gray-500 dark:text-gray-400">Dock:</span>{" "}
               {selected.dockAppointment
                 ? `${selected.dockAppointment.appointmentCode} (${selected.dockAppointment.dockDoor})`
                 : "—"}

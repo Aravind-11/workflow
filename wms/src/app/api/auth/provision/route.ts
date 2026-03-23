@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/server/db/prisma";
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const body = await request.json();
   const email: string | undefined = body.email;
   const fullName: string | undefined = body.fullName;
@@ -10,30 +17,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "email is required" }, { status: 400 });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ ok: true });
+  if (email !== user.email) {
+    return NextResponse.json({ error: "Cannot provision a different user" }, { status: 403 });
   }
 
-  const adminRole = await prisma.role.findUnique({ where: { name: "admin" } });
-  const warehouses = await prisma.warehouse.findMany({ select: { id: true } });
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      fullName: fullName || email.split("@")[0],
-      ...(adminRole && warehouses.length > 0
-        ? {
-            roleMappings: {
-              create: warehouses.map((w) => ({
-                roleId: adminRole.id,
-                warehouseId: w.id,
-              })),
-            },
-          }
-        : {}),
-    },
+  const result = await prisma.user.upsert({
+    where: { email },
+    update: {},
+    create: { email, fullName: fullName || email.split("@")[0] },
   });
 
-  return NextResponse.json({ ok: true, userId: user.id }, { status: 201 });
+  return NextResponse.json({ ok: true, userId: result.id });
 }

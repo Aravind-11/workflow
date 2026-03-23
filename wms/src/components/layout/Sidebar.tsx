@@ -17,6 +17,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { NavIconKey, NavItemDef } from "@/lib/nav/config";
 
 const ICONS: Record<NavIconKey, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -41,16 +42,15 @@ export function Sidebar({
 }: {
   navItems: NavItemDef[];
   userLabel: string;
-  /** Close mobile drawer after navigation */
   onNavigate?: () => void;
 }) {
   const path = usePathname();
 
   return (
-    <aside className="flex h-full w-full min-w-0 flex-col border-r border-gray-200 bg-white md:h-screen md:w-56">
-      <div className="border-b p-5 pr-12 md:pr-5">
-        <span className="font-semibold text-gray-900">WMS</span>
-        <p className="mt-2 truncate text-xs text-gray-500" title={userLabel}>
+    <aside className="flex h-full w-full min-w-0 flex-col border-r border-gray-200 bg-white dark:border-navy-border dark:bg-navy md:h-screen md:w-56">
+      <div className="border-b border-gray-200 p-5 pr-12 dark:border-navy-border md:pr-5">
+        <span className="font-semibold text-gray-900 dark:text-gray-100">WMS</span>
+        <p className="mt-2 truncate text-xs text-gray-500 dark:text-gray-400" title={userLabel}>
           {userLabel}
         </p>
       </div>
@@ -66,7 +66,9 @@ export function Sidebar({
               href={href}
               onClick={() => onNavigate?.()}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                active ? "bg-blue-50 font-medium text-blue-700" : "text-gray-600 hover:bg-gray-50"
+                active
+                  ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
+                  : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5"
               }`}
             >
               <Icon size={16} />
@@ -76,7 +78,8 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="border-t p-3">
+      <div className="space-y-0.5 border-t border-gray-200 p-3 dark:border-navy-border">
+        <ThemeToggle />
         <SignOutButton />
       </div>
     </aside>

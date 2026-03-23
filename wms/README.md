@@ -23,9 +23,9 @@ A production-style operations demo: inventory, inbound/outbound logistics, labor
 ## Local setup
 
 ```bash
-npm install
 cp .env.example .env.local
 # Edit .env.local: DATABASE_URL (MongoDB URI), NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY
+npm install          # postinstall runs `prisma generate` — needs DATABASE_URL
 npx prisma db push
 npm run prisma:seed
 npm run dev

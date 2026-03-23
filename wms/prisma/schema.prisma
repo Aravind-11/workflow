@@ -466,7 +466,7 @@ model PurchaseOrderLine {
   inventoryItemId String        @db.ObjectId
   orderedQty      Int
   receivedQty     Int           @default(0)
-  unitCost        Float?
+  unitCostCents   Int?
   purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
   receiptLines    ReceiptLine[]

@@ -45,16 +45,16 @@ export function AppShell({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 md:hidden">
+      <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 dark:border-navy-border dark:bg-navy md:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="rounded-lg p-2 text-gray-700 hover:bg-gray-100"
+          className="rounded-lg p-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <span className="font-semibold text-gray-900">WMS</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">WMS</span>
       </header>
 
       {mobileOpen ? (
@@ -74,7 +74,7 @@ export function AppShell({
         <div className="relative flex h-full w-full shadow-xl md:shadow-none">
           <button
             type="button"
-            className="absolute right-2 top-3 rounded-lg p-2 text-gray-500 hover:bg-gray-100 md:hidden"
+            className="absolute right-2 top-3 rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10 md:hidden"
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
           >

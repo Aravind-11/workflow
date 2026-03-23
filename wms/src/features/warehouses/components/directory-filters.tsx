@@ -37,11 +37,11 @@ function SelectField({
 }) {
   return (
     <label className="space-y-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-gray-500">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900"
+        className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-navy-border dark:bg-navy dark:text-gray-200"
       >
         <option value="">All</option>
         {options.map((option) => (
@@ -76,10 +76,10 @@ export default function DirectoryFilters({ facets, initialValues }: Props) {
   const applySearch = () => updateParam("search", searchText.trim() || undefined);
 
   return (
-    <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+    <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
       <div className="flex flex-wrap items-end gap-3">
         <label className="min-w-[220px] flex-1 space-y-1">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Search</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</span>
           <div className="flex gap-2">
             <input
               value={searchText}
@@ -88,7 +88,7 @@ export default function DirectoryFilters({ facets, initialValues }: Props) {
                 if (event.key === "Enter") applySearch();
               }}
               placeholder="Warehouse name or code"
-              className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm"
+              className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200 dark:placeholder-gray-500"
             />
             <Button variant="secondary" onClick={applySearch}>
               Apply
