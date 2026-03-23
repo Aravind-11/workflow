@@ -62,7 +62,7 @@ export function AppShell({
         </div>
       </div>
 
-      <main className="min-h-screen w-full min-w-0 overflow-x-hidden pt-14 md:ml-56">
+      <main className="min-h-screen min-w-0 overflow-x-hidden pt-14 md:ml-56">
         <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">{children}</div>
       </main>
     </>
