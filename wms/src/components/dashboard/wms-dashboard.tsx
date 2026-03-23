@@ -1,350 +1,210 @@
-import type { AuditLog, User, Warehouse } from "@prisma/client";
-import Link from "next/link";
-import type { ComponentType } from "react";
 import {
-  AlertTriangle,
-  ArrowRight,
-  Building2,
-  CalendarClock,
-  ClipboardList,
-  Dock,
+  ArrowDown,
+  ArrowUp,
   Package,
-  PackageOpen,
   RefreshCw,
   Send,
+  ShoppingCart,
   Truck,
-  Users,
-  Warehouse as WarehouseIcon,
 } from "lucide-react";
 import type { DashboardSnapshot } from "@/features/dashboard/service";
-import { fmtTime, fmtAction } from "@/lib/utils";
-import { MetricTile } from "./metric-tile";
-
-type AuditWith = AuditLog & {
-  warehouse: Pick<Warehouse, "code" | "name"> | null;
-  user: Pick<User, "fullName" | "email"> | null;
-};
+import { fmtTime } from "@/lib/utils";
 
 export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
-  const { kpis, lowStockSamples, warehousePerformance, recentAudit, todaysSchedules, upcomingDocks, returnQueueSample } =
-    data;
-  const k = kpis;
+  const { kpis: k } = data;
+  const deliveries = k.openShipments + k.dockAppointmentsToday;
 
   return (
-    <div className="min-h-[calc(100dvh-6rem)] overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100/90 dark:from-navy dark:via-navy dark:to-navy">
-      <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-sm dark:border-navy-border dark:bg-navy-surface/70">
-        <div className="py-6 sm:py-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Control tower</p>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-gray-100">Operations dashboard</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                Real-time snapshot across inventory, inbound, outbound, labor, and exceptions — built for floor
-                supervisors and exec reviews.
-              </p>
-            </div>
-            <div className="text-right text-xs text-slate-500 dark:text-slate-400">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 shadow-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-300">
-                <RefreshCw className="h-3.5 w-3.5" />
-                Updated {fmtTime(data.generatedAt)}
-              </span>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-gray-100">
+            Operations Overview
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Real-time snapshot across deliveries, orders, and inventory.
+          </p>
         </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-400">
+          <RefreshCw className="h-3.5 w-3.5" />
+          Updated {fmtTime(data.generatedAt)}
+        </span>
       </div>
 
-      <div className="space-y-8 py-8">
-        {/* KPI strip */}
-        <section>
-          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-gray-100">Key metrics</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <MetricTile
-              href="/warehouses"
-              label="Warehouses"
-              value={k.totalWarehouses}
-              icon={Building2}
-              tone="sky"
-            />
-            <MetricTile
-              href="/inventory/balances"
-              label="On hand (units)"
-              value={k.inventoryOnHand}
-              icon={Package}
-              tone="emerald"
-            />
-            <MetricTile
-              href="/inventory/catalog"
-              label="Low stock SKUs"
-              value={k.lowStockCount}
-              icon={AlertTriangle}
-              tone={k.lowStockCount > 0 ? "amber" : "slate"}
-              sub={k.lowStockCount > 0 ? "Below reorder point" : "All SKUs above threshold"}
-            />
-            <MetricTile
-              href="/receiving"
-              label="Open POs"
-              value={k.openPurchaseOrders}
-              icon={ClipboardList}
-              tone="violet"
-              sub="Awaiting receipt"
-            />
-            <MetricTile
-              href="/receiving"
-              label="Open receipts"
-              value={k.openReceipts}
-              icon={PackageOpen}
-              tone="slate"
-              sub="Draft or received"
-            />
-            <MetricTile
-              href="/shipping"
-              label="Open shipments"
-              value={k.openShipments}
-              icon={Send}
-              tone="sky"
-              sub="Not yet shipped"
-            />
-            <MetricTile
-              href="/workers/schedules"
-              label="Today's shifts"
-              value={k.todaysShifts}
-              icon={CalendarClock}
-              tone="violet"
-            />
-            <MetricTile
-              href="/tasks"
-              label="Overdue tasks"
-              value={k.overdueTasks}
-              icon={AlertTriangle}
-              tone={k.overdueTasks > 0 ? "rose" : "slate"}
-            />
-            <MetricTile
-              href="/deliveries"
-              label="Dock appts (today)"
-              value={k.dockAppointmentsToday}
-              icon={Dock}
-              tone="slate"
-            />
-            <MetricTile
-              href="/returns"
-              label="Returns in review"
-              value={k.returnsAwaitingReview}
-              icon={RefreshCw}
-              tone={k.returnsAwaitingReview > 0 ? "amber" : "emerald"}
-            />
-          </div>
-        </section>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Card 1 — No of Deliveries */}
+        <KpiCard
+          label="No of Deliveries"
+          value={deliveries}
+          icon={Truck}
+          trend={{ direction: "up", label: `${k.dockAppointmentsToday} dock appts today` }}
+          accent="blue"
+        />
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Warehouse performance */}
-          <section className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Warehouse performance</h2>
-              <Link href="/warehouses" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
-                Directory
-              </Link>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {warehousePerformance.map((w) => (
-                <Link
-                  key={w.id}
-                  href={`/warehouses/${w.id}`}
-                  className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-navy-border dark:bg-navy-surface dark:hover:border-slate-600"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="font-mono text-xs text-slate-500 dark:text-slate-400">{w.code}</p>
-                      <p className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-gray-100">{w.name}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {w.city}, {w.state}
-                      </p>
-                    </div>
-                    <WarehouseIcon className="h-8 w-8 text-slate-300 transition group-hover:text-blue-500 dark:text-slate-600 dark:group-hover:text-blue-400" />
-                  </div>
-                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
-                      <dt className="text-xs text-slate-500 dark:text-slate-400">On hand</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.onHandUnits.toLocaleString()}</dd>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
-                      <dt className="text-xs text-slate-500 dark:text-slate-400">Open shipments</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.openShipments}</dd>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
-                      <dt className="text-xs text-slate-500 dark:text-slate-400">Active tasks</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.activeTasks}</dd>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
-                      <dt className="text-xs text-slate-500 dark:text-slate-400">Pick lists</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.openPickLists}</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-700 opacity-0 transition group-hover:opacity-100 dark:text-blue-400">
-                    Open warehouse <ArrowRight className="h-3 w-3" />
-                  </p>
-                </Link>
-              ))}
-              {warehousePerformance.length === 0 && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">No active warehouses configured.</p>
-              )}
-            </div>
+        {/* Card 2 — No. of Orders */}
+        <KpiCard
+          label="No. of Orders"
+          value={k.openPurchaseOrders}
+          icon={ShoppingCart}
+          trend={{ direction: k.openPurchaseOrders > 10 ? "up" : "down", label: "Open purchase orders" }}
+          accent="violet"
+        />
 
-            {lowStockSamples.length > 0 && (
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
-                <p className="text-sm font-semibold text-amber-950 dark:text-amber-200">Low stock spotlight</p>
-                <ul className="mt-2 space-y-1.5 text-sm text-amber-950/90 dark:text-amber-300">
-                  {lowStockSamples.map((s) => (
-                    <li key={s.skuCode} className="flex flex-wrap justify-between gap-2">
-                      <span className="font-mono text-xs">{s.skuCode}</span>
-                      <span className="text-slate-700 dark:text-slate-300">
-                        {s.onHand.toLocaleString()} on hand · reorder {s.reorderPoint.toLocaleString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </section>
-
-          {/* Quick actions + activity */}
-          <aside className="space-y-6">
+        {/* Card 3 — Inventory Space */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+          <div className="flex items-start justify-between">
             <div>
-              <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-gray-100">Quick actions</h2>
-              <div className="grid gap-2">
-                <QuickAction href="/receiving" icon={Truck} label="Start receiving" hint="Receipts & putaway" />
-                <QuickAction href="/shipping" icon={Send} label="Create / manage shipment" hint="Outbound hub" />
-                <QuickAction
-                  href="/workers/schedules"
-                  icon={Users}
-                  label="Worker schedule"
-                  hint="Shifts & coverage"
-                />
-                <QuickAction href="/tasks" icon={ClipboardList} label="Create task" hint="Floor work queue" />
-              </div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Inventory Space
+              </p>
+              <p className="mt-2 text-4xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-gray-100">
+                {k.inventoryOnHand.toLocaleString()}
+              </p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">units on hand</p>
             </div>
+            <span className="rounded-xl bg-emerald-50 p-2.5 dark:bg-emerald-500/10">
+              <Package className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </span>
+          </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-navy-border dark:bg-navy-surface">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Recent activity</h2>
-              <ul className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1 text-sm">
-                {(recentAudit as AuditWith[]).map((a) => (
-                  <li key={a.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0 dark:border-navy-border">
-                    <p className="font-medium text-slate-800 dark:text-gray-200">{fmtAction(a.action)}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {a.warehouse?.code ?? "—"} · {fmtTime(a.createdAt)}
-                    </p>
-                    {a.user ? (
-                      <p className="text-xs text-slate-400 dark:text-slate-500">{a.user.fullName ?? a.user.email}</p>
-                    ) : null}
-                  </li>
-                ))}
-                {recentAudit.length === 0 && <li className="text-slate-500 dark:text-slate-400">No audit entries yet.</li>}
-              </ul>
+          <div className="mt-5 grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+              <div className="flex items-center gap-1.5">
+                <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Available</span>
+              </div>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900 dark:text-gray-100">
+                {(k.inventoryOnHand - k.inventoryReserved).toLocaleString()}
+              </p>
             </div>
-          </aside>
+            <div className="rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+              <div className="flex items-center gap-1.5">
+                <ArrowDown className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-xs font-medium text-amber-600 dark:text-amber-400">Reserved</span>
+              </div>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-slate-900 dark:text-gray-100">
+                {k.inventoryReserved.toLocaleString()}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Bottom bands */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Today&apos;s shifts</h2>
-              <Link href="/workers/schedules" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
-                Schedules
-              </Link>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {todaysSchedules.map((s) => (
-                <li key={s.id} className="flex flex-wrap justify-between gap-2 border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
-                  <span className="font-medium text-slate-800 dark:text-gray-200">
-                    {s.workerProfile.firstName} {s.workerProfile.lastName}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{s.warehouse.code}</span>
-                  <span className="w-full text-xs text-slate-600 dark:text-slate-400">
-                    {s.shift.name} · {s.shift.startTime}–{s.shift.endTime} · {s.status.replace(/_/g, " ")}
-                  </span>
-                </li>
-              ))}
-              {todaysSchedules.length === 0 && <li className="text-slate-500 dark:text-slate-400">No shifts scheduled today.</li>}
-            </ul>
-          </section>
+        {/* Card 4 — Balances, Returns, Orders */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            System Throughput
+          </p>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Dock appointments</h2>
-              <Link href="/deliveries" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
-                Deliveries
-              </Link>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {upcomingDocks.map((d) => (
-                <li key={d.id} className="border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
-                  <div className="flex justify-between gap-2">
-                    <span className="font-mono text-xs font-medium text-slate-800 dark:text-gray-200">{d.appointmentCode}</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{d.warehouse.code}</span>
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    {d.carrier} · {d.dockDoor}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{fmtTime(d.scheduledStart)} – {fmtTime(d.scheduledEnd)}</p>
-                </li>
-              ))}
-              {upcomingDocks.length === 0 && <li className="text-slate-500 dark:text-slate-400">No upcoming dock windows.</li>}
-            </ul>
-          </section>
-
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Returns awaiting review</h2>
-              <Link href="/returns" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
-                Queue
-              </Link>
-            </div>
-            <ul className="space-y-2 text-sm">
-              {returnQueueSample.map((r) => (
-                <li key={r.id} className="border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
-                  <Link href={`/returns/${r.id}`} className="font-mono text-xs font-semibold text-blue-800 hover:underline dark:text-blue-400">
-                    {r.rmaNumber}
-                  </Link>
-                  <p className="text-slate-700 dark:text-slate-300">{r.customerName}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {r.warehouse.code} · {r.status.replace(/_/g, " ")}
-                    {r.exceptionReasonCode ? ` · ${r.exceptionReasonCode}` : ""}
-                  </p>
-                </li>
-              ))}
-              {returnQueueSample.length === 0 && <li className="text-slate-500 dark:text-slate-400">No returns in review.</li>}
-            </ul>
-          </section>
+          <div className="mt-4 space-y-4">
+            <StatRow
+              label="Balances"
+              value={k.inventoryOnHand.toLocaleString()}
+              sub="total inventory units"
+              icon={Package}
+              color="sky"
+            />
+            <StatRow
+              label="Returns"
+              value={String(k.returnsAwaitingReview)}
+              sub="awaiting review"
+              icon={RefreshCw}
+              color="amber"
+            />
+            <StatRow
+              label="Orders"
+              value={String(k.openPurchaseOrders + k.openShipments)}
+              sub="inbound + outbound"
+              icon={Send}
+              color="violet"
+            />
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function QuickAction({
-  href,
-  icon: Icon,
+function KpiCard({
   label,
-  hint,
+  value,
+  icon: Icon,
+  trend,
+  accent,
 }: {
-  href: string;
-  icon: ComponentType<{ className?: string }>;
   label: string;
-  hint: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  trend: { direction: "up" | "down"; label: string };
+  accent: "blue" | "violet";
 }) {
+  const bg = accent === "blue"
+    ? "bg-blue-50 dark:bg-blue-500/10"
+    : "bg-violet-50 dark:bg-violet-500/10";
+  const iconColor = accent === "blue"
+    ? "text-blue-600 dark:text-blue-400"
+    : "text-violet-600 dark:text-violet-400";
+
   return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-navy-border dark:bg-navy-surface dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10"
-    >
-      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-blue-600">
-        <Icon className="h-5 w-5" />
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
+          <p className="mt-2 text-4xl font-semibold tabular-nums tracking-tight text-slate-900 dark:text-gray-100">
+            {value.toLocaleString()}
+          </p>
+        </div>
+        <span className={`rounded-xl p-2.5 ${bg}`}>
+          <Icon className={`h-5 w-5 ${iconColor}`} />
+        </span>
+      </div>
+
+      <div className="mt-4 flex items-center gap-2">
+        {trend.direction === "up" ? (
+          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+            <ArrowUp className="h-3 w-3" /> Up
+          </span>
+        ) : (
+          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+            <ArrowDown className="h-3 w-3" /> Down
+          </span>
+        )}
+        <span className="text-xs text-slate-500 dark:text-slate-400">{trend.label}</span>
+      </div>
+    </div>
+  );
+}
+
+function StatRow({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  color,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: "sky" | "amber" | "violet";
+}) {
+  const colors = {
+    sky: "bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400",
+    amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
+    violet: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400",
+  };
+
+  return (
+    <div className="flex items-center gap-4 rounded-xl bg-slate-50 px-4 py-3 dark:bg-white/5">
+      <span className={`rounded-lg p-2 ${colors[color]}`}>
+        <Icon className="h-4 w-4" />
       </span>
-      <span>
-        <span className="block text-sm font-semibold text-slate-900 dark:text-gray-100">{label}</span>
-        <span className="text-xs text-slate-500 dark:text-slate-400">{hint}</span>
-      </span>
-      <ArrowRight className="ml-auto h-4 w-4 text-slate-400" />
-    </Link>
+      <div className="flex-1">
+        <p className="text-sm font-medium text-slate-700 dark:text-gray-300">{label}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{sub}</p>
+      </div>
+      <p className="text-xl font-semibold tabular-nums text-slate-900 dark:text-gray-100">{value}</p>
+    </div>
   );
 }

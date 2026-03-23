@@ -29,6 +29,7 @@ export async function getDashboardSnapshot() {
   const [
     totalWarehouses,
     onHandSum,
+    reservedSum,
     openPurchaseOrders,
     openReceipts,
     openShipments,
@@ -45,6 +46,7 @@ export async function getDashboardSnapshot() {
   ] = await Promise.all([
     prisma.warehouse.count({ where: { status: WarehouseStatus.ACTIVE } }),
     prisma.inventoryBalance.aggregate({ _sum: { onHandQty: true } }),
+    prisma.inventoryBalance.aggregate({ _sum: { reservedQty: true } }),
     prisma.purchaseOrder.count({
       where: { status: { in: [PurchaseOrderStatus.OPEN, PurchaseOrderStatus.PARTIAL] } },
     }),
@@ -206,12 +208,14 @@ export async function getDashboardSnapshot() {
   }));
 
   const inventoryOnHand = onHandSum._sum.onHandQty ?? 0;
+  const inventoryReserved = reservedSum._sum.reservedQty ?? 0;
 
   return {
     generatedAt: now.toISOString(),
     kpis: {
       totalWarehouses,
       inventoryOnHand,
+      inventoryReserved,
       lowStockCount,
       openPurchaseOrders,
       openReceipts,
