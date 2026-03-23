@@ -26,9 +26,9 @@ export function serialize<T>(value: T): Serialized<T> {
 
 /** Tailwind class string for an entity status badge. */
 export function statusBadge(status: string) {
-  if (status === "ACTIVE") return "bg-green-100 text-green-800";
-  if (status === "MAINTENANCE") return "bg-amber-100 text-amber-800";
-  return "bg-gray-100 text-gray-700";
+  if (status === "ACTIVE") return "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300";
+  if (status === "MAINTENANCE") return "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300";
+  return "bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-300";
 }
 
 export function fmtWhen(iso: string) {

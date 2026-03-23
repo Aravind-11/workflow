@@ -83,12 +83,12 @@ export function ShipmentHub({
   return (
     <div className="space-y-6">
       {err ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">{err}</p>
+        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{err}</p>
       ) : null}
 
-      <section className="rounded-xl border border-blue-200 bg-blue-50/80 p-4">
-        <h2 className="text-sm font-semibold text-blue-900">Outbound flow</h2>
-        <p className="mt-1 text-sm text-blue-900/90">
+      <section className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
+        <h2 className="text-sm font-semibold text-blue-900 dark:text-blue-200">Outbound flow</h2>
+        <p className="mt-1 text-sm text-blue-900/90 dark:text-blue-200/90">
           Order / shipment → <strong>Pick list</strong> → <strong>Pack list</strong> →{" "}
           <strong>Ship</strong> (carrier, service, tracking).
         </p>
@@ -97,11 +97,11 @@ export function ShipmentHub({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <form className="flex flex-wrap items-end gap-2" method="get">
           <label className="text-sm">
-            <span className="text-gray-600">Warehouse</span>
+            <span className="text-gray-600 dark:text-gray-400">Warehouse</span>
             <select
               name="warehouseId"
               defaultValue={warehouseId}
-              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 block rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
             >
               {warehouses.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -119,9 +119,9 @@ export function ShipmentHub({
         </Button>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-600">
+          <thead className="bg-gray-50 text-left text-gray-600 dark:bg-navy dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Shipment</th>
               <th className="px-4 py-3">Status</th>
@@ -133,14 +133,14 @@ export function ShipmentHub({
           </thead>
           <tbody>
             {shipments.map((s) => (
-              <tr key={s.id} className="border-t border-gray-100">
+              <tr key={s.id} className="border-t border-gray-100 dark:border-navy-border">
                 <td className="px-4 py-3 font-mono text-xs font-medium">{s.shipmentNumber}</td>
                 <td className="px-4 py-3">
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">{s.status}</span>
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-white/10 dark:text-gray-300">{s.status}</span>
                 </td>
                 <td className="px-4 py-3 text-xs">
                   {s.carrier}
-                  {s.serviceLevel ? <div className="text-gray-500">{s.serviceLevel}</div> : null}
+                  {s.serviceLevel ? <div className="text-gray-500 dark:text-gray-400">{s.serviceLevel}</div> : null}
                 </td>
                 <td className="px-4 py-3 font-mono text-xs">{s.trackingNumber ?? "—"}</td>
                 <td className="px-4 py-3 text-xs">
@@ -149,7 +149,7 @@ export function ShipmentHub({
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/shipping/${s.id}`}
-                    className="text-sm font-medium text-blue-700 hover:underline"
+                    className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
                   >
                     Open
                   </Link>
@@ -158,7 +158,7 @@ export function ShipmentHub({
             ))}
             {shipments.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray-500">
+                <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                   No shipments.
                 </td>
               </tr>
@@ -172,7 +172,7 @@ export function ShipmentHub({
           <label className="block">
             Carrier
             <input
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.carrier}
               onChange={(e) => setForm((f) => ({ ...f, carrier: e.target.value }))}
             />
@@ -180,7 +180,7 @@ export function ShipmentHub({
           <label className="block">
             Service level
             <input
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.serviceLevel}
               onChange={(e) => setForm((f) => ({ ...f, serviceLevel: e.target.value }))}
             />
@@ -188,7 +188,7 @@ export function ShipmentHub({
           <label className="block">
             Tracking # (optional)
             <input
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.trackingNumber}
               onChange={(e) => setForm((f) => ({ ...f, trackingNumber: e.target.value }))}
             />
@@ -196,7 +196,7 @@ export function ShipmentHub({
           <label className="block">
             Sales order ref
             <input
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.salesOrderRef}
               onChange={(e) => setForm((f) => ({ ...f, salesOrderRef: e.target.value }))}
             />
@@ -217,7 +217,7 @@ export function ShipmentHub({
           <label className="block">
             SKU
             <select
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={lineForm.inventoryItemId}
               onChange={(e) => setLineForm((f) => ({ ...f, inventoryItemId: e.target.value }))}
             >
@@ -234,7 +234,7 @@ export function ShipmentHub({
             <input
               type="number"
               min={1}
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className="mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={lineForm.quantity}
               onChange={(e) =>
                 setLineForm((f) => ({ ...f, quantity: parseInt(e.target.value, 10) || 1 }))

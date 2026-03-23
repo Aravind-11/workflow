@@ -17,6 +17,9 @@ const TASK_TYPES: TaskType[] = [
   "MAINTENANCE",
 ];
 
+const inputClass =
+  "mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200";
+
 export function TaskCreateForm({
   warehouses,
 }: {
@@ -53,17 +56,17 @@ export function TaskCreateForm({
   }
 
   if (warehouses.length === 0) {
-    return <p className="text-sm text-amber-800">Add a warehouse before creating tasks.</p>;
+    return <p className="text-sm text-amber-800 dark:text-amber-300">Add a warehouse before creating tasks.</p>;
   }
 
   return (
-    <form onSubmit={submit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-slate-900">Create task</h3>
-      {err ? <p className="text-xs text-red-700">{err}</p> : null}
-      <label className="block text-xs font-medium text-slate-600">
+    <form onSubmit={submit} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Create task</h3>
+      {err ? <p className="text-xs text-red-700 dark:text-red-400">{err}</p> : null}
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">
         Warehouse
         <select
-          className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+          className={inputClass}
           value={form.warehouseId}
           onChange={(e) => setForm((f) => ({ ...f, warehouseId: e.target.value }))}
         >
@@ -74,21 +77,21 @@ export function TaskCreateForm({
           ))}
         </select>
       </label>
-      <label className="block text-xs font-medium text-slate-600">
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">
         Title
         <input
           required
-          className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+          className={inputClass}
           value={form.title}
           onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
           placeholder="e.g. Cycle count zone A-12"
         />
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-xs font-medium text-slate-600">
+        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">
           Type
           <select
-            className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+            className={inputClass}
             value={form.taskType}
             onChange={(e) => setForm((f) => ({ ...f, taskType: e.target.value as TaskType }))}
           >
@@ -99,23 +102,23 @@ export function TaskCreateForm({
             ))}
           </select>
         </label>
-        <label className="block text-xs font-medium text-slate-600">
+        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">
           Priority (1 = highest)
           <input
             type="number"
             min={1}
             max={5}
-            className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+            className={inputClass}
             value={form.priority}
             onChange={(e) => setForm((f) => ({ ...f, priority: Number(e.target.value) || 3 }))}
           />
         </label>
       </div>
-      <label className="block text-xs font-medium text-slate-600">
+      <label className="block text-xs font-medium text-slate-600 dark:text-slate-400">
         Due (optional)
         <input
           type="datetime-local"
-          className="mt-1 w-full rounded-lg border border-slate-200 px-2 py-2 text-sm"
+          className={inputClass}
           value={form.dueDate}
           onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
         />

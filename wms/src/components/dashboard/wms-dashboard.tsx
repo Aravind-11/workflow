@@ -31,20 +31,20 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
   const k = kpis;
 
   return (
-    <div className="min-h-[calc(100dvh-6rem)] overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100/90">
-      <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-sm">
+    <div className="min-h-[calc(100dvh-6rem)] overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100/90 dark:from-navy dark:via-navy dark:to-navy">
+      <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-sm dark:border-navy-border dark:bg-navy-surface/70">
         <div className="py-6 sm:py-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Control tower</p>
-              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900">Operations dashboard</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Control tower</p>
+              <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-900 dark:text-gray-100">Operations dashboard</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                 Real-time snapshot across inventory, inbound, outbound, labor, and exceptions — built for floor
                 supervisors and exec reviews.
               </p>
             </div>
-            <div className="text-right text-xs text-slate-500">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 shadow-sm">
+            <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 font-medium text-slate-700 shadow-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-300">
                 <RefreshCw className="h-3.5 w-3.5" />
                 Updated {fmtTime(data.generatedAt)}
               </span>
@@ -56,7 +56,7 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
       <div className="space-y-8 py-8">
         {/* KPI strip */}
         <section>
-          <h2 className="mb-4 text-sm font-semibold text-slate-900">Key metrics</h2>
+          <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-gray-100">Key metrics</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <MetricTile
               href="/warehouses"
@@ -139,8 +139,8 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
           {/* Warehouse performance */}
           <section className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-slate-900">Warehouse performance</h2>
-              <Link href="/warehouses" className="text-xs font-medium text-blue-700 hover:underline">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Warehouse performance</h2>
+              <Link href="/warehouses" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
                 Directory
               </Link>
             </div>
@@ -149,54 +149,54 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
                 <Link
                   key={w.id}
                   href={`/warehouses/${w.id}`}
-                  className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                  className="group rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md dark:border-navy-border dark:bg-navy-surface dark:hover:border-slate-600"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <p className="font-mono text-xs text-slate-500">{w.code}</p>
-                      <p className="mt-0.5 text-lg font-semibold text-slate-900">{w.name}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="font-mono text-xs text-slate-500 dark:text-slate-400">{w.code}</p>
+                      <p className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-gray-100">{w.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {w.city}, {w.state}
                       </p>
                     </div>
-                    <WarehouseIcon className="h-8 w-8 text-slate-300 transition group-hover:text-blue-500" />
+                    <WarehouseIcon className="h-8 w-8 text-slate-300 transition group-hover:text-blue-500 dark:text-slate-600 dark:group-hover:text-blue-400" />
                   </div>
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <dt className="text-xs text-slate-500">On hand</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900">{w.onHandUnits.toLocaleString()}</dd>
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">On hand</dt>
+                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.onHandUnits.toLocaleString()}</dd>
                     </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <dt className="text-xs text-slate-500">Open shipments</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900">{w.openShipments}</dd>
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Open shipments</dt>
+                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.openShipments}</dd>
                     </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <dt className="text-xs text-slate-500">Active tasks</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900">{w.activeTasks}</dd>
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Active tasks</dt>
+                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.activeTasks}</dd>
                     </div>
-                    <div className="rounded-xl bg-slate-50 px-3 py-2">
-                      <dt className="text-xs text-slate-500">Pick lists</dt>
-                      <dd className="font-semibold tabular-nums text-slate-900">{w.openPickLists}</dd>
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-navy/60">
+                      <dt className="text-xs text-slate-500 dark:text-slate-400">Pick lists</dt>
+                      <dd className="font-semibold tabular-nums text-slate-900 dark:text-gray-100">{w.openPickLists}</dd>
                     </div>
                   </dl>
-                  <p className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-700 opacity-0 transition group-hover:opacity-100">
+                  <p className="mt-3 flex items-center gap-1 text-xs font-medium text-blue-700 opacity-0 transition group-hover:opacity-100 dark:text-blue-400">
                     Open warehouse <ArrowRight className="h-3 w-3" />
                   </p>
                 </Link>
               ))}
               {warehousePerformance.length === 0 && (
-                <p className="text-sm text-slate-500">No active warehouses configured.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">No active warehouses configured.</p>
               )}
             </div>
 
             {lowStockSamples.length > 0 && (
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4">
-                <p className="text-sm font-semibold text-amber-950">Low stock spotlight</p>
-                <ul className="mt-2 space-y-1.5 text-sm text-amber-950/90">
+              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+                <p className="text-sm font-semibold text-amber-950 dark:text-amber-200">Low stock spotlight</p>
+                <ul className="mt-2 space-y-1.5 text-sm text-amber-950/90 dark:text-amber-300">
                   {lowStockSamples.map((s) => (
                     <li key={s.skuCode} className="flex flex-wrap justify-between gap-2">
                       <span className="font-mono text-xs">{s.skuCode}</span>
-                      <span className="text-slate-700">
+                      <span className="text-slate-700 dark:text-slate-300">
                         {s.onHand.toLocaleString()} on hand · reorder {s.reorderPoint.toLocaleString()}
                       </span>
                     </li>
@@ -209,7 +209,7 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
           {/* Quick actions + activity */}
           <aside className="space-y-6">
             <div>
-              <h2 className="mb-3 text-sm font-semibold text-slate-900">Quick actions</h2>
+              <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-gray-100">Quick actions</h2>
               <div className="grid gap-2">
                 <QuickAction href="/receiving" icon={Truck} label="Start receiving" hint="Receipts & putaway" />
                 <QuickAction href="/shipping" icon={Send} label="Create / manage shipment" hint="Outbound hub" />
@@ -223,21 +223,21 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="text-sm font-semibold text-slate-900">Recent activity</h2>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Recent activity</h2>
               <ul className="mt-3 max-h-80 space-y-3 overflow-y-auto pr-1 text-sm">
                 {(recentAudit as AuditWith[]).map((a) => (
-                  <li key={a.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                    <p className="font-medium text-slate-800">{fmtAction(a.action)}</p>
-                    <p className="text-xs text-slate-500">
+                  <li key={a.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0 dark:border-navy-border">
+                    <p className="font-medium text-slate-800 dark:text-gray-200">{fmtAction(a.action)}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {a.warehouse?.code ?? "—"} · {fmtTime(a.createdAt)}
                     </p>
                     {a.user ? (
-                      <p className="text-xs text-slate-400">{a.user.fullName ?? a.user.email}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{a.user.fullName ?? a.user.email}</p>
                     ) : null}
                   </li>
                 ))}
-                {recentAudit.length === 0 && <li className="text-slate-500">No audit entries yet.</li>}
+                {recentAudit.length === 0 && <li className="text-slate-500 dark:text-slate-400">No audit entries yet.</li>}
               </ul>
             </div>
           </aside>
@@ -245,74 +245,74 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
 
         {/* Bottom bands */}
         <div className="grid gap-6 lg:grid-cols-3">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">Today&apos;s shifts</h2>
-              <Link href="/workers/schedules" className="text-xs font-medium text-blue-700 hover:underline">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Today&apos;s shifts</h2>
+              <Link href="/workers/schedules" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
                 Schedules
               </Link>
             </div>
             <ul className="space-y-2 text-sm">
               {todaysSchedules.map((s) => (
-                <li key={s.id} className="flex flex-wrap justify-between gap-2 border-b border-slate-50 pb-2 last:border-0">
-                  <span className="font-medium text-slate-800">
+                <li key={s.id} className="flex flex-wrap justify-between gap-2 border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
+                  <span className="font-medium text-slate-800 dark:text-gray-200">
                     {s.workerProfile.firstName} {s.workerProfile.lastName}
                   </span>
-                  <span className="text-xs text-slate-500">{s.warehouse.code}</span>
-                  <span className="w-full text-xs text-slate-600">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{s.warehouse.code}</span>
+                  <span className="w-full text-xs text-slate-600 dark:text-slate-400">
                     {s.shift.name} · {s.shift.startTime}–{s.shift.endTime} · {s.status.replace(/_/g, " ")}
                   </span>
                 </li>
               ))}
-              {todaysSchedules.length === 0 && <li className="text-slate-500">No shifts scheduled today.</li>}
+              {todaysSchedules.length === 0 && <li className="text-slate-500 dark:text-slate-400">No shifts scheduled today.</li>}
             </ul>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">Dock appointments</h2>
-              <Link href="/deliveries" className="text-xs font-medium text-blue-700 hover:underline">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Dock appointments</h2>
+              <Link href="/deliveries" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
                 Deliveries
               </Link>
             </div>
             <ul className="space-y-2 text-sm">
               {upcomingDocks.map((d) => (
-                <li key={d.id} className="border-b border-slate-50 pb-2 last:border-0">
+                <li key={d.id} className="border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
                   <div className="flex justify-between gap-2">
-                    <span className="font-mono text-xs font-medium text-slate-800">{d.appointmentCode}</span>
-                    <span className="text-xs text-slate-500">{d.warehouse.code}</span>
+                    <span className="font-mono text-xs font-medium text-slate-800 dark:text-gray-200">{d.appointmentCode}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">{d.warehouse.code}</span>
                   </div>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     {d.carrier} · {d.dockDoor}
                   </p>
-                  <p className="text-xs text-slate-500">{fmtTime(d.scheduledStart)} – {fmtTime(d.scheduledEnd)}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{fmtTime(d.scheduledStart)} – {fmtTime(d.scheduledEnd)}</p>
                 </li>
               ))}
-              {upcomingDocks.length === 0 && <li className="text-slate-500">No upcoming dock windows.</li>}
+              {upcomingDocks.length === 0 && <li className="text-slate-500 dark:text-slate-400">No upcoming dock windows.</li>}
             </ul>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">Returns awaiting review</h2>
-              <Link href="/returns" className="text-xs font-medium text-blue-700 hover:underline">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Returns awaiting review</h2>
+              <Link href="/returns" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
                 Queue
               </Link>
             </div>
             <ul className="space-y-2 text-sm">
               {returnQueueSample.map((r) => (
-                <li key={r.id} className="border-b border-slate-50 pb-2 last:border-0">
-                  <Link href={`/returns/${r.id}`} className="font-mono text-xs font-semibold text-blue-800 hover:underline">
+                <li key={r.id} className="border-b border-slate-50 pb-2 last:border-0 dark:border-navy-border">
+                  <Link href={`/returns/${r.id}`} className="font-mono text-xs font-semibold text-blue-800 hover:underline dark:text-blue-400">
                     {r.rmaNumber}
                   </Link>
-                  <p className="text-slate-700">{r.customerName}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-slate-700 dark:text-slate-300">{r.customerName}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {r.warehouse.code} · {r.status.replace(/_/g, " ")}
                     {r.exceptionReasonCode ? ` · ${r.exceptionReasonCode}` : ""}
                   </p>
                 </li>
               ))}
-              {returnQueueSample.length === 0 && <li className="text-slate-500">No returns in review.</li>}
+              {returnQueueSample.length === 0 && <li className="text-slate-500 dark:text-slate-400">No returns in review.</li>}
             </ul>
           </section>
         </div>
@@ -335,14 +335,14 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40"
+      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/40 dark:border-navy-border dark:bg-navy-surface dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10"
     >
-      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+      <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white dark:bg-blue-600">
         <Icon className="h-5 w-5" />
       </span>
       <span>
-        <span className="block text-sm font-semibold text-slate-900">{label}</span>
-        <span className="text-xs text-slate-500">{hint}</span>
+        <span className="block text-sm font-semibold text-slate-900 dark:text-gray-100">{label}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">{hint}</span>
       </span>
       <ArrowRight className="ml-auto h-4 w-4 text-slate-400" />
     </Link>

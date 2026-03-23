@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
-body {
-  background: #f9fafb;
-  color: #111827;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-navy: #0B1220;
+  --color-navy-surface: #0F172A;
+  --color-navy-border: #1E293B;
+  --color-navy-hover: #162032;
 }

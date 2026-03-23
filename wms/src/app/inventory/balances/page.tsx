@@ -53,8 +53,8 @@ export default async function InventoryBalancesPage({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Inventory balances</h2>
-        <p className="text-sm text-gray-500">On-hand by warehouse and bin with lot and batch traceability.</p>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Inventory balances</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">On-hand by warehouse and bin with lot and batch traceability.</p>
       </div>
 
       <ReceiveInventoryToolbar
@@ -65,23 +65,23 @@ export default async function InventoryBalancesPage({
 
       <form
         method="get"
-        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 lg:flex-row lg:flex-wrap lg:items-end"
+        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 lg:flex-row lg:flex-wrap lg:items-end dark:border-navy-border dark:bg-navy-surface"
       >
         <label className="min-w-[200px] flex-1">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Search</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</span>
           <input
             name="search"
             defaultValue={search ?? ""}
             placeholder="SKU, name, barcode…"
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           />
         </label>
         <label className="min-w-[160px]">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Warehouse</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Warehouse</span>
           <select
             name="warehouseId"
             defaultValue={warehouseId ?? ""}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           >
             <option value="">All</option>
             {filterOptions.warehouses.map((w) => (
@@ -92,11 +92,11 @@ export default async function InventoryBalancesPage({
           </select>
         </label>
         <label className="min-w-[140px]">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Category</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</span>
           <select
             name="category"
             defaultValue={category ?? ""}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           >
             <option value="">All</option>
             {filterOptions.categories.map((c) => (
@@ -107,11 +107,11 @@ export default async function InventoryBalancesPage({
           </select>
         </label>
         <label className="min-w-[140px]">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Stock status</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Stock status</span>
           <select
             name="status"
             defaultValue={statusRaw ?? ""}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           >
             <option value="">All</option>
             {Object.values(InventoryBalanceStatus).map((s) => (
@@ -139,9 +139,9 @@ export default async function InventoryBalancesPage({
           description="Try clearing filters or receive stock to create balances."
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <table className="w-full min-w-[960px] text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3">SKU</th>
                   <th className="px-4 py-3">Warehouse</th>
@@ -156,36 +156,36 @@ export default async function InventoryBalancesPage({
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50/80">
+                  <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50/80 dark:border-navy-border dark:hover:bg-white/5">
                     <td className="px-4 py-3">
                       <Link
                         href={`/inventory/items/${row.inventoryItemId}`}
-                        className="font-medium text-blue-700 hover:underline"
+                        className="font-medium text-blue-700 hover:underline dark:text-blue-400"
                       >
                         {row.inventoryItem.skuCode}
                       </Link>
-                      <p className="text-xs text-gray-500">{row.inventoryItem.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{row.inventoryItem.name}</p>
                       {row.isLow ? (
-                        <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-900">
+                        <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-amber-900 dark:bg-amber-500/15 dark:text-amber-300">
                           Low stock
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-4 py-3 text-gray-700">{row.warehouse.code}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-800">{row.location.locationCode}</td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{row.warehouse.code}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-800 dark:text-gray-200">{row.location.locationCode}</td>
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                       {row.lotNumber ?? "—"} / {row.batchNumber ?? "—"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
+                    <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                       {row.expiryDate ? row.expiryDate.toLocaleDateString() : "—"}
                     </td>
                     <td className="px-4 py-3">
                       {row.onHandQty}{" "}
-                      <span className="text-xs text-gray-500">{row.inventoryItem.uom}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{row.inventoryItem.uom}</span>
                     </td>
                     <td className="px-4 py-3">{row.available}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-white/10 dark:text-gray-300">
                         {row.status}
                       </span>
                     </td>

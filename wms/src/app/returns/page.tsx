@@ -31,7 +31,7 @@ export default async function ReturnsQueuePage({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <section className="max-w-3xl flex-1 rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950">
+        <section className="max-w-3xl flex-1 rounded-xl border border-amber-200 bg-amber-50/90 p-4 text-sm text-amber-950 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
           <p className="font-semibold">Exception workflow</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
             <li>Create RMA (link shipment/order, reason code).</li>
@@ -48,15 +48,15 @@ export default async function ReturnsQueuePage({
       </div>
 
       <form
-        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:flex-wrap sm:items-end"
+        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface sm:flex-row sm:flex-wrap sm:items-end"
         method="get"
       >
         <label className="min-w-0 flex-1 text-sm sm:max-w-xs">
-          <span className="text-gray-600">Warehouse</span>
+          <span className="text-gray-600 dark:text-gray-400">Warehouse</span>
           <select
             name="warehouseId"
             defaultValue={warehouseId ?? ""}
-            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
           >
             <option value="">All</option>
             {warehouses.map((w) => (
@@ -67,11 +67,11 @@ export default async function ReturnsQueuePage({
           </select>
         </label>
         <label className="min-w-0 text-sm sm:w-44">
-          <span className="text-gray-600">Status</span>
+          <span className="text-gray-600 dark:text-gray-400">Status</span>
           <select
             name="status"
             defaultValue={statusRaw ?? ""}
-            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200"
           >
             <option value="">All</option>
             {Object.values(ReturnStatus).map((s) => (
@@ -82,12 +82,12 @@ export default async function ReturnsQueuePage({
           </select>
         </label>
         <label className="min-w-0 flex-1 text-sm sm:max-w-sm">
-          <span className="text-gray-600">Search</span>
+          <span className="text-gray-600 dark:text-gray-400">Search</span>
           <input
             name="search"
             defaultValue={search ?? ""}
             placeholder="RMA, customer, order…"
-            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 block w-full min-h-10 rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200 dark:placeholder-gray-500"
           />
         </label>
         <button
@@ -98,9 +98,9 @@ export default async function ReturnsQueuePage({
         </button>
       </form>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-left text-gray-600">
+          <thead className="bg-gray-50 text-left text-gray-600 dark:bg-navy dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">RMA</th>
               <th className="px-4 py-3">Customer</th>
@@ -114,11 +114,11 @@ export default async function ReturnsQueuePage({
           </thead>
           <tbody>
             {rows.map((rma) => (
-              <tr key={rma.id} className="border-t border-gray-100">
+              <tr key={rma.id} className="border-t border-gray-100 dark:border-navy-border">
                 <td className="px-4 py-3 font-mono text-xs font-medium">{rma.rmaNumber}</td>
                 <td className="px-4 py-3">{rma.customerName}</td>
                 <td className="px-4 py-3 text-xs">{rma.warehouse.code}</td>
-                <td className="px-4 py-3 text-xs text-gray-600">
+                <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                   {rma.exceptionReasonCode ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-xs">
@@ -126,12 +126,12 @@ export default async function ReturnsQueuePage({
                     <span className="font-mono">{rma.shipment.shipmentNumber}</span>
                   ) : null}
                   {rma.originalOrderRef ? (
-                    <div className="text-gray-500">SO {rma.originalOrderRef}</div>
+                    <div className="text-gray-500 dark:text-gray-400">SO {rma.originalOrderRef}</div>
                   ) : null}
                   {!rma.shipment && !rma.originalOrderRef ? "—" : null}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-white/10 dark:text-gray-300">
                     {rma.status.replace("_", " ")}
                   </span>
                 </td>
@@ -139,7 +139,7 @@ export default async function ReturnsQueuePage({
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/returns/${rma.id}`}
-                    className="font-medium text-blue-700 hover:underline"
+                    className="font-medium text-blue-700 hover:underline dark:text-blue-400"
                   >
                     Open
                   </Link>
@@ -148,7 +148,7 @@ export default async function ReturnsQueuePage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={8} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
                   No returns in queue.
                 </td>
               </tr>

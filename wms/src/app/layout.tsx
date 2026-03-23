@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { AuthProvider } from "@/contexts/auth-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { getAuthContext } from "@/lib/auth/session";
 import { filterNav } from "@/lib/nav/config";
 
@@ -28,17 +29,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     : null;
 
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50`}>
-        <AuthProvider value={authClient}>
-          <AppShell
-            navItems={navItems}
-            userLabel={ctx?.fullName ?? ctx?.email ?? "Guest"}
-            hasSession={!!ctx}
-          >
-            {children}
-          </AppShell>
-        </AuthProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-[#F8FAFC] text-slate-800 dark:bg-navy dark:text-gray-200`}>
+        <ThemeProvider>
+          <AuthProvider value={authClient}>
+            <AppShell
+              navItems={navItems}
+              userLabel={ctx?.fullName ?? ctx?.email ?? "Guest"}
+              hasSession={!!ctx}
+            >
+              {children}
+            </AppShell>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

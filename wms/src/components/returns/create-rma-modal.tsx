@@ -15,6 +15,9 @@ type Ship = {
   salesOrderRef: string | null;
 };
 
+const fieldClass =
+  "mt-1 w-full rounded-md border px-2 py-2 dark:border-navy-border dark:bg-navy dark:text-gray-200";
+
 export function CreateRmaModal({
   warehouses,
   shipments,
@@ -67,12 +70,12 @@ export function CreateRmaModal({
       <Modal open={open} title="Create return authorization (RMA)" onClose={() => setOpen(false)}>
         <div className="space-y-3 text-sm">
           {err ? (
-            <p className="rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-800">{err}</p>
+            <p className="rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-800 dark:bg-red-500/10 dark:text-red-300">{err}</p>
           ) : null}
           <label className="block">
             Warehouse
             <select
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               value={form.warehouseId}
               onChange={(e) =>
                 setForm((f) => ({ ...f, warehouseId: e.target.value, shipmentId: "" }))
@@ -89,7 +92,7 @@ export function CreateRmaModal({
             Customer name
             <input
               required
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               value={form.customerName}
               onChange={(e) => setForm((f) => ({ ...f, customerName: e.target.value }))}
             />
@@ -97,7 +100,7 @@ export function CreateRmaModal({
           <label className="block">
             Link shipment (optional)
             <select
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               value={form.shipmentId}
               onChange={(e) => setForm((f) => ({ ...f, shipmentId: e.target.value }))}
             >
@@ -113,7 +116,7 @@ export function CreateRmaModal({
           <label className="block">
             Original order ref (if no shipment)
             <input
-              className="mt-1 w-full rounded-md border px-2 py-2 font-mono text-xs"
+              className={`${fieldClass} font-mono text-xs`}
               value={form.originalOrderRef}
               onChange={(e) => setForm((f) => ({ ...f, originalOrderRef: e.target.value }))}
             />
@@ -121,7 +124,7 @@ export function CreateRmaModal({
           <label className="block">
             Exception reason code
             <select
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               value={form.exceptionReasonCode}
               onChange={(e) => setForm((f) => ({ ...f, exceptionReasonCode: e.target.value }))}
             >
@@ -136,7 +139,7 @@ export function CreateRmaModal({
           <label className="block">
             Reason (free text)
             <textarea
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               rows={2}
               value={form.reason}
               onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
@@ -145,7 +148,7 @@ export function CreateRmaModal({
           <label className="block">
             Notes
             <textarea
-              className="mt-1 w-full rounded-md border px-2 py-2"
+              className={fieldClass}
               rows={2}
               value={form.notes}
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}

@@ -25,8 +25,8 @@ export default async function InventoryCatalogPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">SKU catalog</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">SKU catalog</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Master item data: UOM, tracking flags, and reorder points for low-stock signals.
           </p>
         </div>
@@ -35,23 +35,23 @@ export default async function InventoryCatalogPage({
 
       <form
         method="get"
-        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:flex-wrap sm:items-end"
+        className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:flex-wrap sm:items-end dark:border-navy-border dark:bg-navy-surface"
       >
         <label className="min-w-[220px] flex-1">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Search</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</span>
           <input
             name="search"
             defaultValue={search ?? ""}
             placeholder="SKU, name, barcode…"
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           />
         </label>
         <label className="min-w-[180px]">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500">Category</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Category</span>
           <select
             name="category"
             defaultValue={category ?? ""}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-100"
           >
             <option value="">All</option>
             {filterOptions.categories.map((c) => (
@@ -75,9 +75,9 @@ export default async function InventoryCatalogPage({
           description="Add a SKU or adjust your search filters."
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <table className="w-full min-w-[800px] text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3">SKU</th>
                   <th className="px-4 py-3">Barcode</th>
@@ -91,14 +91,14 @@ export default async function InventoryCatalogPage({
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50/80">
-                    <td className="px-4 py-3 font-mono text-xs font-medium text-gray-900">{item.skuCode}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-600">{item.barcode ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-800">{item.name}</td>
-                    <td className="px-4 py-3 text-gray-600">{item.category ?? "—"}</td>
+                  <tr key={item.id} className="border-t border-gray-100 hover:bg-gray-50/80 dark:border-navy-border dark:hover:bg-white/5">
+                    <td className="px-4 py-3 font-mono text-xs font-medium text-gray-900 dark:text-gray-100">{item.skuCode}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-gray-400">{item.barcode ?? "—"}</td>
+                    <td className="px-4 py-3 text-gray-800 dark:text-gray-200">{item.name}</td>
+                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{item.category ?? "—"}</td>
                     <td className="px-4 py-3">{item.uom}</td>
                     <td className="px-4 py-3">{item.reorderPoint ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">
+                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                       L{item.lotTracked ? "✓" : "—"} B{item.batchTracked ? "✓" : "—"} E
                       {item.expiryTracked ? "✓" : "—"}
                     </td>
