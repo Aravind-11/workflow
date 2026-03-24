@@ -1,0 +1,8 @@
+{
+  "name": "workflow",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix wms",
+    "build": "npm run build --prefix wms"
+  }
+}
