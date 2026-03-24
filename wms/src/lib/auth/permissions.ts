@@ -90,7 +90,16 @@ export const ROLE_PERMISSIONS: Record<AppRoleName, readonly string[]> = {
     P.returns.manage,
     P.warehouses.view,
   ],
-  viewer: [P.dashboard.view, P.inventory.view, P.warehouses.view],
+  /** Read-mostly default: full nav + pages; tighten per-action rules in routes if needed. */
+  viewer: [
+    P.dashboard.view,
+    P.inventory.view,
+    P.warehouses.view,
+    P.deliveries.manage,
+    P.receiving.manage,
+    P.workers.manage,
+    P.tasks.manage,
+  ],
 };
 
 export function mergePermissions(roleNames: string[]): Set<string> {
