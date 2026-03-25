@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ShipmentStatus } from "@prisma/client";
+import { PendingImagePicker, type PendingImage } from "@/components/attachments/pending-image-picker";
+import { uploadPendingImages } from "@/components/attachments/upload-pending";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
 import { addShipmentLineAction, createShipmentAction } from "@/features/logistics/actions";
@@ -47,6 +49,7 @@ export function ShipmentHub({
     salesOrderRef: "",
   });
   const [lineForm, setLineForm] = useState({ inventoryItemId: "", quantity: 1 });
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
   async function createShipment() {
@@ -60,6 +63,10 @@ export function ShipmentHub({
     });
     if (!r.ok) setErr(r.error);
     else {
+      if (r.data?.id && pendingImages.length > 0) {
+        await uploadPendingImages("Shipment", r.data.id, pendingImages);
+      }
+      setPendingImages([]);
       setOpen(false);
       router.refresh();
       if (r.data?.id) setLineOpen(r.data.id);
@@ -201,6 +208,12 @@ export function ShipmentHub({
               onChange={(e) => setForm((f) => ({ ...f, salesOrderRef: e.target.value }))}
             />
           </label>
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Attach photos (optional)</span>
+            <div className="mt-1">
+              <PendingImagePicker images={pendingImages} onChange={setPendingImages} />
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancel
