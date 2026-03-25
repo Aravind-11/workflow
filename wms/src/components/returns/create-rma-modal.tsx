@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { PendingImagePicker, type PendingImage } from "@/components/attachments/pending-image-picker";
+import { uploadPendingImages } from "@/components/attachments/upload-pending";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/ui/Modal";
 import { createRmaAction } from "@/features/returns/actions";
@@ -28,6 +30,7 @@ export function CreateRmaModal({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [form, setForm] = useState({
     warehouseId: warehouses[0]?.id ?? "",
     customerName: "",
@@ -56,6 +59,10 @@ export function CreateRmaModal({
     });
     if (!r.ok) setErr(r.error);
     else {
+      if (r.data?.id && pendingImages.length > 0) {
+        await uploadPendingImages("Return", r.data.id, pendingImages);
+      }
+      setPendingImages([]);
       setOpen(false);
       if (r.data?.id) router.push(`/returns/${r.data.id}`);
       else router.refresh();
@@ -154,6 +161,12 @@ export function CreateRmaModal({
               onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
             />
           </label>
+          <div>
+            <span className="text-gray-600 dark:text-gray-400">Attach photos (optional)</span>
+            <div className="mt-1">
+              <PendingImagePicker images={pendingImages} onChange={setPendingImages} />
+            </div>
+          </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
               Cancel

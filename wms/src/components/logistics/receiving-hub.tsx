@@ -9,6 +9,7 @@ import {
   ReceiptStatus,
 } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { uploadPendingImages } from "@/components/attachments/upload-pending";
 import {
   addReceiptLineAction,
   createReceiptAction,
@@ -315,6 +316,9 @@ export function ReceivingHub({
           });
           if (!r.ok) setMsg(r.error);
           else {
+            if (r.data?.id && form.images.length > 0) {
+              await uploadPendingImages("Receipt", r.data.id, form.images);
+            }
             setNewOpen(false);
             router.refresh();
             if (r.data?.id) openDrawer(r.data.id);
