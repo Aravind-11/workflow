@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AttachmentsSection } from "@/components/attachments/attachments-section";
 import { getPackList } from "@/features/logistics/service";
 
 export default async function PackListDetailPage({
@@ -40,6 +41,8 @@ export default async function PackListDetailPage({
           </tbody>
         </table>
       </div>
+      <AttachmentsSection entityType="PackList" entityId={id} />
+
       <Link
         href={`/shipping/${pl.shipmentId}`}
         className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AttachmentsSection } from "@/components/attachments/attachments-section";
 import { getPickList } from "@/features/logistics/service";
 
 export default async function PickListDetailPage({
@@ -46,6 +47,8 @@ export default async function PickListDetailPage({
           </tbody>
         </table>
       </div>
+      <AttachmentsSection entityType="PickList" entityId={id} />
+
       {pl.shipmentId ? (
         <Link
           href={`/shipping/${pl.shipmentId}`}

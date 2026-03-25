@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AttachmentsSection } from "@/components/attachments/attachments-section";
 import { ReturnDetailPanel } from "@/components/returns/return-detail-panel";
 import {
   getReturnDetail,
@@ -38,6 +39,8 @@ export default async function ReturnDetailPage({ params }: { params: Promise<{ i
         locations={locationsJson}
         skus={skusJson}
       />
+
+      <AttachmentsSection entityType="Return" entityId={id} />
     </div>
   );
 }
