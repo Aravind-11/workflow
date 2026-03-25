@@ -25,9 +25,9 @@ enum WorkerStatus {
 }
 
 enum ShiftType {
-  MORNING
-  EVENING
-  NIGHT
+  FIRST
+  SECOND
+  THIRD
 }
 
 enum ScheduleStatus {
