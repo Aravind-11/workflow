@@ -98,7 +98,7 @@ export default function AuthPage() {
         <h1 className="mb-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
           {mode === "signin" ? "Sign in" : "Create account"}
         </h1>
-        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Warehouse Management System</p>
+        <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Nventr Record Management Software</p>
 
         {awaitingEmailConfirmation ? (
           <div className="space-y-4 rounded-xl border border-blue-200 bg-blue-50/80 p-4 text-sm text-slate-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-gray-200">

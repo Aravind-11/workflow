@@ -36,7 +36,7 @@ export function TopBar({
       </button>
 
       <Link href="/" className="mr-8 text-lg font-bold text-blue-600 dark:text-blue-400">
-        WMS
+        Nventr
       </Link>
 
       <nav className="hidden items-center gap-1 md:flex">
