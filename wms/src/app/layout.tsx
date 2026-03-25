@@ -23,6 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     ? {
         email: ctx.email,
         fullName: ctx.fullName,
+        nickname: ctx.nickname,
         permissions: [...ctx.permissions],
         roleNames: ctx.roleNames,
       }
@@ -35,7 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AuthProvider value={authClient}>
             <AppShell
               navItems={navItems}
-              userLabel={ctx?.fullName ?? ctx?.email ?? "Guest"}
+              userLabel={ctx?.nickname ?? ctx?.fullName ?? ctx?.email ?? "Guest"}
               hasSession={!!ctx}
             >
               {children}

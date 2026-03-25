@@ -181,6 +181,7 @@ model User {
   id                    String                 @id @default(auto()) @map("_id") @db.ObjectId
   email                 String                 @unique
   fullName              String
+  nickname              String?
   passwordHash          String?
   status                UserStatus             @default(ACTIVE)
   roleMappings          UserRole[]

@@ -10,6 +10,7 @@ export type AuthContext = {
   userId: string;
   email: string;
   fullName: string;
+  nickname: string | null;
   /** Distinct role names across all warehouse assignments */
   roleNames: string[];
   /** Effective permissions (union) */
@@ -46,6 +47,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     userId: dbUser.id,
     email: dbUser.email,
     fullName: dbUser.fullName,
+    nickname: dbUser.nickname ?? null,
     roleNames,
     permissions,
     warehouseIds,
