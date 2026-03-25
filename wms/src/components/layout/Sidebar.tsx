@@ -48,12 +48,16 @@ export function Sidebar({
 
   return (
     <aside className="flex h-full w-full min-w-0 flex-col border-r border-gray-200 bg-white dark:border-navy-border dark:bg-navy md:h-screen md:w-56">
-      <div className="border-b border-gray-200 p-5 pr-12 dark:border-navy-border md:pr-5">
+      <Link
+        href="/settings/profile"
+        onClick={() => onNavigate?.()}
+        className="block border-b border-gray-200 p-5 pr-12 transition-colors hover:bg-gray-50 dark:border-navy-border dark:hover:bg-white/5 md:pr-5"
+      >
         <span className="font-semibold text-gray-900 dark:text-gray-100">WMS</span>
         <p className="mt-2 truncate text-xs text-gray-500 dark:text-gray-400" title={userLabel}>
           {userLabel}
         </p>
-      </div>
+      </Link>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
         {navItems.map(({ href, label, icon }) => {
