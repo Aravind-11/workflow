@@ -1,0 +1,30 @@
+---
+description: React hooks patterns and custom hook conventions
+globs: "**/use*.ts"
+alwaysApply: false
+---
+# React Hooks
+
+## Custom Hook Conventions
+- Name custom hooks `use*` (e.g. `useAuth`, `useFetchData`)
+- Return typed tuples or objects: `return { data, loading, error }`
+- Handle loading, error, and empty states in every data-fetching hook
+- Accept configuration objects instead of multiple parameters
+
+## State Management
+- Use `useState` for simple local state
+- Use `useReducer` for complex state with multiple sub-values or transitions
+- Lift state only as high as needed — avoid over-centralization
+- For global state, prefer context + useReducer or a lightweight store (Zustand)
+
+## Effect Rules
+- Every `useEffect` must have a cleanup function when it subscribes to anything
+- List all dependencies — never suppress the exhaustive-deps lint
+- Split unrelated effects into separate `useEffect` calls
+- Prefer `useSyncExternalStore` for subscribing to external data sources
+
+## Data Fetching
+- Use React Query / TanStack Query or SWR for server state
+- Do NOT fetch data in `useEffect` for new code — use a data library
+- Handle race conditions with AbortController or query cancellation
+- Cache aggressively, invalidate intentionally

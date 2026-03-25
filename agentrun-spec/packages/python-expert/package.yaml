@@ -1,0 +1,17 @@
+name: python-expert
+version: 1.0.0
+description: "Python best practices: type hints, PEP 8, pytest patterns, and project structure"
+author: agentrun
+tags: [python, typing, testing, pep8]
+license: MIT
+ide_targets: [cursor, agents.md]
+rules:
+  - file: rules/python-style.mdc
+    activation: glob
+    globs: ["**/*.py"]
+  - file: rules/python-testing.mdc
+    activation: glob
+    globs: ["**/test_*.py", "**/tests/**/*.py", "**/conftest.py"]
+agents_md:
+  section: "Python Guidelines"
+  file: agents.md

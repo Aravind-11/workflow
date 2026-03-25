@@ -31,7 +31,7 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
   const k = kpis;
 
   return (
-    <div className="min-h-[calc(100dvh-6rem)] overflow-x-hidden bg-gradient-to-br from-slate-50 via-white to-slate-100/90 dark:from-navy dark:via-navy dark:to-navy">
+    <div className="min-w-0 overflow-hidden">
       <div className="border-b border-slate-200/80 bg-white/70 backdrop-blur-sm dark:border-navy-border dark:bg-navy-surface/70">
         <div className="py-6 sm:py-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -57,87 +57,36 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
         {/* KPI strip */}
         <section>
           <h2 className="mb-4 text-sm font-semibold text-slate-900 dark:text-gray-100">Key metrics</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            <MetricTile
-              href="/warehouses"
-              label="Warehouses"
-              value={k.totalWarehouses}
-              icon={Building2}
-              tone="sky"
-            />
-            <MetricTile
-              href="/inventory/balances"
-              label="On hand (units)"
-              value={k.inventoryOnHand}
-              icon={Package}
-              tone="emerald"
-            />
+          <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <MetricTile href="/warehouses" label="Warehouses" value={k.totalWarehouses} icon={Building2} />
+            <MetricTile href="/inventory/balances" label="On hand (units)" value={k.inventoryOnHand} icon={Package} />
             <MetricTile
               href="/inventory/catalog"
               label="Low stock SKUs"
               value={k.lowStockCount}
               icon={AlertTriangle}
-              tone={k.lowStockCount > 0 ? "amber" : "slate"}
+              tone={k.lowStockCount > 0 ? "warn" : "default"}
               sub={k.lowStockCount > 0 ? "Below reorder point" : "All SKUs above threshold"}
             />
-            <MetricTile
-              href="/receiving"
-              label="Open POs"
-              value={k.openPurchaseOrders}
-              icon={ClipboardList}
-              tone="violet"
-              sub="Awaiting receipt"
-            />
-            <MetricTile
-              href="/receiving"
-              label="Open receipts"
-              value={k.openReceipts}
-              icon={PackageOpen}
-              tone="slate"
-              sub="Draft or received"
-            />
-            <MetricTile
-              href="/shipping"
-              label="Open shipments"
-              value={k.openShipments}
-              icon={Send}
-              tone="sky"
-              sub="Not yet shipped"
-            />
-            <MetricTile
-              href="/workers/schedules"
-              label="Today's shifts"
-              value={k.todaysShifts}
-              icon={CalendarClock}
-              tone="violet"
-            />
+            <MetricTile href="/receiving" label="Open POs" value={k.openPurchaseOrders} icon={ClipboardList} sub="Awaiting receipt" />
+            <MetricTile href="/receiving" label="Open receipts" value={k.openReceipts} icon={PackageOpen} sub="Draft or received" />
+            <MetricTile href="/shipping" label="Open shipments" value={k.openShipments} icon={Send} sub="Not yet shipped" />
+            <MetricTile href="/workers/schedules" label="Today's shifts" value={k.todaysShifts} icon={CalendarClock} />
             <MetricTile
               href="/tasks"
               label="Overdue tasks"
               value={k.overdueTasks}
               icon={AlertTriangle}
-              tone={k.overdueTasks > 0 ? "rose" : "slate"}
+              tone={k.overdueTasks > 0 ? "warn" : "default"}
             />
-            <MetricTile
-              href="/deliveries"
-              label="Dock appts (today)"
-              value={k.dockAppointmentsToday}
-              icon={Dock}
-              tone="slate"
-            />
-            <MetricTile
-              href="/returns"
-              label="Returns in review"
-              value={k.returnsAwaitingReview}
-              icon={RefreshCw}
-              tone={k.returnsAwaitingReview > 0 ? "amber" : "emerald"}
-            />
+            <MetricTile href="/deliveries" label="Dock appts (today)" value={k.dockAppointmentsToday} icon={Dock} />
+            <MetricTile href="/returns" label="Returns in review" value={k.returnsAwaitingReview} icon={RefreshCw} />
           </div>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-3">
           {/* Warehouse performance */}
-          <section className="lg:col-span-2 space-y-4">
+          <section className="min-w-0 space-y-4 lg:col-span-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Warehouse performance</h2>
               <Link href="/warehouses" className="text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
@@ -244,7 +193,7 @@ export function WmsDashboard({ data }: { data: DashboardSnapshot }) {
         </div>
 
         {/* Bottom bands */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-3">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-900 dark:text-gray-100">Today&apos;s shifts</h2>

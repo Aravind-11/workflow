@@ -11,6 +11,8 @@ export type AuthContext = {
   email: string;
   fullName: string;
   nickname: string | null;
+  /** Nav paths the user chose to hide */
+  hiddenNavPaths: string[];
   /** Distinct role names across all warehouse assignments */
   roleNames: string[];
   /** Effective permissions (union) */
@@ -48,6 +50,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     email: dbUser.email,
     fullName: dbUser.fullName,
     nickname: dbUser.nickname ?? null,
+    hiddenNavPaths: dbUser.hiddenNavPaths ?? [],
     roleNames,
     permissions,
     warehouseIds,

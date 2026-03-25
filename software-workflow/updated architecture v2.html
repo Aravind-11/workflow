@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Architecture — Warehouse Robotics Platform — nventr</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.3.0/mermaid.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+
+  /* ─── HEADER ─── */
+  .header { background: #1e293b; color: #fff; position: sticky; top: 0; z-index: 100; }
+  .header-top { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header-sub { font-size: 12px; color: #94a3b8; }
+  .export-btn { background: #6366f1; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+  .export-btn:hover { background: #4f46e5; }
+
+  .tab-bar { background: #1e293b; padding: 0 24px; display: flex; align-items: stretch; gap: 0; border-bottom: 2px solid #334155; overflow-x: auto; }
+  .tab-btn { padding: 10px 14px; font-size: 11px; font-weight: 600; font-family: inherit; color: #94a3b8; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .tab-btn:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+  .tab-btn.active { color: #fff; border-bottom-color: #6366f1; background: rgba(99,102,241,0.08); }
+  .tab-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; color: #fff; }
+  .b-master{background:#6366f1} .b-robot{background:#22c55e} .b-edge{background:#f59e0b} .b-comm{background:#0284c7}
+  .b-cloud{background:#8b5cf6} .b-ai{background:#ec4899} .b-dash{background:#14b8a6} .b-store{background:#f97316}
+  .b-sec{background:#ef4444} .b-obs{background:#06b6d4} .b-deploy{background:#84cc16}
+  .b-fidelity{background:#10b981}
+  .tab-divider { width: 1px; background: #334155; margin: 6px 4px; flex-shrink: 0; }
+
+  /* ─── TAB CONTENT ─── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ─── SHARED CARDS ─── */
+  .section-wrap { max-width: 1500px; margin: 24px auto; padding: 0 24px; }
+  .diagram-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 28px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .diagram-header { padding: 18px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .diagram-header h2 { font-size: 16px; font-weight: 700; }
+  .diagram-num { font-size: 11px; font-weight: 700; color: #fff; padding: 3px 10px; border-radius: 20px; }
+  .diagram-body { padding: 24px; overflow-x: auto; }
+  .diagram-body .mermaid { display: flex; justify-content: center; }
+  .diagram-body svg { max-width: 100%; height: auto; }
+
+  .spec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+  .spec-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.5; }
+  .spec-icon { width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; }
+  .spec-label { font-weight: 600; color: #475569; }
+  .spec-value { color: #64748b; }
+
+  .api-block { background: #1e293b; color: #e2e8f0; padding: 16px 20px; border-radius: 8px; margin: 12px 24px 20px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 1.6; overflow-x: auto; white-space: pre; }
+  .api-block .kw { color: #7dd3fc; }
+  .api-block .str { color: #86efac; }
+  .api-block .num { color: #fbbf24; }
+  .api-block .cmt { color: #64748b; }
+
+  /* ─── MASTER ARCHITECTURE ─── */
+  .arch-master { max-width: 1500px; margin: 32px auto; padding: 0 24px; }
+  .arch-title-bar { background: linear-gradient(135deg, #312e81 0%, #4338ca 50%, #6366f1 100%); color: #fff; padding: 28px 32px; border-radius: 12px 12px 0 0; border: 1px solid #6366f1; border-bottom: none; }
+  .arch-title-bar h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .arch-title-bar p { font-size: 13px; color: #c7d2fe; }
+
+  .arch-canvas { background: #fff; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 12px 12px; padding: 32px; position: relative; overflow: hidden; }
+
+  .arch-layer { display: flex; align-items: stretch; gap: 16px; margin-bottom: 8px; position: relative; }
+  .arch-layer-label { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; min-width: 32px; flex-shrink: 0; }
+  .arch-layer-content { flex: 1; display: flex; flex-wrap: wrap; gap: 12px; padding: 16px; border-radius: 10px; border: 2px dashed; }
+
+  .arch-box { padding: 12px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; transition: all 0.25s ease; border: 1px solid; position: relative; min-width: 140px; flex: 1; }
+  .arch-box:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .arch-box-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .arch-box-sub { font-size: 11px; opacity: 0.8; line-height: 1.4; }
+
+  .flow-arrows { display: flex; justify-content: center; padding: 6px 0; gap: 24px; flex-wrap: wrap; }
+  .flow-arrow { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: #64748b; }
+  .flow-arrow svg { flex-shrink: 0; }
+
+  /* Layer colors */
+  .layer-field .arch-layer-label { background: #ecfdf5; color: #065f46; }
+  .layer-field .arch-layer-content { border-color: #a7f3d0; background: #f0fdf4; }
+  .layer-field .arch-box { background: #ecfdf5; border-color: #86efac; color: #065f46; }
+  .layer-field .arch-box:hover { background: #dcfce7; }
+
+  .layer-edge .arch-layer-label { background: #fef3c7; color: #92400e; }
+  .layer-edge .arch-layer-content { border-color: #fcd34d; background: #fffbeb; }
+  .layer-edge .arch-box { background: #fef3c7; border-color: #fbbf24; color: #92400e; }
+  .layer-edge .arch-box:hover { background: #fde68a; }
+
+  .layer-transport .arch-layer-label { background: #e0f2fe; color: #0c4a6e; }
+  .layer-transport .arch-layer-content { border-color: #7dd3fc; background: #f0f9ff; }
+  .layer-transport .arch-box { background: #e0f2fe; border-color: #38bdf8; color: #0c4a6e; }
+  .layer-transport .arch-box:hover { background: #bae6fd; }
+
+  .layer-cloud .arch-layer-label { background: #ede9fe; color: #3b0764; }
+  .layer-cloud .arch-layer-content { border-color: #c4b5fd; background: #f5f3ff; }
+  .layer-cloud .arch-box { background: #ede9fe; border-color: #a78bfa; color: #3b0764; }
+  .layer-cloud .arch-box:hover { background: #ddd6fe; }
+
+  .layer-app .arch-layer-label { background: #ccfbf1; color: #134e4a; }
+  .layer-app .arch-layer-content { border-color: #5eead4; background: #f0fdfa; }
+  .layer-app .arch-box { background: #ccfbf1; border-color: #2dd4bf; color: #134e4a; }
+  .layer-app .arch-box:hover { background: #99f6e4; }
+
+  .layer-cross { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 24px; }
+  .cross-card { padding: 16px 20px; border-radius: 10px; border: 2px solid; cursor: pointer; transition: all 0.25s; }
+  .cross-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .cross-card-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .cross-card-items { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cross-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+
+  .cross-security { border-color: #fca5a5; background: #fef2f2; color: #991b1b; }
+  .cross-security .cross-tag { background: #fee2e2; color: #991b1b; }
+  .cross-obs { border-color: #67e8f9; background: #ecfeff; color: #155e75; }
+  .cross-obs .cross-tag { background: #cffafe; color: #155e75; }
+  .cross-clock { border-color: #a78bfa; background: #f5f3ff; color: #3b0764; }
+  .cross-clock .cross-tag { background: #ede9fe; color: #3b0764; }
+
+  /* ─── NUMERIC SUMMARY ─── */
+  .num-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0; }
+  .num-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; text-align: center; }
+  .num-card .num-val { font-size: 22px; font-weight: 800; color: #4338ca; margin-bottom: 2px; }
+  .num-card .num-label { font-size: 11px; color: #64748b; font-weight: 500; }
+
+  /* ─── MODULE DETAIL PAGES ─── */
+  .module-header { padding: 24px 32px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .module-badge { font-size: 12px; font-weight: 700; color: #fff; padding: 4px 14px; border-radius: 20px; }
+  .module-header h2 { font-size: 20px; font-weight: 700; }
+  .module-header p { font-size: 13px; color: #64748b; flex-basis: 100%; }
+
+  .conn-strip { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+  .conn-chip { font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 6px; display: flex; align-items: center; gap: 4px; }
+  .conn-in { background: #ecfdf5; color: #065f46; border: 1px solid #86efac; }
+  .conn-out { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+
+  .footer { text-align: center; padding: 28px; color: #94a3b8; font-size: 11px; border-top: 1px solid #e2e8f0; margin-top: 32px; }
+
+  @media (max-width: 900px) {
+    .arch-layer { flex-direction: column; }
+    .arch-layer-label { writing-mode: horizontal-tb; transform: none; min-width: auto; }
+    .layer-cross { grid-template-columns: 1fr; }
+    .tab-btn { padding: 10px 10px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════ HEADER ═══════════════════════════════════════ -->
+<div class="header">
+  <div class="header-top">
+    <div class="header-left">
+      <div>
+        <h1>Warehouse Robotics Platform — System Architecture</h1>
+        <div class="header-sub">11 modules &middot; 100-robot fleet baseline &middot; 3.15 MB/s per robot &middot; WebRTC + MQTT + S3</div>
+      </div>
+    </div>
+    <button class="export-btn" onclick="exportAll()">Export All PNG</button>
+  </div>
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="master"><span class="tab-badge b-master">0</span> Master Overview</button>
+    <div class="tab-divider"></div>
+    <button class="tab-btn" data-tab="t1"><span class="tab-badge b-robot">1</span> Robot Device</button>
+    <button class="tab-btn" data-tab="t2"><span class="tab-badge b-edge">2</span> Edge Gateway</button>
+    <button class="tab-btn" data-tab="t3"><span class="tab-badge b-comm">3</span> Comms Layer</button>
+    <button class="tab-btn" data-tab="t4"><span class="tab-badge b-cloud">4</span> Cloud Backend</button>
+    <button class="tab-btn" data-tab="t5"><span class="tab-badge b-ai">5</span> AI / MLOps</button>
+    <div class="tab-divider"></div>
+    <button class="tab-btn" data-tab="t6"><span class="tab-badge b-dash">6</span> Dashboard</button>
+    <button class="tab-btn" data-tab="t7"><span class="tab-badge b-store">7</span> Storage</button>
+    <button class="tab-btn" data-tab="t8"><span class="tab-badge b-sec">8</span> Security</button>
+    <button class="tab-btn" data-tab="t9"><span class="tab-badge b-obs">9</span> Observability</button>
+    <button class="tab-btn" data-tab="t10"><span class="tab-badge b-deploy">10</span> Deploy</button>
+    <button class="tab-btn" data-tab="t11"><span class="tab-badge b-fidelity">11</span> Fidelity Control</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 0: MASTER OVERVIEW ═════════════════════ -->
+<div class="tab-content active" id="tab-master">
+<div class="arch-master">
+  <div class="arch-title-bar">
+    <h2>Master Architecture Overview</h2>
+    <p>Layered view — Field &rarr; Edge &rarr; Transport &rarr; Cloud &rarr; Applications &middot; Click any box to jump to its module detail</p>
+  </div>
+  <div class="arch-canvas">
+
+    <!-- Numeric summary -->
+    <div class="num-summary">
+      <div class="num-card"><div class="num-val">3.15 MB/s</div><div class="num-label">Per-robot upload (post-edge)</div></div>
+      <div class="num-card"><div class="num-val">2.52 Gbps</div><div class="num-label">Fleet 100 continuous</div></div>
+      <div class="num-card"><div class="num-val">10:1</div><div class="num-label">Edge reduction ratio</div></div>
+      <div class="num-card"><div class="num-val">~80 TB/mo</div><div class="num-label">10% retention cost</div></div>
+      <div class="num-card"><div class="num-val">&lt;3s</div><div class="num-label">Anomaly detection E2E</div></div>
+      <div class="num-card"><div class="num-val">99.9%</div><div class="num-label">Upload success SLA</div></div>
+    </div>
+
+    <!-- ─── LAYER 5: Applications ─── -->
+    <div class="arch-layer layer-app">
+      <div class="arch-layer-label">APPLICATIONS</div>
+      <div class="arch-layer-content">
+        <div class="arch-box" onclick="switchTab('t6')">
+          <div class="arch-box-title">Teleoperator Dashboard</div>
+          <div class="arch-box-sub">Live WebRTC view, escalation controls, XAI summaries, audit replay</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t4')">
+          <div class="arch-box-title">REST / GraphQL API</div>
+          <div class="arch-box-sub">Device mgmt, fidelity control, anomaly queries, RBAC-protected</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t9')">
+          <div class="arch-box-title">Ops Dashboards</div>
+          <div class="arch-box-sub">Grafana metrics, Kibana logs, SLO tracking, alert management</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t5')">
+          <div class="arch-box-title">ML Studio</div>
+          <div class="arch-box-sub">Model registry (MLflow), training jobs, experiment tracking</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: Cloud → Apps -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#8b5cf6" stroke-width="2" fill="none"/></svg> WebSocket push</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#8b5cf6" stroke-width="2" fill="none"/></svg> REST / GraphQL</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#8b5cf6" stroke-width="2" fill="none"/></svg> WebRTC relay</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 0v16M1 11l5 5 5-5" stroke="#14b8a6" stroke-width="2" fill="none"/></svg> Commands down</div>
+    </div>
+
+    <!-- ─── LAYER 4: Cloud Platform ─── -->
+    <div class="arch-layer layer-cloud">
+      <div class="arch-layer-label">CLOUD PLATFORM</div>
+      <div class="arch-layer-content">
+        <div class="arch-box" onclick="switchTab('t4')">
+          <div class="arch-box-title">Stream Processor</div>
+          <div class="arch-box-sub">Kafka / Kinesis &middot; shard by robot/site &middot; event routing</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t4')">
+          <div class="arch-box-title">Anomaly Engine</div>
+          <div class="arch-box-sub">Real-time inference &middot; ViT/LSTM ensembles &middot; Triton serving</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t5')">
+          <div class="arch-box-title">RL Optimiser</div>
+          <div class="arch-box-sub">Offline training &middot; policy generation &middot; canary evaluation</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t7')">
+          <div class="arch-box-title">Delta Lake</div>
+          <div class="arch-box-sub">Cataloged data on S3 &middot; hot/warm/cold lifecycle</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t4')">
+          <div class="arch-box-title">Action Bus</div>
+          <div class="arch-box-sub">Command queue &middot; escalations &middot; fidelity requests</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t8')">
+          <div class="arch-box-title">Audit Service</div>
+          <div class="arch-box-sub">Immutable append-only &middot; SHA256 checksums &middot; KMS encryption</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: Transport → Cloud -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#0284c7" stroke-width="2" fill="none"/></svg> Media ingest</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#0284c7" stroke-width="2" fill="none"/></svg> Telemetry events</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#0284c7" stroke-width="2" fill="none"/></svg> Batch uploads (S3)</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 0v16M1 11l5 5 5-5" stroke="#f59e0b" stroke-width="2" fill="none"/></svg> Control commands</div>
+    </div>
+
+    <!-- ─── LAYER 3: Transport / Comms ─── -->
+    <div class="arch-layer layer-transport">
+      <div class="arch-layer-label">TRANSPORT</div>
+      <div class="arch-layer-content">
+        <div class="arch-box" onclick="switchTab('t3')">
+          <div class="arch-box-title">WebRTC Gateway</div>
+          <div class="arch-box-sub">SFU for multi-view &middot; adaptive bitrate &middot; TURN/STUN</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t3')">
+          <div class="arch-box-title">MQTT Broker Cluster</div>
+          <div class="arch-box-sub">QoS=1 &middot; HA &middot; JWT auth &middot; EMQX / IoT Hub</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t3')">
+          <div class="arch-box-title">API Gateway</div>
+          <div class="arch-box-sub">Ingress + AuthZ &middot; rate limiting &middot; TLS termination</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t3')">
+          <div class="arch-box-title">S3 Multipart / SFTP</div>
+          <div class="arch-box-sub">Batch channel &middot; checksum verification &middot; retry logic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: Edge → Transport -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#f59e0b" stroke-width="2" fill="none"/></svg> Low-fi stream (WebRTC)</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#f59e0b" stroke-width="2" fill="none"/></svg> Telemetry (MQTT)</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#f59e0b" stroke-width="2" fill="none"/></svg> Hi-fi batches (S3)</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 0v16M1 11l5 5 5-5" stroke="#22c55e" stroke-width="2" fill="none"/></svg> Fidelity controls</div>
+    </div>
+
+    <!-- ─── LAYER 2: Edge Gateway ─── -->
+    <div class="arch-layer layer-edge">
+      <div class="arch-layer-label">EDGE LAYER</div>
+      <div class="arch-layer-content">
+        <div class="arch-box" onclick="switchTab('t2')">
+          <div class="arch-box-title">WebRTC Ingest</div>
+          <div class="arch-box-sub">Local TURN/STUN &middot; low-fi stream aggregation</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t2')">
+          <div class="arch-box-title">Fidelity Controller</div>
+          <div class="arch-box-sub">Dynamic policy engine &middot; bandwidth/power policies</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t2')">
+          <div class="arch-box-title">Sync Manager</div>
+          <div class="arch-box-sub">Off-peak batch uploader &middot; privacy filters &middot; checksum</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t2')">
+          <div class="arch-box-title">Local TSDB</div>
+          <div class="arch-box-sub">InfluxDB / ClickHouse &middot; telemetry buffer</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t2')">
+          <div class="arch-box-title">Hi-Fi Buffer</div>
+          <div class="arch-box-sub">SSD + HDD &middot; 105 GiB/hr/robot raw &middot; hours&rarr;days</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow: Robots → Edge -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#22c55e" stroke-width="2" fill="none"/></svg> 30 MB/s raw sensor</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#22c55e" stroke-width="2" fill="none"/></svg> Keyframes (10:1 reduction)</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 16V0M1 5l5-5 5 5" stroke="#22c55e" stroke-width="2" fill="none"/></svg> MQTT telemetry</div>
+      <div class="flow-arrow"><svg width="12" height="16" viewBox="0 0 12 16"><path d="M6 0v16M1 11l5 5 5-5" stroke="#f59e0b" stroke-width="2" fill="none"/></svg> Fidelity commands</div>
+    </div>
+
+    <!-- ─── LAYER 1: Robot Fleet ─── -->
+    <div class="arch-layer layer-field">
+      <div class="arch-layer-label">FIELD LAYER</div>
+      <div class="arch-layer-content">
+        <div class="arch-box" onclick="switchTab('t1')">
+          <div class="arch-box-title">Sensor Array</div>
+          <div class="arch-box-sub">Camera(s), LiDAR, IMU, microphone &middot; 30 MB/s raw</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t1')">
+          <div class="arch-box-title">Edge AI Module</div>
+          <div class="arch-box-sub">ONNX / TensorRT / TFLite &middot; keyframe extraction &middot; detection</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t1')">
+          <div class="arch-box-title">Compression Engine</div>
+          <div class="arch-box-sub">H.265/HEVC &middot; variable GOP & CRF &middot; 10:1 ratio</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t1')">
+          <div class="arch-box-title">Local Buffer</div>
+          <div class="arch-box-sub">SSD/HDD hi-fi storage &middot; watchdog &middot; kill-switch</div>
+        </div>
+        <div class="arch-box" onclick="switchTab('t1')">
+          <div class="arch-box-title">Telemetry Agent</div>
+          <div class="arch-box-sub">MQTT / WebSocket client &middot; health & heartbeat</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CROSS-CUTTING CONCERNS ─── -->
+    <div class="layer-cross">
+      <div class="cross-card cross-security" onclick="switchTab('t8')">
+        <div class="cross-card-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="#991b1b" stroke-width="1.5"/><path d="M6 8l2 2 3-4" stroke="#991b1b" stroke-width="1.5" fill="none"/></svg>
+          Security & Compliance
+        </div>
+        <div class="cross-card-items">
+          <span class="cross-tag">TLS 1.3</span>
+          <span class="cross-tag">mTLS</span>
+          <span class="cross-tag">RBAC</span>
+          <span class="cross-tag">KMS</span>
+          <span class="cross-tag">GDPR/CCPA</span>
+          <span class="cross-tag">Immutable Audit</span>
+          <span class="cross-tag">Edge Anonymization</span>
+          <span class="cross-tag">JWT Auth</span>
+        </div>
+      </div>
+      <div class="cross-card cross-obs" onclick="switchTab('t9')">
+        <div class="cross-card-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#155e75" stroke-width="1.5"/><path d="M4 9l2-3 2 2 4-4" stroke="#155e75" stroke-width="1.5" fill="none"/></svg>
+          Observability & SRE
+        </div>
+        <div class="cross-card-items">
+          <span class="cross-tag">OpenTelemetry</span>
+          <span class="cross-tag">Prometheus</span>
+          <span class="cross-tag">Grafana</span>
+          <span class="cross-tag">ELK</span>
+          <span class="cross-tag">p95/p99 SLOs</span>
+          <span class="cross-tag">Distributed Tracing</span>
+          <span class="cross-tag">Alerting</span>
+          <span class="cross-tag">Runbooks</span>
+        </div>
+      </div>
+      <div class="cross-card cross-clock">
+        <div class="cross-card-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="#3b0764" stroke-width="1.5"/><path d="M8 4v4l3 2" stroke="#3b0764" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+          Global Clock Sync
+        </div>
+        <div class="cross-card-items">
+          <span class="cross-tag">NTP / PTP</span>
+          <span class="cross-tag">Fleet-wide Sync</span>
+          <span class="cross-tag">Skew Detection</span>
+          <span class="cross-tag">Monotonic Timestamps</span>
+          <span class="cross-tag">Trace Correlation</span>
+          <span class="cross-tag">Edge NTP Server</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 1: ROBOT DEVICE ═════════════════════════ -->
+<div class="tab-content" id="tab-t1">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#22c55e">Module 1</span>
+      <h2>Robot Device — Sensor &amp; Processing Pipeline</h2>
+      <p>Per-robot onboard architecture: capture &rarr; edge AI &rarr; compression &rarr; output streams + local buffer</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph SENSORS["Sensor Array (30 MB/s raw)"]
+        CAM["Camera(s)<br/>H.264/H.265 HW Encoder"]
+        LIDAR["LiDAR<br/>Point Cloud"]
+        IMU["IMU<br/>6-DOF Accel/Gyro"]
+        MIC["Microphone<br/>Audio Stream"]
+    end
+
+    subgraph EDGE_AI["Edge AI Module"]
+        KF["Keyframe Extractor<br/>Selects significant frames"]
+        DET["Detection / Classification<br/>ONNX · TensorRT · TFLite"]
+        FUSE["Sensor Fusion<br/>Camera + LiDAR + IMU"]
+    end
+
+    subgraph COMPRESS["Compression Engine"]
+        HEVC["H.265 / HEVC Encoder<br/>Variable GOP &amp; CRF"]
+        ADAPT["Adaptive Bitrate Controller<br/>Responds to fidelity commands"]
+    end
+
+    subgraph OUTPUT["Output Streams"]
+        LOFI["Low-Fi Stream<br/>→ WebRTC to Edge"]
+        HIFI["Hi-Fi Segments<br/>→ Local Buffer SSD/HDD"]
+        TEL["Telemetry Payload<br/>→ MQTT / WebSocket"]
+    end
+
+    subgraph LOCAL["Local Safety"]
+        WD["Watchdog Timer"]
+        KS["Kill Switch<br/>Hardware Limiter"]
+        HB["Heartbeat Agent<br/>Health Reports"]
+    end
+
+    CAM --> KF
+    LIDAR --> FUSE
+    IMU --> FUSE
+    MIC --> FUSE
+    FUSE --> DET
+    CAM --> HEVC
+    KF --> ADAPT
+    DET --> TEL
+    HEVC --> ADAPT
+    ADAPT --> LOFI
+    ADAPT --> HIFI
+    HB --> TEL
+    WD --> KS
+
+    style SENSORS fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style EDGE_AI fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style COMPRESS fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style OUTPUT fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style LOCAL fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">R</div><div><div class="spec-label">Raw Output</div><div class="spec-value">30 MB/s (camera + sensors combined)</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">C</div><div><div class="spec-label">Compression</div><div class="spec-value">H.265 HEVC, variable GOP, 10:1 reduction</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">AI</div><div><div class="spec-label">Edge AI</div><div class="spec-value">ONNX / TensorRT / TFLite inference</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">B</div><div><div class="spec-label">Buffer</div><div class="spec-value">~105 GiB/hr raw on local SSD/HDD</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">S</div><div><div class="spec-label">Safety</div><div class="spec-value">HW watchdog, kill-switch, heartbeat every 5s</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#14b8a6">T</div><div><div class="spec-label">Telemetry</div><div class="spec-value">MQTT QoS=1 / WebSocket fallback</div></div></div>
+    </div>
+    <div class="conn-strip">
+      <span class="conn-chip conn-out">OUT → WebRTC low-fi stream to Edge</span>
+      <span class="conn-chip conn-out">OUT → MQTT telemetry to Edge</span>
+      <span class="conn-chip conn-out">OUT → Hi-fi segments to local buffer</span>
+      <span class="conn-chip conn-in">IN ← Fidelity commands from Edge (MQTT)</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 2: EDGE GATEWAY ════════════════════════ -->
+<div class="tab-content" id="tab-t2">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#f59e0b">Module 2</span>
+      <h2>Onsite Box / Edge Gateway</h2>
+      <p>Per-site edge processing: stream aggregation &rarr; fidelity control &rarr; privacy filtering &rarr; upload management &rarr; local persistence</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph INGEST["Stream Ingest"]
+        WRT_IN["WebRTC Ingest<br/>From Robot Fleet"]
+        MQTT_IN["Local MQTT Broker<br/>Telemetry + Control"]
+        COAP_IN["CoAP Gateway<br/>Constrained Devices"]
+    end
+
+    subgraph PROCESS["Processing & Policy"]
+        DFC["Dynamic Fidelity Controller<br/>Policy Engine"]
+        ANON["Anonymisation Filter<br/>Face / Plate Redaction"]
+        COMP_E["Local Compression<br/>Re-encode if needed"]
+    end
+
+    subgraph STORAGE["Local Storage"]
+        TSDB["Time-Series DB<br/>InfluxDB / ClickHouse"]
+        HIFI_BUF["Hi-Fi Buffer Store<br/>SSD + HDD"]
+        IDX["Hot Index<br/>Fast segment lookup"]
+    end
+
+    subgraph UPLOAD["Upload Management"]
+        SM["Sync Manager<br/>Off-peak Batch Scheduler"]
+        S3UP["S3 Multipart Uploader<br/>Checksum + Retry"]
+        SFTP["SFTP Fallback<br/>Degraded connectivity"]
+    end
+
+    subgraph MGMT["Device Management"]
+        HPA["Health &amp; Provisioning Agent"]
+        BW["Bandwidth Policy Controller"]
+        DR["Disaster Recovery<br/>Queue uploads, local DR"]
+    end
+
+    WRT_IN --> DFC
+    MQTT_IN --> DFC
+    COAP_IN --> DFC
+    DFC --> ANON
+    DFC --> HIFI_BUF
+    MQTT_IN --> TSDB
+    ANON --> COMP_E
+    COMP_E --> SM
+    SM --> S3UP
+    SM --> SFTP
+    HIFI_BUF --> IDX
+    HPA --> MQTT_IN
+    BW --> DFC
+    DR --> SM
+
+    style INGEST fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style PROCESS fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style STORAGE fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style UPLOAD fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style MGMT fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">B</div><div><div class="spec-label">Raw Buffer</div><div class="spec-value">~105 GiB/hr/robot · SSD (hot index) + HDD (bulk)</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">U</div><div><div class="spec-label">Upload Rate</div><div class="spec-value">3.15 MB/s per robot (post-privacy +5%)</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">P</div><div><div class="spec-label">Privacy</div><div class="spec-value">Face/plate redaction before upload</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">DR</div><div><div class="spec-label">Resilience</div><div class="spec-value">Queue uploads during connectivity loss</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">TS</div><div><div class="spec-label">Telemetry Store</div><div class="spec-value">InfluxDB / ClickHouse local TSDB</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#14b8a6">10</div><div><div class="spec-label">Site Example</div><div class="spec-value">10 robots × 6-hr raw buffer = 6.33 TiB</div></div></div>
+    </div>
+    <div class="conn-strip">
+      <span class="conn-chip conn-in">IN ← WebRTC streams from robots</span>
+      <span class="conn-chip conn-in">IN ← MQTT telemetry from robots</span>
+      <span class="conn-chip conn-out">OUT → S3 multipart batch uploads</span>
+      <span class="conn-chip conn-out">OUT → WebRTC relay to cloud gateway</span>
+      <span class="conn-chip conn-out">OUT → MQTT to cloud broker cluster</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 3: COMMS LAYER ═════════════════════════ -->
+<div class="tab-content" id="tab-t3">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#0284c7">Module 3</span>
+      <h2>Communication Layer — Gateways &amp; Channels</h2>
+      <p>Four transport channels connecting edge to cloud: real-time video, control, telemetry, and batch</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph LR
+    subgraph EDGE["Edge / Onsite Box"]
+        E_WRT["WebRTC Client"]
+        E_MQTT["MQTT Publisher"]
+        E_S3["S3 Uploader"]
+        E_TEL["Telemetry Agent"]
+    end
+
+    subgraph REALTIME["Realtime Channel"]
+        SFU["SFU Gateway<br/>Multi-view routing"]
+        TURN["TURN / STUN<br/>NAT traversal"]
+        ABR["Adaptive Bitrate<br/>Bandwidth estimation"]
+    end
+
+    subgraph CONTROL["Control Channel"]
+        MQTT_C["MQTT Broker Cluster<br/>HA · EMQX / IoT Hub"]
+        QOS["QoS=1 Delivery<br/>At-least-once"]
+        JWT_A["JWT Token Auth<br/>Short-lived credentials"]
+    end
+
+    subgraph BATCH["Batch Channel"]
+        S3MP["S3 Multipart API<br/>Parallel chunk upload"]
+        SFTP_F["SFTP Fallback<br/>Degraded path"]
+        CHK["Checksum Verify<br/>SHA256 per chunk"]
+    end
+
+    subgraph GATEWAY["API Gateway"]
+        ING["Ingress Controller<br/>TLS termination"]
+        AUTHZ["AuthZ Middleware<br/>RBAC enforcement"]
+        RL["Rate Limiter<br/>Per-client throttle"]
+    end
+
+    subgraph CLOUD_IN["Cloud Ingest"]
+        KFK["Kafka / Kinesis<br/>Stream processor"]
+        MED["Media Pipeline<br/>WebRTC workers"]
+    end
+
+    E_WRT --> TURN --> SFU --> ABR --> MED
+    E_MQTT --> JWT_A --> QOS --> MQTT_C --> KFK
+    E_S3 --> S3MP --> CHK --> KFK
+    E_S3 -.-> SFTP_F -.-> CHK
+    E_TEL --> ING --> AUTHZ --> RL --> KFK
+
+    style EDGE fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style REALTIME fill:#dbeafe,stroke:#3b82f6,stroke-width:2px
+    style CONTROL fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style BATCH fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style GATEWAY fill:#f3e8ff,stroke:#a855f7,stroke-width:2px
+    style CLOUD_IN fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#3b82f6">RT</div><div><div class="spec-label">Realtime</div><div class="spec-value">WebRTC adaptive bitrate, p99 connect &lt;2s</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">CT</div><div><div class="spec-label">Control</div><div class="spec-value">MQTT QoS=1, median &lt;200ms, p99 &lt;1s</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">BA</div><div><div class="spec-label">Batch</div><div class="spec-value">S3 multipart, &gt;99.9% success/day</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#a855f7">GW</div><div><div class="spec-label">API Gateway</div><div class="spec-value">TLS 1.3 termination, RBAC, rate limiting</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">BW</div><div><div class="spec-label">Fleet Bandwidth</div><div class="spec-value">315 MB/s (~2.52 Gbps) for 100 robots</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">PK</div><div><div class="spec-label">Batch Window</div><div class="spec-value">~1.51 Gbps over 4-hour off-peak window</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>MQTT Topic Structure</h2>
+      <span class="diagram-num b-comm">Topics</span>
+    </div>
+    <div class="api-block"><span class="cmt"># Telemetry (robot → cloud)</span>
+<span class="kw">robots/</span>{robot_id}<span class="kw">/telemetry</span>    <span class="cmt">← CPU, mem, net, health, anomaly_flags</span>
+
+<span class="cmt"># Control (cloud → robot via edge)</span>
+<span class="kw">robots/</span>{robot_id}<span class="kw">/control</span>      <span class="cmt">← set_fidelity, reboot, config_update</span>
+
+<span class="cmt"># Health / heartbeat</span>
+<span class="kw">robots/</span>{robot_id}<span class="kw">/health</span>       <span class="cmt">← heartbeat every 5s, watchdog status</span>
+
+<span class="cmt"># Edge status (edge → cloud)</span>
+<span class="kw">edges/</span>{site_id}<span class="kw">/status</span>        <span class="cmt">← connectivity, buffer capacity, queue depth</span>
+
+<span class="cmt"># Anomaly events (Kafka topic)</span>
+<span class="kw">events.anomaly</span>                <span class="cmt">← event_id, robot_id, confidence, xai_summary</span></div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Command ACK &amp; State Reconciliation</h2>
+      <span class="diagram-num b-comm">Protocol</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+sequenceDiagram
+    participant T as Teleoperator
+    participant C as Cloud Action Bus
+    participant E as Edge Gateway
+    participant R as Robot
+
+    T->>C: Command (cmd_id, action, seq_no)
+    C->>C: Validate RBAC + Policy
+    C->>E: Forward Command via MQTT QoS 1
+    E-->>C: MQTT ACK received
+    E->>R: Translate and Dispatch via MQTT
+    R-->>E: Execution ACK (cmd_id, status, new_state)
+    E-->>C: State Report (cmd_id, robot_state, ts)
+    C->>C: Reconcile expected vs actual state
+    C-->>T: Result Push via WebSocket
+
+    Note over C,R: Timeout path - ACK missing after deadline
+    C->>E: Retry or Query State
+    E->>R: Health Probe
+    R-->>E: Current State Snapshot
+    E-->>C: State Reconciliation Report
+    C->>C: Drift detected - Alert or Auto-correct
+      </div>
+    </div>
+    <div class="api-block"><span class="cmt">// ACK Envelope (robot → edge → cloud)</span>
+{
+  <span class="str">"cmd_id"</span>:       <span class="str">"cmd-5a3f..."</span>,
+  <span class="str">"seq_no"</span>:       <span class="num">42</span>,
+  <span class="str">"ack_status"</span>:   <span class="str">"executed"</span>,          <span class="cmt">// executed | rejected | partial | timeout</span>
+  <span class="str">"robot_state"</span>:  {
+    <span class="str">"status"</span>:     <span class="str">"teleop"</span>,
+    <span class="str">"position"</span>:   { <span class="str">"x"</span>: <span class="num">12.4</span>, <span class="str">"y"</span>: <span class="num">8.1</span> },
+    <span class="str">"battery"</span>:    <span class="num">72</span>,
+    <span class="str">"velocity"</span>:   <span class="num">0.3</span>
+  },
+  <span class="str">"timestamp"</span>:    <span class="str">"2026-03-04T10:42:17.003Z"</span>,
+  <span class="str">"ntp_offset_ms"</span>: <span class="num">-2</span>
+}
+
+<span class="cmt">// State Reconciliation Logic (cloud-side)</span>
+<span class="kw">ON</span> ack_received:
+  <span class="kw">IF</span> ack.robot_state != expected_state   → emit <span class="str">STATE_DRIFT</span> alert
+  <span class="kw">IF</span> ack.seq_no != expected_seq           → emit <span class="str">SEQ_GAP</span>, request replay
+  <span class="kw">IF</span> ack timeout (&gt;2s for critical)       → retry x3, then escalate
+
+<span class="kw">ON</span> state_drift:
+  log to audit → alert supervisor → optional auto-correct</div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">A</div><div><div class="spec-label">ACK Model</div><div class="spec-value">Every command receives execution ACK with new robot state</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">R</div><div><div class="spec-label">Reconciliation</div><div class="spec-value">Cloud compares expected vs actual state on every ACK</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">T</div><div><div class="spec-label">Timeout</div><div class="spec-value">Critical commands: 2s ACK deadline, 3 retries</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">S</div><div><div class="spec-label">Seq Numbers</div><div class="spec-value">Per-robot monotonic sequence for gap detection</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">D</div><div><div class="spec-label">Drift Alert</div><div class="spec-value">State mismatch triggers audit log + supervisor alert</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">2W</div><div><div class="spec-label">Bidirectional</div><div class="spec-value">Commands down + ACK/state up — full closed loop</div></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 4: CLOUD BACKEND ═══════════════════════ -->
+<div class="tab-content" id="tab-t4">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#8b5cf6">Module 4</span>
+      <h2>Cloud Backend — Core Services</h2>
+      <p>Kubernetes-hosted microservices: stream processing, anomaly detection, action bus, device registry, APIs</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph INGEST["Ingest Layer"]
+        WRT_W["WebRTC Media Workers<br/>Stream decode &amp; routing"]
+        KFK["Kafka / Kinesis<br/>Partitioned by robot/site"]
+        S3_ING["S3 Ingest Workers<br/>Batch processing"]
+    end
+
+    subgraph PROCESS["Processing Layer"]
+        ANO["Anomaly Detection Engine<br/>Real-time scoring &lt;3s"]
+        RL_O["RL Optimiser<br/>Policy generation"]
+        ACT["Action Bus<br/>Command queue &amp; escalations"]
+    end
+
+    subgraph SERVE["Serving Layer"]
+        API["REST / GraphQL API<br/>Device mgmt, fidelity, queries"]
+        WS["WebSocket Server<br/>Push notifications &amp; live data"]
+        DASH_B["Dashboard Backend<br/>Session mgmt &amp; auth"]
+    end
+
+    subgraph DATA["Data Layer"]
+        DL["Delta Lake on S3<br/>Cataloged datasets"]
+        META["Metadata &amp; Device Registry<br/>IoT Hub"]
+        AUDIT["Audit Service<br/>Immutable append-only"]
+        REDIS["Redis Cache<br/>Hot data &amp; sessions"]
+    end
+
+    subgraph ML["ML Serving"]
+        TRITON["Triton Inference Server<br/>ViT, LSTM ensembles"]
+        FEAT["Feature Store (Feast)<br/>Real-time features"]
+    end
+
+    KFK --> ANO
+    WRT_W --> KFK
+    S3_ING --> DL
+    ANO --> ACT
+    ANO --> TRITON
+    TRITON --> FEAT
+    RL_O --> ACT
+    ACT --> API
+    API --> WS
+    API --> META
+    ACT --> AUDIT
+    KFK --> DL
+    WS --> DASH_B
+
+    style INGEST fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style PROCESS fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style SERVE fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style DATA fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style ML fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">K</div><div><div class="spec-label">Stream Processing</div><div class="spec-value">Kafka sharded by robot_id + site_id</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">A</div><div><div class="spec-label">Anomaly SLA</div><div class="spec-value">Capture → cloud score &lt;3s for critical</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">M</div><div><div class="spec-label">ML Inference</div><div class="spec-value">Triton p95 &lt;100ms, heavy models &lt;1s async</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">D</div><div><div class="spec-label">Data Lake</div><div class="spec-value">Delta Lake on S3, hot/warm/cold tiers</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">I</div><div><div class="spec-label">Infra</div><div class="spec-value">EKS / GKE / AKS, HPA on queue depth</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">AU</div><div><div class="spec-label">Audit</div><div class="spec-value">Immutable, checksummed, write-ahead to Kinesis</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>API Contracts</h2>
+      <span class="diagram-num b-cloud">REST</span>
+    </div>
+    <div class="api-block"><span class="cmt">// 1. Device Registration</span>
+<span class="kw">POST</span> /v1/devices/register
+{
+  <span class="str">"device_id"</span>: <span class="str">"robot-001"</span>,
+  <span class="str">"site_id"</span>:   <span class="str">"site-a"</span>,
+  <span class="str">"hw_version"</span>: <span class="str">"v2"</span>,
+  <span class="str">"sw_version"</span>: <span class="str">"1.2.3"</span>,
+  <span class="str">"capabilities"</span>: [<span class="str">"camera"</span>, <span class="str">"lidar"</span>, <span class="str">"webrtc"</span>]
+}
+<span class="cmt">→ Response: { "status": "ok", "credentials": { "jwt": "...", "expires_at": "..." } }</span>
+
+<span class="cmt">// 2. Fidelity Control</span>
+<span class="kw">POST</span> /v1/robots/{id}/fidelity
+{
+  <span class="str">"requester_id"</span>: <span class="str">"tele-123"</span>,
+  <span class="str">"level"</span>: <span class="str">"max"</span>,
+  <span class="str">"reason"</span>: <span class="str">"anomaly review"</span>,
+  <span class="str">"duration_seconds"</span>: <span class="num">300</span>
+}
+<span class="cmt">→ Actions: Validate RBAC → Create FidelityRequest → Emit MQTT → Persist audit</span></div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Action Bus &mdash; Command Queue &amp; Escalation</h2>
+      <span class="diagram-num b-cloud">Queue</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph INTAKE["Command Intake"]
+        API_CMD["API / Dashboard<br/>Operator commands"]
+        ANO_CMD["Anomaly Engine<br/>Auto-generated actions"]
+        RL_CMD["RL Optimiser<br/>Policy-driven actions"]
+        SCHED["Scheduler<br/>Periodic tasks"]
+    end
+
+    subgraph QUEUE["Priority Queue"]
+        P0["P0 Emergency<br/>E-stop, safety alerts"]
+        P1["P1 Critical<br/>Fidelity escalation, anomaly"]
+        P2["P2 Normal<br/>Teleop commands, config"]
+        P3["P3 Background<br/>Batch uploads, reports"]
+    end
+
+    subgraph DISPATCH["Dispatch and Delivery"]
+        VAL["Validate and Enrich<br/>RBAC + schema + idempotency"]
+        ROUTE["Route to Target<br/>Edge or Robot or Service"]
+        RETRY["Retry Engine<br/>Exp backoff, max 3, DLQ"]
+    end
+
+    subgraph ESCALATION["Escalation Chain"]
+        L1["L1 Auto-resolve<br/>Retry + fallback policy"]
+        L2["L2 Operator Alert<br/>Dashboard notification"]
+        L3["L3 Supervisor<br/>Override + audit log"]
+        L4["L4 System Alert<br/>PagerDuty + runbook"]
+    end
+
+    subgraph TRACK["Tracking and Audit"]
+        CMDSTATE["Command State Machine<br/>pending, dispatched, acked, done"]
+        AUDIT_T["Audit Trail<br/>Every state transition logged"]
+        DLQ_T["Dead Letter Queue<br/>Failed after retries"]
+    end
+
+    API_CMD --> P2
+    ANO_CMD --> P1
+    RL_CMD --> P2
+    SCHED --> P3
+    P0 --> VAL
+    P1 --> VAL
+    P2 --> VAL
+    P3 --> VAL
+    VAL --> ROUTE
+    ROUTE --> RETRY
+    RETRY --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    ROUTE --> CMDSTATE
+    CMDSTATE --> AUDIT_T
+    RETRY --> DLQ_T
+
+    style INTAKE fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style QUEUE fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style DISPATCH fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style ESCALATION fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style TRACK fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+      </div>
+    </div>
+    <div class="api-block"><span class="cmt">// Command State Machine</span>
+<span class="kw">CREATED</span> → <span class="kw">VALIDATED</span> → <span class="kw">DISPATCHED</span> → <span class="kw">ACK_RECEIVED</span> → <span class="kw">COMPLETED</span>
+                                    ↓                    ↓
+                              <span class="kw">RETRY</span> (x3)          <span class="kw">STATE_MISMATCH</span> → reconcile
+                                    ↓
+                              <span class="kw">DEAD_LETTER</span> → escalate
+
+<span class="cmt">// Backpressure Handling</span>
+<span class="kw">Queue depth</span> &gt; 1000   → reject P3 (background) commands
+<span class="kw">Queue depth</span> &gt; 5000   → reject P2 (normal), alert ops
+<span class="kw">Queue depth</span> &gt; 10000  → P0/P1 only, page on-call
+
+<span class="cmt">// Retry Policy</span>
+<span class="kw">P0 (emergency)</span>   max_retries: <span class="num">5</span>   backoff: <span class="num">100ms</span>   timeout: <span class="num">1s</span>
+<span class="kw">P1 (critical)</span>    max_retries: <span class="num">3</span>   backoff: <span class="num">500ms</span>   timeout: <span class="num">3s</span>
+<span class="kw">P2 (normal)</span>      max_retries: <span class="num">3</span>   backoff: <span class="num">1s</span>      timeout: <span class="num">10s</span>
+<span class="kw">P3 (background)</span>  max_retries: <span class="num">2</span>   backoff: <span class="num">5s</span>      timeout: <span class="num">60s</span></div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">P0</div><div><div class="spec-label">Emergency</div><div class="spec-value">E-stop, safety &mdash; processed within 100ms, 5 retries</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">P1</div><div><div class="spec-label">Critical</div><div class="spec-value">Anomaly response, fidelity escalation &mdash; &lt;3s SLA</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">P2</div><div><div class="spec-label">Normal</div><div class="spec-value">Teleop commands, config updates &mdash; &lt;10s SLA</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">DLQ</div><div><div class="spec-label">Dead Letter</div><div class="spec-value">Failed after retries &rarr; audit + escalate to L3</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">ESC</div><div><div class="spec-label">Escalation</div><div class="spec-value">L1 auto &rarr; L2 operator &rarr; L3 supervisor &rarr; L4 page</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">BP</div><div><div class="spec-label">Backpressure</div><div class="spec-value">Progressive shedding by priority at queue thresholds</div></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 5: AI / MLOPS ═════════════════════════ -->
+<div class="tab-content" id="tab-t5">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#ec4899">Module 5</span>
+      <h2>AI / MLOps Pipeline</h2>
+      <p>End-to-end ML lifecycle: data pipeline &rarr; training &rarr; registry &rarr; deployment &rarr; monitoring &rarr; RL loop</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph ONLINE["Online Inference"]
+        EDGE_M["Edge Models<br/>Keyframe selection<br/>Anomaly detection<br/>ONNX/TensorRT"]
+        CLOUD_M["Cloud Inferencers<br/>ViT · LSTM ensembles<br/>Triton / TorchServe"]
+    end
+
+    subgraph PIPELINE["Training Pipeline"]
+        ETL["ETL from Delta Lake<br/>Privacy-filtered data"]
+        FEAT["Feature Extraction<br/>Spark / PySpark"]
+        TRAIN["GPU Training Cluster<br/>Spot instances"]
+        EVAL["Validation &amp; Testing<br/>Metrics: TPR, FPR, latency"]
+    end
+
+    subgraph REGISTRY["Model Management"]
+        MLF["Model Registry<br/>MLflow · Semantic Versioning"]
+        VER["Dataset Versioning<br/>Hyperparams &amp; metrics"]
+        ROLL["Rollout Strategy<br/>Canary 1% → Blue/Green"]
+    end
+
+    subgraph RL_LOOP["RL Optimisation Loop"]
+        EP["Episode Logger<br/>State · Action · Reward"]
+        RL_T["Offline RL Training<br/>Accumulated episodes"]
+        SIM["Simulator Evaluation<br/>Safety checks"]
+        PROM["Policy Promotion<br/>Advisory mode first"]
+    end
+
+    subgraph MONITOR["Drift Monitoring"]
+        CD["Concept Drift Detector<br/>Distribution shift alerts"]
+        DD["Data Drift Detector<br/>Feature distribution"]
+        PD["Performance Degradation<br/>Auto-alert &amp; rollback"]
+    end
+
+    ETL --> FEAT --> TRAIN --> EVAL
+    EVAL --> MLF --> VER
+    VER --> ROLL
+    ROLL --> EDGE_M
+    ROLL --> CLOUD_M
+    CLOUD_M --> CD
+    CLOUD_M --> DD
+    CD --> PD
+    DD --> PD
+    PD --> TRAIN
+    EP --> RL_T --> SIM --> PROM
+    PROM --> ROLL
+
+    style ONLINE fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style PIPELINE fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style REGISTRY fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style RL_LOOP fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style MONITOR fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">E</div><div><div class="spec-label">Edge Models</div><div class="spec-value">Lightweight ONNX/TFLite, runs on device GPU/NPU</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">C</div><div><div class="spec-label">Cloud Models</div><div class="spec-value">ViT + LSTM ensembles via Triton, p95 &lt;100ms</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">R</div><div><div class="spec-label">Registry</div><div class="spec-value">MLflow, semantic versioning, rollback procedure</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">RL</div><div><div class="spec-label">RL Safety</div><div class="spec-value">Advisory mode until proven safe, human override always</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">D</div><div><div class="spec-label">Drift</div><div class="spec-value">Auto-detect concept + data drift, trigger retrain</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">G</div><div><div class="spec-label">GPU</div><div class="spec-value">Spot instances for training, reduce infra spend</div></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 6: DASHBOARD ═══════════════════════════ -->
+<div class="tab-content" id="tab-t6">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#14b8a6">Module 6</span>
+      <h2>Teleoperator Dashboard &amp; Frontend</h2>
+      <p>React/TypeScript SPA: live video, escalation controls, telemetry, audit replay, role-based access</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph UI["Dashboard UI (React / TypeScript)"]
+        LIVE["Live View Panel<br/>WebRTC multi-camera"]
+        CTRL["Operator Controls<br/>Joystick · Commands · Fidelity"]
+        ESC["Escalation Panel<br/>Request hi-fi · Annotate · Mark"]
+        TEL_V["Telemetry Viewer<br/>Real-time charts &amp; gauges"]
+        AUDIT_V["Audit &amp; Replay<br/>Search by time / incident"]
+        XAI["XAI Summary<br/>Why flagged · Confidence score"]
+    end
+
+    subgraph AUTH["Access Control"]
+        RBAC_UI["Role-Based UI<br/>Teleoperator · Supervisor · Auditor"]
+        SESS["Session Manager<br/>5-min auto-downgrade"]
+        LOGIN["OAuth2 Login<br/>SSO integration"]
+    end
+
+    subgraph TRANSPORT["Client Transport"]
+        WRT_C["WebRTC Client<br/>Adaptive bitrate player"]
+        WS_C["WebSocket Client<br/>Control &amp; push notifications"]
+        REST_C["REST / GraphQL Client<br/>Queries &amp; mutations"]
+    end
+
+    LIVE --> WRT_C
+    CTRL --> WS_C
+    ESC --> REST_C
+    TEL_V --> WS_C
+    AUDIT_V --> REST_C
+    XAI --> REST_C
+    LOGIN --> RBAC_UI
+    RBAC_UI --> SESS
+    SESS --> CTRL
+
+    style UI fill:#ccfbf1,stroke:#14b8a6,stroke-width:2px
+    style AUTH fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style TRANSPORT fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#14b8a6">V</div><div><div class="spec-label">Video</div><div class="spec-value">WebRTC adaptive bitrate, multi-camera views</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">R</div><div><div class="spec-label">Roles</div><div class="spec-value">Teleoperator (primary), Supervisor (override), Auditor</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">T</div><div><div class="spec-label">Timeout</div><div class="spec-value">5-min inactivity → auto-downgrade to low fidelity</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">X</div><div><div class="spec-label">XAI</div><div class="spec-value">Explainable anomaly summaries with confidence</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">A</div><div><div class="spec-label">Audit</div><div class="spec-value">Full replay search by time range or incident ID</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">F</div><div><div class="spec-label">Framework</div><div class="spec-value">React + TypeScript, WebRTC + WebSocket clients</div></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 7: STORAGE ═════════════════════════════ -->
+<div class="tab-content" id="tab-t7">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#f97316">Module 7</span>
+      <h2>Storage &amp; Data Lifecycle</h2>
+      <p>Tiered storage architecture: hot &rarr; warm &rarr; cold &middot; Delta Lake catalog &middot; retention policies &middot; checksum verification</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph LR
+    subgraph HOT["Hot Tier (minutes → days)"]
+        KT["Kafka Topics<br/>Real-time streams"]
+        RC["Redis Cache<br/>Sessions &amp; fast lookups"]
+        S3H["S3 Hot Prefix<br/>24–72h TTL"]
+    end
+
+    subgraph WARM["Warm Tier (days → weeks)"]
+        DL["Delta Lake<br/>Curated datasets"]
+        FEAT_S["Feature Store<br/>Feast"]
+        AN["Analytics Tables<br/>Retraining data"]
+    end
+
+    subgraph COLD["Cold Tier (months → years)"]
+        GLACIER["S3 Glacier / Archive<br/>Compliance &amp; forensic"]
+        BACKUP["Backup Replicas<br/>Cross-region"]
+    end
+
+    subgraph AUDIT_S["Audit Storage"]
+        IMM["Immutable Logs<br/>Append-only, checksummed"]
+        ETAG["ETag / SHA256<br/>Per-entry verification"]
+        RET["Retention Policies<br/>Tamper-evident"]
+    end
+
+    subgraph LIFECYCLE["Lifecycle Engine"]
+        ING_R["Ingest Rules<br/>Tag &amp; classify on arrival"]
+        TRANS["Auto Transition<br/>Hot→Warm→Cold by policy"]
+        DEL["Deletion Engine<br/>DSR &amp; retention expiry"]
+    end
+
+    KT --> S3H
+    S3H --> DL
+    DL --> AN
+    DL --> GLACIER
+    RC --> S3H
+    ING_R --> S3H
+    TRANS --> DL
+    TRANS --> GLACIER
+    DEL --> GLACIER
+    IMM --> ETAG --> RET
+
+    style HOT fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style WARM fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style COLD fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style AUDIT_S fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style LIFECYCLE fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#f97316">1%</div><div><div class="spec-label">Anomaly-only</div><div class="spec-value">~8 TB/mo · 90 days warm, 365 cold</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">10</div><div><div class="spec-label">Sampled 10%</div><div class="spec-value">~80 TB/mo · 180 days warm, 2 years cold</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">F</div><div><div class="spec-label">Full Retention</div><div class="spec-value">~800 TB/mo · 365 days, very high cost</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">C</div><div><div class="spec-label">Checksums</div><div class="spec-value">SHA256 per chunk + file, verified on commit</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">D</div><div><div class="spec-label">Delta Lake</div><div class="spec-value">ACID transactions, time travel, schema evolution</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">L</div><div><div class="spec-label">Lifecycle</div><div class="spec-value">Automated tier transitions + DSR deletion flow</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Data Schemas</h2>
+      <span class="diagram-num b-store">Tables</span>
+    </div>
+    <div class="api-block"><span class="cmt">-- Telemetry (time-series) · Retention: hot 7d, warm 30d, cold archive</span>
+<span class="kw">TABLE</span> telemetry (
+  ts         <span class="kw">TIMESTAMP</span>,   robot_id   <span class="kw">STRING</span>,
+  cpu_pct    <span class="num">FLOAT</span>,       mem_mb     <span class="num">INT</span>,
+  net_up_bps <span class="num">BIGINT</span>,      net_down_bps <span class="num">BIGINT</span>,
+  battery_pct <span class="num">FLOAT</span>,      health     <span class="kw">STRING</span>,
+  anomaly_flags <span class="kw">ARRAY&lt;STRING&gt;</span>
+)
+
+<span class="cmt">-- Anomaly Events</span>
+<span class="kw">TABLE</span> anomaly_events (
+  event_id   <span class="kw">STRING PK</span>,   robot_id   <span class="kw">STRING</span>,
+  model_id   <span class="kw">STRING</span>,      confidence <span class="num">FLOAT</span>,
+  xai        <span class="kw">TEXT</span>,        payload_refs <span class="kw">STRING</span>,
+  processed  <span class="kw">BOOLEAN</span>
+)
+
+<span class="cmt">-- Fidelity Requests (audit trail)</span>
+<span class="kw">TABLE</span> fidelity_requests (
+  request_id <span class="kw">STRING PK</span>,   robot_id     <span class="kw">STRING</span>,
+  requester_id <span class="kw">STRING</span>,    role         <span class="kw">STRING</span>,
+  level      <span class="kw">ENUM</span>,        start_ts     <span class="kw">TIMESTAMP</span>,
+  end_ts     <span class="kw">TIMESTAMP</span>,   approved_by  <span class="kw">STRING</span>,
+  outcome    <span class="kw">STRING</span>,      checksum_refs <span class="kw">STRING</span>
+)
+
+<span class="cmt">-- Uploads Catalog (Delta Lake)</span>
+<span class="kw">TABLE</span> uploads_catalog (
+  upload_id  <span class="kw">STRING PK</span>,   robot_id   <span class="kw">STRING</span>,
+  site_id    <span class="kw">STRING</span>,      start_ts   <span class="kw">TIMESTAMP</span>,
+  end_ts     <span class="kw">TIMESTAMP</span>,   size_bytes <span class="num">BIGINT</span>,
+  checksum   <span class="kw">STRING</span>,      tags       <span class="kw">ARRAY&lt;STRING&gt;</span>,
+  retention_tier <span class="kw">STRING</span>
+)</div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 8: SECURITY ════════════════════════════ -->
+<div class="tab-content" id="tab-t8">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#ef4444">Module 8</span>
+      <h2>Security &amp; Compliance</h2>
+      <p>Defense in depth: transport encryption &rarr; identity &amp; access &rarr; data privacy &rarr; audit &amp; compliance</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph TRANSPORT_S["Transport Security"]
+        TLS["TLS 1.3<br/>All connections"]
+        MTLS["Mutual TLS<br/>Device ↔ Edge"]
+        CERT["Certificate Management<br/>Auto-rotation"]
+    end
+
+    subgraph IDENTITY["Identity & Access"]
+        OAUTH["OAuth2 / SSO<br/>User authentication"]
+        JWT_S["Short-lived JWTs<br/>Device MQTT auth"]
+        RBAC_S["RBAC Engine<br/>Teleop · Supervisor · Auditor"]
+        MTLS_S["mTLS for Services<br/>Service mesh"]
+    end
+
+    subgraph PRIVACY["Data Privacy"]
+        ANON_S["Edge Anonymisation<br/>Face &amp; plate redaction"]
+        MIN["Data Minimisation<br/>Metadata-only where required"]
+        DP["Differential Privacy<br/>Analytics pipelines"]
+        DSR["DSR Workflow<br/>GDPR/CCPA subject requests"]
+    end
+
+    subgraph AUDIT_SEC["Audit & Integrity"]
+        IMLOG["Immutable Audit Logs<br/>Signed &amp; checksummed"]
+        ESC_LOG["Escalation Logging<br/>All fidelity changes"]
+        REVOKE["Auto-Revoke<br/>Unauthorized access"]
+        LEGAL["Legal Hold<br/>Forensic preservation"]
+    end
+
+    subgraph ENCRYPT["Encryption at Rest"]
+        KMS_S["KMS-managed Keys<br/>Per-tenant where multi-tenant"]
+        S3ENC["S3 SSE-KMS<br/>Object-level encryption"]
+        DBENC["Database Encryption<br/>TDE / field-level"]
+    end
+
+    TLS --> MTLS --> CERT
+    OAUTH --> JWT_S
+    OAUTH --> RBAC_S
+    RBAC_S --> MTLS_S
+    ANON_S --> MIN
+    MIN --> DP
+    DSR --> MIN
+    IMLOG --> ESC_LOG
+    ESC_LOG --> REVOKE
+    REVOKE --> LEGAL
+    KMS_S --> S3ENC
+    KMS_S --> DBENC
+
+    style TRANSPORT_S fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+    style IDENTITY fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+    style PRIVACY fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style AUDIT_SEC fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style ENCRYPT fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">T</div><div><div class="spec-label">Transport</div><div class="spec-value">TLS 1.3 everywhere, mTLS device↔edge</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">I</div><div><div class="spec-label">Identity</div><div class="spec-value">OAuth2 users, short-lived JWT for devices</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">P</div><div><div class="spec-label">Privacy</div><div class="spec-value">Edge-side redaction, differential privacy</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">A</div><div><div class="spec-label">Audit</div><div class="spec-value">Immutable, signed, tamper-evident logs</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">E</div><div><div class="spec-label">Encryption</div><div class="spec-value">KMS-managed, per-tenant keys, SSE-KMS on S3</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">C</div><div><div class="spec-label">Compliance</div><div class="spec-value">GDPR/CCPA DSR flow, Data Processing Agreements</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Device Identity &amp; Auth Lifecycle</h2>
+      <span class="diagram-num b-sec">Bots</span>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+sequenceDiagram
+    participant R as Robot Device
+    participant E as Edge Gateway
+    participant A as Auth Service Cloud
+    participant V as Vault KMS
+
+    Note over R,V: Phase 1 - Enrollment at Factory or First Boot
+    R->>A: Enroll (device_id, hw_fingerprint, CSR)
+    A->>V: Generate device certificate
+    V-->>A: Signed X.509 cert + device JWT
+    A-->>R: Credentials bundle (cert, JWT, MQTT creds)
+    A->>A: Register in Device Registry
+
+    Note over R,V: Phase 2 - Runtime Auth on Every Connection
+    R->>E: mTLS handshake with X.509 cert
+    E->>A: Validate cert chain + check revocation list
+    A-->>E: Auth OK + permissions + session token
+    E-->>R: Connection established
+
+    Note over R,V: Phase 3 - Token Rotation (Periodic)
+    R->>A: Refresh token (old JWT + device fingerprint)
+    A->>V: Issue new short-lived JWT
+    V-->>A: New JWT with TTL 1 hour
+    A-->>R: Rotated credentials
+    A->>A: Audit log rotation event
+
+    Note over R,V: Phase 4 - Per-Transaction Verification
+    R->>E: Command or Telemetry signed with device key
+    E->>E: Verify signature + check JWT expiry
+    E->>A: Validate device permissions (cached 60s)
+    E-->>R: ACK or NACK
+      </div>
+    </div>
+    <div class="api-block"><span class="cmt">// Device Enrollment</span>
+<span class="kw">POST</span> /v1/devices/enroll
+{
+  <span class="str">"device_id"</span>:       <span class="str">"robot-042"</span>,
+  <span class="str">"hw_fingerprint"</span>:  <span class="str">"sha256:a1b2c3..."</span>,
+  <span class="str">"csr"</span>:             <span class="str">"-----BEGIN CERTIFICATE REQUEST-----..."</span>,
+  <span class="str">"device_type"</span>:     <span class="str">"warehouse_robot"</span>,
+  <span class="str">"site_id"</span>:         <span class="str">"site-a"</span>
+}
+<span class="cmt">→ { "cert": "...", "jwt": "...", "mqtt_creds": {...}, "rotation_interval_s": 3600 }</span>
+
+<span class="cmt">// Token Rotation</span>
+<span class="kw">POST</span> /v1/devices/{device_id}/rotate
+{
+  <span class="str">"current_jwt"</span>:     <span class="str">"eyJ..."</span>,
+  <span class="str">"hw_fingerprint"</span>:  <span class="str">"sha256:a1b2c3..."</span>
+}
+<span class="cmt">→ { "new_jwt": "...", "expires_at": "...", "next_rotation_s": 3600 }</span>
+
+<span class="cmt">// Revocation (admin-initiated or auto on anomaly)</span>
+<span class="kw">POST</span> /v1/devices/{device_id}/revoke
+<span class="cmt">→ Adds to CRL, disconnects device, logs to audit</span></div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">E</div><div><div class="spec-label">Enrollment</div><div class="spec-value">X.509 CSR on first boot, signed by platform CA</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">M</div><div><div class="spec-label">mTLS</div><div class="spec-value">Every device-edge connection uses mutual TLS</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">R</div><div><div class="spec-label">Rotation</div><div class="spec-value">JWT rotated every 1 hour, certs every 90 days</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">V</div><div><div class="spec-label">Verification</div><div class="spec-value">Signature + JWT + permissions checked per transaction</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">C</div><div><div class="spec-label">Cache</div><div class="spec-value">Edge caches device permissions for 60s to reduce latency</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">A</div><div><div class="spec-label">Audit</div><div class="spec-value">All enrollment, rotation, revocation events logged immutably</div></div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 9: OBSERVABILITY ═══════════════════════ -->
+<div class="tab-content" id="tab-t9">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#06b6d4">Module 9</span>
+      <h2>Observability &amp; SRE</h2>
+      <p>Full-stack observability: metrics &rarr; logs &rarr; traces &rarr; alerting &middot; device-to-cloud distributed tracing</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph COLLECT["Collection Layer"]
+        OTEL["OpenTelemetry SDK<br/>Device → Edge → Cloud"]
+        PROM["Prometheus Exporters<br/>Per-service metrics"]
+        FBEAT["Filebeat / Fluentd<br/>Structured log shipping"]
+    end
+
+    subgraph METRICS["Metrics Pipeline"]
+        PROM_S["Prometheus Server<br/>TSDB storage"]
+        CUSTOM["Custom Metrics<br/>Queue depth · model latency"]
+        SLO["SLO Calculator<br/>Error budgets &amp; burn rates"]
+    end
+
+    subgraph LOGS_P["Log Pipeline"]
+        ELK["Elasticsearch<br/>Indexed log storage"]
+        KIB["Kibana<br/>Search &amp; visualisation"]
+        STRUCT["Structured Logs<br/>Request ID · Trace ID"]
+    end
+
+    subgraph TRACES["Tracing Pipeline"]
+        JAEG["Jaeger / Tempo<br/>Distributed traces"]
+        SPAN["Span Context<br/>Device → Edge → Cloud"]
+        CORR["Correlation Engine<br/>Logs ↔ Traces ↔ Metrics"]
+    end
+
+    subgraph ALERT["Alerting & Response"]
+        RULES["Alert Rules<br/>SLA breaches · drift · backpressure"]
+        PD["PagerDuty / OpsGenie<br/>On-call routing"]
+        RUNB["Runbook Links<br/>Auto-attached to alerts"]
+        GRAF["Grafana Dashboards<br/>Ops + Exec views"]
+    end
+
+    OTEL --> PROM_S
+    OTEL --> JAEG
+    PROM --> PROM_S
+    PROM_S --> CUSTOM
+    CUSTOM --> SLO
+    FBEAT --> ELK --> KIB
+    FBEAT --> STRUCT
+    JAEG --> SPAN --> CORR
+    CORR --> ELK
+    SLO --> RULES
+    RULES --> PD
+    PD --> RUNB
+    SLO --> GRAF
+    ELK --> GRAF
+
+    style COLLECT fill:#cffafe,stroke:#06b6d4,stroke-width:2px
+    style METRICS fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style LOGS_P fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style TRACES fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style ALERT fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#06b6d4">M</div><div><div class="spec-label">Key Metrics</div><div class="spec-value">Bitrate, packet loss, latency p95/p99, WebRTC RTT</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">S</div><div><div class="spec-label">SLOs</div><div class="spec-value">WebRTC connect &lt;2s, MQTT &lt;200ms, upload 99.9%</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">L</div><div><div class="spec-label">Logs</div><div class="spec-value">Structured with request + trace IDs, ELK stack</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">T</div><div><div class="spec-label">Tracing</div><div class="spec-value">OpenTelemetry end-to-end, device→edge→cloud</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">A</div><div><div class="spec-label">Alerting</div><div class="spec-value">SLA breach, backpressure, model drift, pipeline errors</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ec4899">D</div><div><div class="spec-label">Dashboards</div><div class="spec-value">Grafana ops views, Kibana log search, exec summaries</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>SLOs &amp; KPIs</h2>
+      <span class="diagram-num b-obs">Targets</span>
+    </div>
+    <div class="api-block"><span class="cmt">// Service Level Objectives</span>
+
+<span class="kw">WebRTC Connection</span>    p99 successful connect   <span class="str">&lt; 2 seconds</span>
+<span class="kw">Control Command</span>      median latency           <span class="str">&lt; 200 ms</span>
+<span class="kw">Control Command</span>      p99 latency              <span class="str">&lt; 1 second</span>
+<span class="kw">Upload Success</span>       daily success rate       <span class="str">&gt; 99.9%</span>
+<span class="kw">Anomaly Detection</span>    capture → score          <span class="str">&lt; 3 seconds</span>  (critical)
+<span class="kw">Cloud Inference</span>      p95 base models          <span class="str">&lt; 100 ms</span>
+<span class="kw">Cloud Inference</span>      heavy models (async)     <span class="str">&lt; 1 second</span>
+<span class="kw">Audit Logs</span>           immutability             <span class="str">tamper-evident, checksummed</span>
+<span class="kw">Edge Heartbeat</span>       missing threshold        <span class="str">&gt; 2 min → offline alert</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 10: DEPLOYMENT ═════════════════════════ -->
+<div class="tab-content" id="tab-t10">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#84cc16">Module 10</span>
+      <h2>Deployment &amp; CI/CD</h2>
+      <p>Infrastructure as Code &rarr; CI pipelines &rarr; CD rollouts &rarr; Kubernetes orchestration &rarr; autoscaling</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph IAC["Infrastructure as Code"]
+        TF["Terraform<br/>Cloud infra provisioning"]
+        HELM["Helm Charts<br/>K8s app packaging"]
+        POLICY["Policy as Code<br/>OPA / Sentinel"]
+    end
+
+    subgraph CI["Continuous Integration"]
+        GIT["Git Push<br/>GitHub / GitLab"]
+        BUILD["Build &amp; Test<br/>Unit + Integration"]
+        SCAN["Container Scanning<br/>Snyk / Trivy"]
+        IMG["Image Registry<br/>ECR / GCR / ACR"]
+    end
+
+    subgraph CD["Continuous Deployment"]
+        ARGO["ArgoCD<br/>GitOps K8s rollouts"]
+        CANARY["Canary Deploy<br/>1% traffic → monitor"]
+        BG["Blue/Green<br/>API + ML model rollouts"]
+        ROLLBACK["Auto-Rollback<br/>On SLO breach"]
+    end
+
+    subgraph K8S["Kubernetes Platform"]
+        ING_K["Ingress (WebRTC GW)<br/>Public subnet + LB"]
+        SVC["Microservices<br/>Ingest · API · Workers · ML"]
+        HPA["HPA Autoscaler<br/>CPU + queue depth"]
+        PDB["PDB / Topology<br/>HA &amp; zone spread"]
+    end
+
+    subgraph SECRETS["Secrets & Config"]
+        VAULT["HashiCorp Vault<br/>Dynamic secrets"]
+        CSM["Cloud Secret Manager<br/>KMS-backed"]
+        CONFIGMAP["ConfigMaps<br/>Feature flags &amp; policies"]
+    end
+
+    GIT --> BUILD --> SCAN --> IMG
+    TF --> K8S
+    HELM --> ARGO
+    IMG --> ARGO
+    ARGO --> CANARY
+    ARGO --> BG
+    CANARY --> ROLLBACK
+    BG --> ROLLBACK
+    ARGO --> SVC
+    SVC --> HPA
+    HPA --> PDB
+    VAULT --> SVC
+    CSM --> VAULT
+    POLICY --> ARGO
+
+    style IAC fill:#ecfdf5,stroke:#84cc16,stroke-width:2px
+    style CI fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style CD fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style K8S fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style SECRETS fill:#fee2e2,stroke:#ef4444,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#84cc16">I</div><div><div class="spec-label">IaC</div><div class="spec-value">Terraform for cloud, Helm for K8s, OPA policies</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">CI</div><div><div class="spec-label">CI Pipeline</div><div class="spec-value">Build → test → scan (Snyk/Trivy) → registry</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">CD</div><div><div class="spec-label">CD Strategy</div><div class="spec-value">ArgoCD GitOps, canary + blue/green rollouts</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">K8</div><div><div class="spec-label">Platform</div><div class="spec-value">EKS/GKE/AKS, HPA on CPU + custom metrics</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">S</div><div><div class="spec-label">Secrets</div><div class="spec-value">Vault + cloud secret manager, dynamic creds</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">N</div><div><div class="spec-label">Network</div><div class="spec-value">Private VPC, public subnet for WebRTC GW + LB</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Microservices Breakdown</h2>
+      <span class="diagram-num b-deploy">K8s</span>
+    </div>
+    <div class="api-block"><span class="cmt">// Kubernetes Service Map</span>
+
+<span class="kw">Namespace: ingest</span>
+  ├─ webrtc-gateway         <span class="cmt">Deployment   (public subnet, LB)</span>
+  ├─ kafka-connector        <span class="cmt">Deployment   (Kafka ↔ internal)</span>
+  └─ s3-ingest-worker       <span class="cmt">Deployment   (batch processing)</span>
+
+<span class="kw">Namespace: api</span>
+  ├─ control-api            <span class="cmt">Deployment   (REST/GraphQL)</span>
+  ├─ websocket-server       <span class="cmt">Deployment   (push notifications)</span>
+  └─ dashboard-backend      <span class="cmt">Deployment   (session + auth)</span>
+
+<span class="kw">Namespace: ml</span>
+  ├─ triton-inference       <span class="cmt">Deployment   (GPU nodes)</span>
+  ├─ anomaly-scorer         <span class="cmt">Deployment   (real-time)</span>
+  ├─ rl-optimiser           <span class="cmt">CronJob      (periodic training)</span>
+  └─ feature-store          <span class="cmt">StatefulSet  (Feast)</span>
+
+<span class="kw">Namespace: data</span>
+  ├─ kafka-cluster          <span class="cmt">StatefulSet  (3+ brokers)</span>
+  ├─ redis-cluster          <span class="cmt">StatefulSet  (HA)</span>
+  └─ metadata-registry      <span class="cmt">Deployment   (device mgmt)</span>
+
+<span class="kw">Namespace: platform</span>
+  ├─ mqtt-broker            <span class="cmt">StatefulSet  (EMQX HA)</span>
+  ├─ audit-service          <span class="cmt">Deployment   (immutable logs)</span>
+  ├─ argocd                 <span class="cmt">Deployment   (GitOps)</span>
+  └─ prometheus + grafana   <span class="cmt">StatefulSet  (observability)</span></div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Testing Matrix</h2>
+      <span class="diagram-num b-deploy">QA</span>
+    </div>
+    <div class="api-block"><span class="kw">Unit Tests</span>
+  ├─ Device client libraries       <span class="cmt">(MQTT, WebRTC, compression)</span>
+  ├─ Control API handlers          <span class="cmt">(fidelity, registration)</span>
+  └─ Message payload parsing       <span class="cmt">(telemetry, anomaly events)</span>
+
+<span class="kw">Integration Tests</span>
+  ├─ Device → Edge → Cloud         <span class="cmt">(simulated packet loss &amp; latency)</span>
+  ├─ MQTT publish → Kafka consume  <span class="cmt">(end-to-end message flow)</span>
+  └─ S3 upload → Delta Lake ingest <span class="cmt">(checksum verification)</span>
+
+<span class="kw">E2E Tests</span>
+  ├─ Teleop request → edge reconfig → hi-fi stream → verification
+  └─ Anomaly detection → escalation → dashboard notification
+
+<span class="kw">Load Tests</span>
+  ├─ 10,000 robot simulation       <span class="cmt">(scale test)</span>
+  ├─ Kafka throughput saturation   <span class="cmt">(backpressure handling)</span>
+  └─ WebRTC gateway concurrency    <span class="cmt">(SFU capacity)</span>
+
+<span class="kw">Chaos Tests</span>
+  ├─ Kill gateway pods             <span class="cmt">(failover verification)</span>
+  ├─ Storage failures              <span class="cmt">(buffer overflow handling)</span>
+  └─ Network partitions            <span class="cmt">(split-brain recovery)</span></div>
+  </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════════ TAB 11: FIDELITY CONTROL ═══════════════════ -->
+<div class="tab-content" id="tab-t11">
+<div class="section-wrap">
+  <div class="diagram-card">
+    <div class="module-header">
+      <span class="module-badge" style="background:#10b981">Module 11</span>
+      <h2>Dynamic Fidelity Controller &mdash; Policy Engine</h2>
+      <p>Who owns which switch: robot, edge, cloud, and teleoperator fidelity control ownership, escalation logic, and decision flow</p>
+    </div>
+    <div class="diagram-body">
+      <div class="mermaid">
+graph TD
+    subgraph TRIGGERS["Fidelity Triggers"]
+        T_OP["Teleoperator Request<br/>Manual hi-fi escalation"]
+        T_ANO["Anomaly Engine<br/>Auto-escalate on detection"]
+        T_RL["RL Policy<br/>Optimised fleet-wide levels"]
+        T_SCHED["Schedule<br/>Peak vs off-peak profiles"]
+    end
+
+    subgraph CLOUD_FC["Cloud — Fleet Policy Manager"]
+        FP["Fleet Policy Manager<br/>Bandwidth budget per site"]
+        PR["Priority Resolver<br/>Anomaly &gt; Teleop &gt; Idle"]
+        APPROVE["Approval Gate<br/>RBAC + budget check"]
+    end
+
+    subgraph EDGE_FC["Edge — Site Fidelity Controller"]
+        DFC_E["Dynamic Fidelity Controller<br/>Real-time decision engine"]
+        BW_MON["Bandwidth Monitor<br/>Actual vs allocated"]
+        PWR["Power and Thermal Monitor<br/>Battery + CPU load"]
+        ALLOC["Allocation Engine<br/>Distribute bandwidth budget"]
+    end
+
+    subgraph ROBOT_FC["Robot — Local Adaptation"]
+        ABR_R["Adaptive Bitrate<br/>Encoder parameter control"]
+        SAFE_R["Safety Override<br/>Low battery forces reduce"]
+        HW_LIM["Hardware Limiter<br/>Thermal throttle"]
+    end
+
+    subgraph OUTPUT_FC["Applied Fidelity"]
+        LEVEL["Active Fidelity Level<br/>MIN, LOW, MED, HIGH, MAX"]
+        STREAM["Stream Config<br/>FPS, Resolution, Bitrate"]
+        REPORT["State Report<br/>ACK back to cloud"]
+    end
+
+    T_OP --> APPROVE
+    T_ANO --> PR
+    T_RL --> FP
+    T_SCHED --> FP
+    FP --> PR
+    PR --> APPROVE
+    APPROVE --> DFC_E
+    BW_MON --> DFC_E
+    PWR --> DFC_E
+    DFC_E --> ALLOC
+    ALLOC --> ABR_R
+    SAFE_R --> ABR_R
+    HW_LIM --> ABR_R
+    ABR_R --> LEVEL
+    LEVEL --> STREAM
+    LEVEL --> REPORT
+    REPORT --> DFC_E
+
+    style TRIGGERS fill:#fef3c7,stroke:#f59e0b,stroke-width:2px
+    style CLOUD_FC fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px
+    style EDGE_FC fill:#e0f2fe,stroke:#0284c7,stroke-width:2px
+    style ROBOT_FC fill:#ecfdf5,stroke:#22c55e,stroke-width:2px
+    style OUTPUT_FC fill:#fce7f3,stroke:#ec4899,stroke-width:2px
+      </div>
+    </div>
+    <div class="spec-grid">
+      <div class="spec-item"><div class="spec-icon" style="background:#8b5cf6">C</div><div><div class="spec-label">Cloud Owns</div><div class="spec-value">Fleet budget, priority ranking, RBAC approval, schedules</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#0284c7">E</div><div><div class="spec-label">Edge Owns</div><div class="spec-value">Per-robot switching, bandwidth allocation, congestion response</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#14b8a6">T</div><div><div class="spec-label">Teleop Can</div><div class="spec-value">Request upgrades (gated by RBAC), auto-downgrade on idle</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#22c55e">R</div><div><div class="spec-label">Robot Owns</div><div class="spec-value">Encoder params, safety overrides (battery, thermal)</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#ef4444">S</div><div><div class="spec-label">Safety</div><div class="spec-value">Battery &lt;15% forces LOW &mdash; non-negotiable, robot-level</div></div></div>
+      <div class="spec-item"><div class="spec-icon" style="background:#f59e0b">B</div><div><div class="spec-label">Budget</div><div class="spec-value">Edge enforces site bandwidth cap, sheds by priority</div></div></div>
+    </div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Ownership Matrix &mdash; Who Controls What</h2>
+      <span class="diagram-num b-fidelity">Ownership</span>
+    </div>
+    <div class="api-block"><span class="cmt">// OWNERSHIP: Which layer owns which fidelity decision</span>
+
+<span class="kw">CLOUD (Fleet Policy Manager)</span>                   <span class="cmt">← STRATEGIC</span>
+  ├─ Fleet-wide bandwidth budget per site       <span class="cmt">← owns total allocation</span>
+  ├─ Priority ranking (anomaly &gt; teleop &gt; idle)  <span class="cmt">← owns prioritisation rules</span>
+  ├─ RBAC approval for MAX fidelity requests     <span class="cmt">← owns access control gate</span>
+  └─ Time-of-day / schedule-based profiles       <span class="cmt">← owns policy schedule</span>
+
+<span class="kw">EDGE (Dynamic Fidelity Controller)</span>              <span class="cmt">← TACTICAL</span>
+  ├─ Per-robot fidelity level assignment         <span class="cmt">← owns the switch itself</span>
+  ├─ Real-time bandwidth distribution            <span class="cmt">← owns allocation math</span>
+  ├─ Automatic downgrade on congestion           <span class="cmt">← owns backpressure response</span>
+  └─ Privacy filter enforcement before stream    <span class="cmt">← owns pre-upload gating</span>
+
+<span class="kw">TELEOPERATOR (Dashboard)</span>                       <span class="cmt">← REQUEST ONLY</span>
+  ├─ Request hi-fi for specific robot            <span class="cmt">← can request, not enforce</span>
+  ├─ Request MAX (time-limited, needs approval)  <span class="cmt">← gated by RBAC + budget</span>
+  └─ 5-min inactivity → auto-downgrade          <span class="cmt">← system enforces timeout</span>
+
+<span class="kw">ROBOT (Local Adaptation)</span>                       <span class="cmt">← SAFETY VETO</span>
+  ├─ Adaptive bitrate within assigned level      <span class="cmt">← owns encoder params</span>
+  ├─ Battery &lt; 15% → force LOW                  <span class="cmt">← safety override, non-negotiable</span>
+  ├─ Thermal throttle → reduce FPS              <span class="cmt">← hardware-level safety</span>
+  └─ Network loss → buffer locally              <span class="cmt">← owns local fallback</span></div>
+  </div>
+
+  <div class="diagram-card">
+    <div class="diagram-header">
+      <h2>Fidelity Levels &amp; Switching Rules</h2>
+      <span class="diagram-num b-fidelity">Levels</span>
+    </div>
+    <div class="api-block"><span class="cmt">// Fidelity Level Definitions</span>
+
+<span class="kw">MINIMAL</span>  (idle)           <span class="num">1 fps</span>   keyframe-only     <span class="num">~0.1 Mbps</span>   <span class="cmt">No active session</span>
+<span class="kw">LOW</span>      (monitoring)      <span class="num">5 fps</span>   480p              <span class="num">~0.5 Mbps</span>   <span class="cmt">Passive observation</span>
+<span class="kw">MEDIUM</span>   (standard teleop) <span class="num">15 fps</span>  720p              <span class="num">~2 Mbps</span>     <span class="cmt">Active teleop default</span>
+<span class="kw">HIGH</span>     (detailed)        <span class="num">30 fps</span>  1080p             <span class="num">~5 Mbps</span>     <span class="cmt">Anomaly investigation</span>
+<span class="kw">MAX</span>      (full sensor)     <span class="num">30 fps</span>  1080p+LiDAR+Audio <span class="num">~15 Mbps</span>    <span class="cmt">Incident response (time-limited)</span>
+
+<span class="cmt">// Upgrade Rules</span>
+<span class="kw">Upgrade</span>  MINIMAL → LOW      <span class="cmt">auto: teleop session starts</span>
+<span class="kw">Upgrade</span>  LOW → MEDIUM       <span class="cmt">auto: operator takes active control</span>
+<span class="kw">Upgrade</span>  MEDIUM → HIGH      <span class="cmt">auto: anomaly engine flags event</span>
+<span class="kw">Upgrade</span>  HIGH → MAX         <span class="cmt">manual: operator request + supervisor RBAC approval</span>
+
+<span class="cmt">// Downgrade Rules</span>
+<span class="kw">Downgrade</span> MAX → HIGH        <span class="cmt">auto: MAX TTL expires (default 5 min)</span>
+<span class="kw">Downgrade</span> HIGH → MEDIUM     <span class="cmt">auto: anomaly resolved or 10 min timeout</span>
+<span class="kw">Downgrade</span> MEDIUM → LOW      <span class="cmt">auto: operator inactive 5 min</span>
+<span class="kw">Downgrade</span> any → MINIMAL     <span class="cmt">auto: teleop session ends</span>
+<span class="kw">Downgrade</span> any → LOW         <span class="cmt">force: battery &lt;15% or bandwidth budget exceeded</span>
+
+<span class="cmt">// Budget Example (10-robot site, 50 Mbps uplink)</span>
+<span class="kw">1 robot at MAX</span>     = <span class="num">15 Mbps</span>
+<span class="kw">2 robots at HIGH</span>   = <span class="num">10 Mbps</span>
+<span class="kw">3 robots at MEDIUM</span> =  <span class="num">6 Mbps</span>
+<span class="kw">4 robots at LOW</span>    =  <span class="num">2 Mbps</span>
+<span class="kw">TOTAL</span>              = <span class="num">33 Mbps</span> of 50 Mbps budget   <span class="cmt">← 34% headroom</span></div>
+    <div class="conn-strip">
+      <span class="conn-chip conn-in">IN ← Fleet policy from Cloud (MQTT / API)</span>
+      <span class="conn-chip conn-in">IN ← Operator fidelity request (Dashboard → API)</span>
+      <span class="conn-chip conn-in">IN ← Anomaly trigger (Action Bus)</span>
+      <span class="conn-chip conn-out">OUT → Fidelity command to Robot (MQTT control topic)</span>
+      <span class="conn-chip conn-out">OUT → State report back to Cloud (ACK + new level)</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ FOOTER ══════════════════════════════════════ -->
+<div class="footer">
+  Warehouse Robotics Platform &mdash; System Architecture v1.1 &middot; 100-robot fleet baseline &middot; Generated Mar 2026 &middot; nventr
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: '13px',
+      primaryColor: '#ede9fe',
+      primaryTextColor: '#1e293b',
+      primaryBorderColor: '#a78bfa',
+      lineColor: '#94a3b8',
+      secondaryColor: '#f0fdf4',
+      tertiaryColor: '#fef3c7'
+    },
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true,
+      curve: 'basis',
+      padding: 16,
+      nodeSpacing: 30,
+      rankSpacing: 40
+    }
+  });
+
+  function renderMermaid() {
+    document.querySelectorAll('.mermaid').forEach((el, i) => {
+      if (el.getAttribute('data-processed')) return;
+      const code = el.textContent.trim();
+      if (!code) return;
+      const id = 'mermaid-' + i + '-' + Date.now();
+      try {
+        mermaid.render(id, code).then(({ svg }) => {
+          el.innerHTML = svg;
+          el.setAttribute('data-processed', 'true');
+        }).catch(err => {
+          console.warn('Mermaid render error for element', i, err);
+        });
+      } catch (err) {
+        console.warn('Mermaid sync error for element', i, err);
+      }
+    });
+  }
+
+  // Tab switching
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    const btn = document.querySelector(`[data-tab="${tabId}"]`);
+    const content = document.getElementById('tab-' + tabId);
+    if (btn) btn.classList.add('active');
+    if (content) {
+      content.classList.add('active');
+      setTimeout(renderMermaid, 50);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Initial render for visible tab
+  renderMermaid();
+
+  // Export
+  async function exportAll() {
+    const activeTab = document.querySelector('.tab-content.active');
+    if (!activeTab) return;
+    try {
+      const canvas = await html2canvas(activeTab, {
+        scale: 2,
+        backgroundColor: '#f8fafc',
+        useCORS: true,
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = 'architecture-' + activeTab.id + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Export error:', err);
+      alert('Export failed — try a smaller viewport or specific tab.');
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentRun — Package Manager for AI Agent Rules</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0f;--bg-card:#12141a;--bg-input:#181a22;--bg-hover:#1e2028;
+  --border:#252830;--border-focus:#4f8ff7;--text:#c8ccd4;--text-dim:#6b7080;
+  --text-bright:#f0f1f4;--accent:#4f8ff7;--accent-glow:rgba(79,143,247,.12);
+  --green:#34d399;--green-bg:rgba(52,211,153,.1);--red:#f87171;
+  --yellow:#fbbf24;--yellow-bg:rgba(251,191,36,.1);--purple:#a78bfa;
+  --purple-bg:rgba(167,139,250,.1);--radius:10px;--radius-sm:6px;
+  --mono:'SF Mono','Fira Code','JetBrains Mono',Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  --shadow:0 4px 24px rgba(0,0,0,.4);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{color:var(--text-bright);font-weight:600}
+code{font-family:var(--mono);background:var(--bg-input);padding:.15em .35em;border-radius:4px;font-size:.88em}
+pre{font-family:var(--mono);background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;font-size:.82rem;line-height:1.7;overflow-x:auto;color:var(--text)}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(10,11,15,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:.7rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.topbar .logo{font-weight:700;font-size:1.15rem;color:var(--text-bright);display:flex;align-items:center;gap:.5rem}
+.topbar .logo span{color:var(--accent)}
+.badge{font-size:.68rem;padding:.12rem .4rem;background:var(--accent-glow);color:var(--accent);border-radius:20px;font-weight:500}
+.topbar nav{display:flex;gap:.25rem;margin-left:auto}
+.topbar nav button{background:none;border:none;color:var(--text-dim);font-size:.85rem;padding:.4rem .8rem;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--sans);transition:.15s}
+.topbar nav button:hover{color:var(--text);background:var(--bg-hover)}
+.topbar nav button.active{color:var(--accent);background:var(--accent-glow)}
+.container{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+.page{display:none}.page.active{display:block}
+.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-input);color:var(--text);font-size:.85rem;cursor:pointer;font-family:var(--sans);transition:.15s;font-weight:500}
+.btn:hover{background:var(--bg-hover);border-color:var(--text-dim)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-primary:hover{filter:brightness(1.1)}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.tag{display:inline-flex;padding:.15rem .45rem;border-radius:20px;font-size:.72rem;font-weight:500}
+.tag-blue{background:var(--accent-glow);color:var(--accent)}
+.tag-green{background:var(--green-bg);color:var(--green)}
+.tag-purple{background:var(--purple-bg);color:var(--purple)}
+.tag-yellow{background:var(--yellow-bg);color:var(--yellow)}
+
+/* Hero */
+.hero{text-align:center;padding:3.5rem 0 2rem}
+.hero h1{font-size:2.4rem;margin-bottom:.4rem;letter-spacing:-.02em}
+.hero h1 span{color:var(--accent)}
+.hero .subtitle{font-size:1.1rem;color:var(--text-dim);max-width:600px;margin:0 auto 1.5rem}
+.hero pre{max-width:520px;margin:0 auto 1.5rem;text-align:left;font-size:.85rem}
+.hero .actions{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.compat{text-align:center;color:var(--text-dim);font-size:.82rem;margin-top:1.5rem}
+.compat span{color:var(--text);font-weight:500}
+
+/* Package grid */
+.pkg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin:1.5rem 0}
+.pkg-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;transition:.2s;cursor:pointer}
+.pkg-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pkg-name{font-weight:600;font-size:1rem;color:var(--text-bright);margin-bottom:.25rem}
+.pkg-desc{font-size:.84rem;color:var(--text-dim);margin-bottom:.6rem;line-height:1.5}
+.pkg-meta{display:flex;gap:.6rem;align-items:center;font-size:.78rem;color:var(--text-dim)}
+.pkg-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem}
+
+/* Detail */
+.detail{display:none}
+.detail.show{display:block}
+.rule-file{background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.8rem;margin:.5rem 0;font-size:.82rem}
+.rule-file .fname{color:var(--accent);font-family:var(--mono);font-size:.8rem}
+.rule-file .act{color:var(--text-dim);font-size:.75rem}
+
+/* How it works */
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem;margin:1.5rem 0}
+.step{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;text-align:center}
+.step-num{font-size:1.8rem;font-weight:700;color:var(--accent);font-family:var(--mono);margin-bottom:.3rem}
+.step h4{margin-bottom:.3rem;font-size:.95rem}
+.step p{font-size:.82rem;color:var(--text-dim)}
+.output-example{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin:1.5rem 0}
+.output-example h4{margin-bottom:.75rem;font-size:.95rem}
+.file-tree{font-family:var(--mono);font-size:.82rem;line-height:1.8;color:var(--text-dim)}
+.file-tree .highlight{color:var(--green)}
+.file-tree .dim{color:var(--text-dim)}
+
+/* Search */
+.search-box{display:flex;gap:.5rem;margin-bottom:1.5rem}
+.search-box input{flex:1;padding:.55rem .85rem;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:.9rem;font-family:var(--sans)}
+.search-box input:focus{outline:none;border-color:var(--border-focus);box-shadow:0 0 0 3px var(--accent-glow)}
+
+@media(max-width:768px){.steps{grid-template-columns:1fr}.pkg-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span>agentrun</span> <span class="badge">v0.1.0</span></div>
+  <nav id="nav">
+    <button class="active" data-page="home">Home</button>
+    <button data-page="packages">Packages</button>
+    <button data-page="docs">Docs</button>
+  </nav>
+</div>
+
+<div class="container">
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h1>The <span>npm</span> for AI agent rules</h1>
+    <p class="subtitle">Install, compose, and manage coding rules for Cursor, Copilot, Claude Code, Windsurf, and every IDE that reads AGENTS.md.</p>
+    <pre><span style="color:var(--text-dim)">$</span> <span style="color:var(--green)">agentrun install</span> python-expert security-reviewer
+
+<span style="color:var(--text-dim)">Installed 2 package(s):
+  + python-expert v1.0.0
+  + security-reviewer v1.0.0
+
+Files written to:
+  .cursor/rules/   (4 rules)
+  AGENTS.md</span></pre>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="nav('packages')">Browse Packages</button>
+      <button class="btn" onclick="nav('docs')">Read the Docs</button>
+    </div>
+    <div class="compat">
+      Works with: <span>Cursor</span> &middot; <span>VS Code</span> &middot; <span>Windsurf</span> &middot; <span>Copilot</span> &middot; <span>Claude Code</span> &middot; <span>Devin</span> &middot; <span>Aider</span> &middot; and 20+ more
+    </div>
+  </div>
+
+  <h2 style="margin-bottom:1rem">How it works</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h4>Install</h4><p><code>agentrun install python-expert</code> fetches rules from the registry</p></div>
+    <div class="step"><div class="step-num">2</div><h4>Generate</h4><p>Writes <code>.cursor/rules/*.mdc</code> and merges sections into <code>AGENTS.md</code></p></div>
+    <div class="step"><div class="step-num">3</div><h4>Done</h4><p>Your IDE agent reads the rules automatically. No config, no runtime.</p></div>
+  </div>
+
+  <div class="output-example">
+    <h4>What gets generated</h4>
+    <div class="file-tree">
+      <div>your-project/</div>
+      <div>&nbsp;&nbsp;<span class="highlight">.cursor/rules/</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">python-expert--python-style.mdc</span> <span class="dim">&larr; Cursor reads this</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">python-expert--python-testing.mdc</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">security-reviewer--security-review.mdc</span></div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="highlight">security-reviewer--secrets-check.mdc</span></div>
+      <div>&nbsp;&nbsp;<span class="highlight">AGENTS.md</span> <span class="dim">&larr; Every IDE agent reads this</span></div>
+      <div>&nbsp;&nbsp;<span class="dim">.agentrun/installed.json</span></div>
+    </div>
+  </div>
+
+  <h2 style="margin:2rem 0 1rem">Featured Packages</h2>
+  <div class="pkg-grid" id="featuredGrid"></div>
+</div>
+
+<!-- PACKAGES -->
+<div class="page" id="page-packages">
+  <h2 style="margin-bottom:.5rem">Package Registry</h2>
+  <p style="color:var(--text-dim);margin-bottom:1rem;font-size:.9rem">Browse and explore available rule packages.</p>
+  <div class="search-box">
+    <input id="searchInput" placeholder="Search packages... (e.g. python, react, security)" oninput="filterPackages()">
+  </div>
+  <div class="pkg-grid" id="allPkgs"></div>
+  <div class="detail" id="pkgDetail"></div>
+</div>
+
+<!-- DOCS -->
+<div class="page" id="page-docs">
+  <h2 style="margin-bottom:1.5rem">Documentation</h2>
+
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">Quick Start</h3>
+    <pre>pip install agentrun
+
+agentrun init                    # set up your project
+agentrun install python-expert   # install a package
+agentrun list                    # see installed packages</pre>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">All Commands</h3>
+    <pre>agentrun install &lt;pkg&gt; [pkg2...]   Install packages (registry, GitHub, or local)
+agentrun install user/repo         Install from GitHub repo
+agentrun install ./local/path      Install from local directory
+agentrun uninstall &lt;pkg&gt;           Remove a package and its files
+agentrun update [pkg]              Update one or all packages
+agentrun list                      Show installed packages
+agentrun search &lt;query&gt;            Search the registry
+agentrun info &lt;pkg&gt;                Show package details
+agentrun init                      Initialize agentrun in your project
+agentrun validate ./path           Validate a package before publishing
+agentrun publish ./path            Get publish instructions</pre>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">Creating a Package</h3>
+    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:.75rem">A package is a directory with <code>package.yaml</code>, a <code>rules/</code> folder of <code>.mdc</code> files, and an optional <code>agents.md</code>.</p>
+    <pre>my-rules/
+  package.yaml       # metadata
+  rules/
+    my-rule.mdc      # Cursor MDC format
+  agents.md          # cross-IDE content</pre>
+    <h4 style="margin:1rem 0 .5rem;font-size:.9rem">package.yaml</h4>
+    <pre>name: my-rules
+version: 1.0.0
+description: "My custom coding rules"
+author: your-name
+tags: [custom]
+rules:
+  - file: rules/my-rule.mdc
+    activation: auto           # always | glob | auto | manual
+agents_md:
+  section: "My Rules"
+  file: agents.md</pre>
+    <h4 style="margin:1rem 0 .5rem;font-size:.9rem">.mdc Rule Format</h4>
+    <pre>---
+description: My coding guidelines
+globs: "**/*.py"
+alwaysApply: false
+---
+# My Rules
+
+- Rule instruction one
+- Rule instruction two</pre>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">How Rules Are Applied</h3>
+    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:.5rem">Cursor uses four activation modes, controlled by the .mdc frontmatter:</p>
+    <table style="width:100%;font-size:.85rem;border-collapse:collapse">
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .6rem;color:var(--text-bright);font-weight:500">always</td><td style="padding:.4rem .6rem;color:var(--text-dim)">Applied to every chat session (<code>alwaysApply: true</code>)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .6rem;color:var(--text-bright);font-weight:500">glob</td><td style="padding:.4rem .6rem;color:var(--text-dim)">Applied when matching files are open (<code>globs: "**/*.py"</code>)</td></tr>
+      <tr style="border-bottom:1px solid var(--border)"><td style="padding:.4rem .6rem;color:var(--text-bright);font-weight:500">auto</td><td style="padding:.4rem .6rem;color:var(--text-dim)">AI decides based on the rule description</td></tr>
+      <tr><td style="padding:.4rem .6rem;color:var(--text-bright);font-weight:500">manual</td><td style="padding:.4rem .6rem;color:var(--text-dim)">Only when explicitly @-mentioned in chat</td></tr>
+    </table>
+    <p style="color:var(--text-dim);font-size:.85rem;margin-top:.75rem"><code>AGENTS.md</code> sections are always visible to any IDE agent that reads the file (Copilot, Claude Code, Windsurf, Devin, etc.).</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:.75rem">Dependencies</h3>
+    <p style="color:var(--text-dim);font-size:.9rem">Packages can declare dependencies on other packages:</p>
+    <pre>requires: [python-expert]</pre>
+    <p style="color:var(--text-dim);font-size:.9rem;margin-top:.5rem">Dependencies are installed automatically. Circular dependencies are detected and rejected.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+const PKGS=[
+  {name:"python-expert",desc:"Python best practices: type hints, PEP 8, pytest patterns, and project structure",author:"agentrun",tags:["python","typing","testing","pep8"],rules:2,install:"agentrun install python-expert",ruleFiles:["rules/python-style.mdc (glob: **/*.py)","rules/python-testing.mdc (glob: **/test_*.py)"]},
+  {name:"react-pro",desc:"React best practices: functional components, hooks, TypeScript, and performance",author:"agentrun",tags:["react","typescript","frontend","hooks"],rules:2,install:"agentrun install react-pro",ruleFiles:["rules/react-components.mdc (glob: **/*.tsx)","rules/react-hooks.mdc (glob: **/use*.ts)"]},
+  {name:"security-reviewer",desc:"Security review patterns: OWASP top 10, input validation, auth, and secrets management",author:"agentrun",tags:["security","owasp","auth","validation"],rules:2,install:"agentrun install security-reviewer",ruleFiles:["rules/security-review.mdc (auto)","rules/secrets-check.mdc (always)"]},
+  {name:"testing-guru",desc:"Testing best practices: test structure, mocking, coverage, TDD workflow",author:"agentrun",tags:["testing","tdd","mocking","coverage"],rules:2,install:"agentrun install testing-guru",ruleFiles:["rules/test-structure.mdc (glob: **/test_*)","rules/test-mocking.mdc (glob: **/test_*)"]},
+  {name:"git-conventional",desc:"Conventional commits, PR descriptions, and branch naming standards",author:"agentrun",tags:["git","commits","pull-requests","workflow"],rules:2,install:"agentrun install git-conventional",ruleFiles:["rules/conventional-commits.mdc (always)","rules/pr-descriptions.mdc (auto)"]},
+];
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function nav(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p)?.classList.add('active');document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));document.querySelector(`#nav button[data-page="${p}"]`)?.classList.add('active')}
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>nav(b.dataset.page)));
+
+function renderCard(pkg){
+  return `<div class="pkg-card" onclick="showDetail('${pkg.name}')">
+    <div class="pkg-name">${esc(pkg.name)}</div>
+    <div class="pkg-desc">${esc(pkg.desc)}</div>
+    <div class="pkg-tags">${pkg.tags.map(t=>`<span class="tag tag-blue">${esc(t)}</span>`).join('')}</div>
+    <div class="pkg-meta"><span>${pkg.rules} rules</span><span>by ${esc(pkg.author)}</span></div>
+  </div>`;
+}
+function renderGrid(el,pkgs){el.innerHTML=pkgs.map(renderCard).join('')}
+renderGrid(document.getElementById('featuredGrid'),PKGS);
+renderGrid(document.getElementById('allPkgs'),PKGS);
+
+function filterPackages(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const filtered=PKGS.filter(p=>p.name.includes(q)||p.desc.toLowerCase().includes(q)||p.tags.some(t=>t.includes(q)));
+  renderGrid(document.getElementById('allPkgs'),filtered);
+}
+
+function showDetail(name){
+  const pkg=PKGS.find(p=>p.name===name);if(!pkg)return;
+  const el=document.getElementById('pkgDetail');
+  el.className='detail show';
+  el.innerHTML=`<div class="card" style="margin-top:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+      <h3>${esc(pkg.name)} <span class="badge">v1.0.0</span></h3>
+      <button class="btn" onclick="navigator.clipboard.writeText('${esc(pkg.install)}')">Copy install command</button>
+    </div>
+    <p style="color:var(--text-dim);font-size:.9rem;margin-bottom:1rem">${esc(pkg.desc)}</p>
+    <pre style="margin-bottom:1rem">$ ${esc(pkg.install)}</pre>
+    <h4 style="font-size:.9rem;margin-bottom:.5rem">Rule Files (${pkg.rules})</h4>
+    ${pkg.ruleFiles.map(r=>`<div class="rule-file"><span class="fname">${esc(r.split(' (')[0])}</span> <span class="act">(${esc(r.split('(')[1]||'')})</span></div>`).join('')}
+    <div style="margin-top:.75rem;font-size:.82rem;color:var(--text-dim)">
+      Tags: ${pkg.tags.map(t=>`<span class="tag tag-purple" style="margin-right:.2rem">${esc(t)}</span>`).join('')}
+      &nbsp;&middot;&nbsp; Author: ${esc(pkg.author)}
+    </div>
+  </div>`;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>
