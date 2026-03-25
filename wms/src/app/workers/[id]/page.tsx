@@ -19,22 +19,22 @@ export default async function WorkerProfilePage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/workers" className="text-sm text-blue-700 hover:underline">
+          <Link href="/workers" className="text-sm text-blue-700 hover:underline dark:text-blue-400">
             ← Directory
           </Link>
-          <h2 className="mt-2 text-xl font-semibold text-gray-900">
+          <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
             {worker.firstName} {worker.lastName}
           </h2>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {worker.employeeCode} · {worker.warehouse.code} {worker.warehouse.name}
           </p>
           <div className="mt-2 flex flex-wrap gap-3 text-sm">
             <span>
-              <span className="text-gray-500">Role:</span>{" "}
+              <span className="text-gray-500 dark:text-gray-400">Role:</span>{" "}
               <span className="font-medium">{roleName ?? "—"}</span>
             </span>
             <span>
-              <span className="text-gray-500">Availability:</span>{" "}
+              <span className="text-gray-500 dark:text-gray-400">Availability:</span>{" "}
               <span className="font-medium">
                 {worker.status === "ACTIVE" ? "Available to schedule" : "Not available"}
               </span>
@@ -44,34 +44,34 @@ export default async function WorkerProfilePage({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-xl border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 font-medium text-gray-900">Contact</h3>
+        <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
+          <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">Contact</h3>
           <dl className="space-y-2 text-sm">
             <div>
-              <dt className="text-gray-500">Email</dt>
+              <dt className="text-gray-500 dark:text-gray-400">Email</dt>
               <dd>{worker.email ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Phone</dt>
+              <dt className="text-gray-500 dark:text-gray-400">Phone</dt>
               <dd>{worker.phone ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-gray-500">Linked user</dt>
+              <dt className="text-gray-500 dark:text-gray-400">Linked user</dt>
               <dd>{worker.user?.email ?? "—"}</dd>
             </div>
           </dl>
         </section>
 
-        <section className="rounded-xl border border-gray-200 bg-white p-4">
-          <h3 className="mb-3 font-medium text-gray-900">Certifications</h3>
+        <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
+          <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">Certifications</h3>
           {worker.certifications?.length ? (
-            <ul className="list-inside list-disc text-sm text-gray-700">
+            <ul className="list-inside list-disc text-sm text-gray-700 dark:text-gray-300">
               {worker.certifications.map((c) => (
                 <li key={c}>{c}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-500">None recorded.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">None recorded.</p>
           )}
         </section>
       </div>
@@ -83,14 +83,14 @@ export default async function WorkerProfilePage({
         timeOff={JSON.parse(JSON.stringify(timeOff))}
       />
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
-        <h3 className="mb-3 font-medium text-gray-900">Task assignments</h3>
+      <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
+        <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">Task assignments</h3>
         {tasks.length === 0 ? (
-          <p className="text-sm text-gray-500">No tasks assigned.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-gray-500">
+              <thead className="text-left text-gray-500 dark:text-gray-400">
                 <tr>
                   <th className="py-2 pr-4">Title</th>
                   <th className="py-2 pr-4">Type</th>
@@ -101,17 +101,17 @@ export default async function WorkerProfilePage({
               </thead>
               <tbody>
                 {tasks.map((t) => (
-                  <tr key={t.id} className="border-t border-gray-100">
+                  <tr key={t.id} className="border-t border-gray-100 dark:border-navy-border">
                     <td className="py-2 pr-4 font-medium">{t.title}</td>
                     <td className="py-2 pr-4">{t.taskType}</td>
                     <td className="py-2 pr-4">
                       <span
                         className={
                           t.status === TaskStatus.COMPLETED
-                            ? "text-green-700"
+                            ? "text-green-700 dark:text-green-400"
                             : t.status === TaskStatus.IN_PROGRESS
-                              ? "text-amber-700"
-                              : "text-gray-700"
+                              ? "text-amber-700 dark:text-amber-400"
+                              : "text-gray-700 dark:text-gray-300"
                         }
                       >
                         {t.status.replace("_", " ")}
@@ -131,18 +131,18 @@ export default async function WorkerProfilePage({
         )}
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-4">
-        <h3 className="mb-3 font-medium text-gray-900">Recent schedules</h3>
+      <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
+        <h3 className="mb-3 font-medium text-gray-900 dark:text-gray-100">Recent schedules</h3>
         {recentSchedules.length === 0 ? (
-          <p className="text-sm text-gray-500">No history yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No history yet.</p>
         ) : (
-          <ul className="divide-y divide-gray-100 text-sm">
+          <ul className="divide-y divide-gray-100 text-sm dark:divide-navy-border">
             {recentSchedules.map((s) => (
               <li key={s.id} className="flex flex-wrap justify-between gap-2 py-2">
                 <span>
                   {new Date(s.scheduleDate).toLocaleDateString()} · {s.shift.name}
                 </span>
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-gray-400">
                   {s.status.replace("_", " ")} · {s.confirmationStatus}
                 </span>
               </li>

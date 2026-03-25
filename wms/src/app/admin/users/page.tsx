@@ -24,8 +24,8 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-slate-900">User management</h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-gray-100">User management</h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-gray-400">
           Assign roles per warehouse. Users must sign in with Supabase using the same email; create the Supabase user
           in the Supabase dashboard or via the Admin API.
         </p>
