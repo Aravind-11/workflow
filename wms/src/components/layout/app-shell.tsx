@@ -54,7 +54,7 @@ export function AppShell({
         >
           <Menu className="h-5 w-5" />
         </button>
-        <span className="font-semibold text-gray-900 dark:text-gray-100">WMS</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">Nventr</span>
       </header>
 
       {mobileOpen ? (
