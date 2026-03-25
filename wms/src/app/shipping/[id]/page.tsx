@@ -49,18 +49,18 @@ export default async function ShipmentDetailPage({
 
   return (
     <div className="space-y-6">
-      <Link href="/shipping" className="text-sm text-blue-700 hover:underline">
+      <Link href="/shipping" className="text-sm text-blue-700 hover:underline dark:text-blue-400">
         ← Shipments
       </Link>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">{s.shipmentNumber}</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{s.shipmentNumber}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {s.warehouse.code} · {s.salesOrderRef ?? "No SO ref"}
         </p>
       </div>
 
-      <section className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm">
-        <h3 className="font-medium text-gray-800">Shipment lines</h3>
+      <section className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-300">
+        <h3 className="font-medium text-gray-800 dark:text-gray-200">Shipment lines</h3>
         <ul className="mt-2 space-y-1 font-mono text-xs">
           {s.shipmentLines.map((ln) => (
             <li key={ln.id}>

@@ -30,36 +30,36 @@ export default async function InventoryItemDetailPage({
     <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-gray-500">
-            <Link href="/inventory/catalog" className="text-blue-700 hover:underline">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            <Link href="/inventory/catalog" className="text-blue-700 hover:underline dark:text-blue-400">
               Catalog
             </Link>{" "}
             / {item.skuCode}
           </p>
-          <h2 className="mt-1 text-2xl font-semibold text-gray-900">{item.name}</h2>
-          <dl className="mt-3 grid gap-2 text-sm text-gray-700 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{item.name}</h2>
+          <dl className="mt-3 grid gap-2 text-sm text-gray-700 dark:text-gray-300 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <dt className="text-xs uppercase text-gray-500">SKU</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">SKU</dt>
               <dd className="font-mono">{item.skuCode}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-gray-500">Barcode</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">Barcode</dt>
               <dd className="font-mono">{item.barcode ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-gray-500">Category</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">Category</dt>
               <dd>{item.category ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-gray-500">UOM</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">UOM</dt>
               <dd>{item.uom}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-gray-500">Reorder point</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">Reorder point</dt>
               <dd>{item.reorderPoint ?? "—"}</dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-gray-500">Tracking</dt>
+              <dt className="text-xs uppercase text-gray-500 dark:text-gray-400">Tracking</dt>
               <dd className="text-xs">
                 Lot {item.lotTracked ? "yes" : "no"} · Batch {item.batchTracked ? "yes" : "no"} · Expiry{" "}
                 {item.expiryTracked ? "yes" : "no"}
@@ -78,16 +78,16 @@ export default async function InventoryItemDetailPage({
       />
 
       <section>
-        <h3 className="mb-3 text-lg font-semibold text-gray-900">Balances by location</h3>
+        <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">Balances by location</h3>
         {item.balances.length === 0 ? (
           <InventoryEmptyState
             title="No stock for this SKU"
             description="Receive stock against a warehouse and bin to create a balance row."
           />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
               <table className="w-full min-w-[720px] text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
                   <tr>
                     <th className="px-4 py-3">Warehouse</th>
                     <th className="px-4 py-3">Bin</th>
@@ -99,10 +99,10 @@ export default async function InventoryItemDetailPage({
                 </thead>
                 <tbody>
                   {item.balances.map((b) => (
-                    <tr key={b.id} className="border-t border-gray-100">
+                    <tr key={b.id} className="border-t border-gray-100 dark:border-navy-border">
                       <td className="px-4 py-3">{b.warehouse.code}</td>
                       <td className="px-4 py-3 font-mono text-xs">{b.location.locationCode}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">
+                      <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                         {b.lotNumber ?? "—"} / {b.batchNumber ?? "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -128,13 +128,13 @@ export default async function InventoryItemDetailPage({
       </section>
 
       <section>
-        <h3 className="mb-3 text-lg font-semibold text-gray-900">Transaction history</h3>
+        <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">Transaction history</h3>
         {txs.length === 0 ? (
           <InventoryEmptyState title="No transactions yet" description="Movements will appear here." />
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
               <table className="w-full min-w-[900px] text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
                   <tr>
                     <th className="px-4 py-3">When</th>
                     <th className="px-4 py-3">Type</th>
@@ -146,8 +146,8 @@ export default async function InventoryItemDetailPage({
                 </thead>
                 <tbody>
                   {txs.map((t) => (
-                    <tr key={t.id} className="border-t border-gray-100">
-                      <td className="px-4 py-3 text-xs text-gray-600">
+                    <tr key={t.id} className="border-t border-gray-100 dark:border-navy-border">
+                      <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">
                         {t.occurredAt.toLocaleString()}
                       </td>
                       <td className="px-4 py-3 text-xs font-medium">{t.transactionType}</td>
@@ -159,7 +159,7 @@ export default async function InventoryItemDetailPage({
                         {t.quantityDelta}
                       </td>
                       <td className="px-4 py-3">{t.quantityAfter}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600">{t.notes ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-400">{t.notes ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>
