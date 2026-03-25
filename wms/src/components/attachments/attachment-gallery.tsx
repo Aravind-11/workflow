@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { Trash2, X } from "lucide-react";
-import { deleteAttachment, type AttachmentRow } from "@/features/attachments/actions";
+import { deleteAttachment } from "@/features/attachments/actions";
+import type { AttachmentRow } from "@/features/attachments/service";
 
 function dataUri(row: AttachmentRow) {
   return `data:${row.mimeType};base64,${row.data}`;
