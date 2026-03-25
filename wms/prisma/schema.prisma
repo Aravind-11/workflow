@@ -192,6 +192,7 @@ model User {
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   inventoryTransactions InventoryTransaction[]
+  attachments           Attachment[]
 }
 
 model Role {
@@ -770,5 +771,20 @@ model AuditLog {
   createdAt   DateTime   @default(now())
 
   @@index([warehouseId, createdAt])
+  @@index([entityType, entityId])
+}
+
+model Attachment {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  entityType  String
+  entityId    String   @db.ObjectId
+  fileName    String
+  mimeType    String
+  data        String
+  uploadedBy  String   @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [uploadedBy], references: [id])
+
   @@index([entityType, entityId])
 }

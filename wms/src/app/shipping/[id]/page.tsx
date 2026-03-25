@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AttachmentsSection } from "@/components/attachments/attachments-section";
 import { ShipmentOps } from "@/components/logistics/shipment-ops";
 import { getShipment } from "@/features/logistics/service";
 
@@ -77,6 +78,8 @@ export default async function ShipmentDetailPage({
         pickLists={payload.pickLists}
         packLists={payload.packLists}
       />
+
+      <AttachmentsSection entityType="Shipment" entityId={id} />
     </div>
   );
 }
