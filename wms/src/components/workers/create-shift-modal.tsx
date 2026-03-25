@@ -24,7 +24,7 @@ export function CreateShiftModal({
 }) {
   const [form, setForm] = useState<ShiftForm>({
     name: "",
-    shiftType: "MORNING" as ShiftType,
+    shiftType: "FIRST" as ShiftType,
     startTime: "06:00",
     endTime: "14:00",
     isOvernight: false,
@@ -36,7 +36,7 @@ export function CreateShiftModal({
         <label className="block">
           Name
           <input
-            className="mt-1 w-full rounded-md border px-2 py-1.5"
+            className="mt-1 w-full rounded-md border px-2 py-1.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           />
@@ -44,15 +44,19 @@ export function CreateShiftModal({
         <label className="block">
           Type
           <select
-            className="mt-1 w-full rounded-md border px-2 py-1.5"
+            className="mt-1 w-full rounded-md border px-2 py-1.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
             value={form.shiftType}
             onChange={(e) =>
               setForm((f) => ({ ...f, shiftType: e.target.value as ShiftType }))
             }
           >
-            {(["MORNING", "EVENING", "NIGHT"] as const).map((t) => (
-              <option key={t} value={t}>
-                {t}
+            {([
+              ["FIRST", "1st Shift"],
+              ["SECOND", "2nd Shift"],
+              ["THIRD", "3rd Shift"],
+            ] as const).map(([val, label]) => (
+              <option key={val} value={val}>
+                {label}
               </option>
             ))}
           </select>
@@ -61,7 +65,7 @@ export function CreateShiftModal({
           <label>
             Start (HH:mm)
             <input
-              className="mt-1 w-full rounded-md border px-2 py-1.5"
+              className="mt-1 w-full rounded-md border px-2 py-1.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.startTime}
               onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
             />
@@ -69,7 +73,7 @@ export function CreateShiftModal({
           <label>
             End (HH:mm)
             <input
-              className="mt-1 w-full rounded-md border px-2 py-1.5"
+              className="mt-1 w-full rounded-md border px-2 py-1.5 dark:border-navy-border dark:bg-navy dark:text-gray-200"
               value={form.endTime}
               onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
             />
