@@ -10,8 +10,8 @@ import { filterNav } from "@/lib/nav/config";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "WMS - Warehouse Management",
-  description: "Full-featured warehouse management system",
+  title: "Nventr — Record Management Software",
+  description: "Nventr record management software for warehouse operations",
 };
 
 export const dynamic = "force-dynamic";

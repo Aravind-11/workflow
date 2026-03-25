@@ -59,7 +59,7 @@ export function Sidebar({
         onClick={() => onNavigate?.()}
         className="block border-b border-gray-200 p-5 pr-12 transition-colors hover:bg-gray-50 dark:border-navy-border dark:hover:bg-white/5 md:pr-5"
       >
-        <span className="font-semibold text-gray-900 dark:text-gray-100">WMS</span>
+        <span className="font-semibold text-gray-900 dark:text-gray-100">Nventr</span>
         <p className="mt-2 truncate text-xs text-gray-500 dark:text-gray-400" title={userLabel}>
           {userLabel}
         </p>
