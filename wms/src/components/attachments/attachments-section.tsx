@@ -1,6 +1,6 @@
 import { ImageUploader } from "./image-uploader";
 import { AttachmentGallery } from "./attachment-gallery";
-import { getAttachments } from "@/features/attachments/actions";
+import { getAttachments } from "@/features/attachments/service";
 
 export async function AttachmentsSection({
   entityType,
