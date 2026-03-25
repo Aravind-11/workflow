@@ -19,16 +19,16 @@ export default async function InventoryLocationsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">Locations</h2>
-        <p className="text-sm text-gray-500">Zone / aisle / rack / bin hierarchy for putaway and picking.</p>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Locations</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Zone / aisle / rack / bin hierarchy for putaway and picking.</p>
       </div>
 
       {locations.length === 0 ? (
         <InventoryEmptyState title="No locations" description="Seed the database or add locations via admin tools." />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
             <table className="w-full min-w-[800px] text-left text-sm">
-              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
                 <tr>
                   <th className="px-4 py-3">Warehouse</th>
                   <th className="px-4 py-3">Code</th>
@@ -40,7 +40,7 @@ export default async function InventoryLocationsPage() {
               </thead>
               <tbody>
                 {locations.map((loc) => (
-                  <tr key={loc.id} className="border-t border-gray-100 hover:bg-gray-50/80">
+                  <tr key={loc.id} className="border-t border-gray-100 hover:bg-gray-50/80 dark:border-navy-border dark:hover:bg-white/5">
                     <td className="px-4 py-3">{loc.warehouse.code}</td>
                     <td className="px-4 py-3 font-mono text-xs">{loc.locationCode}</td>
                     <td className="px-4 py-3">{loc.zone}</td>

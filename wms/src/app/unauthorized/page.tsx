@@ -3,8 +3,8 @@ import Link from "next/link";
 export default function UnauthorizedPage() {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-      <h1 className="text-2xl font-semibold text-gray-900">Access denied</h1>
-      <p className="mt-2 text-sm text-gray-500">
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Access denied</h1>
+      <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
         Your account doesn&apos;t have permission to view this page. Contact an admin to get the right role assigned.
       </p>
       <Link

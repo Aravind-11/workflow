@@ -46,6 +46,12 @@ export function Sidebar({
 }) {
   const path = usePathname();
 
+  const activeHref = navItems.reduce<string | null>((best, { href }) => {
+    const matches = path === href || (href !== "/" && path.startsWith(href + "/"));
+    if (!matches) return best;
+    return !best || href.length > best.length ? href : best;
+  }, null) ?? (path === "/" ? "/" : null);
+
   return (
     <aside className="flex h-full w-full min-w-0 flex-col border-r border-gray-200 bg-white dark:border-navy-border dark:bg-navy md:h-screen md:w-56">
       <Link
@@ -62,7 +68,7 @@ export function Sidebar({
       <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
         {navItems.map(({ href, label, icon }) => {
           const Icon = ICONS[icon];
-          const active = path === href || (href !== "/" && path.startsWith(href));
+          const active = href === activeHref;
 
           return (
             <Link
