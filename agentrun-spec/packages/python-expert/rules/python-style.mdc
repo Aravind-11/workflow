@@ -1,0 +1,36 @@
+---
+description: Python code style, type hints, and project structure conventions
+globs: "**/*.py"
+alwaysApply: false
+---
+# Python Code Style
+
+## Type Hints
+- Add type hints to all function signatures (parameters and return types)
+- Use `X | None` over `Optional[X]` (Python 3.10+)
+- Use `list[str]` over `List[str]` (Python 3.9+ lowercase generics)
+- For complex types, define `TypeAlias` or use `TypeVar` for generics
+
+## Naming
+- `snake_case` for functions, variables, modules
+- `PascalCase` for classes
+- `UPPER_SNAKE_CASE` for module-level constants
+- Prefix private attributes with `_`, name-mangled with `__`
+
+## Structure
+- Keep functions under 30 lines; extract helpers when longer
+- One class per file for large classes; related small classes can share
+- Imports: stdlib first, blank line, third-party, blank line, local
+- Use `if __name__ == "__main__":` guard in scripts
+
+## Style
+- Use f-strings over `.format()` or `%`
+- Prefer `pathlib.Path` over `os.path`
+- Use context managers (`with`) for file and resource handling
+- Use list/dict/set comprehensions when they improve readability
+- Avoid bare `except:`; catch specific exceptions
+
+## Docstrings
+- Use Google-style or NumPy-style docstrings consistently
+- Document public functions, classes, and modules
+- Include parameter types, return types, and raised exceptions

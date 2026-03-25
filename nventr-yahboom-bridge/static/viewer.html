@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NVENTR — Yahboom A1 Teleop</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: #111118;
+    border-bottom: 1px solid #222;
+  }
+  header h1 { font-size: 18px; font-weight: 600; color: #fff; }
+  .status-bar { display: flex; gap: 16px; align-items: center; font-size: 13px; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block; margin-right: 4px;
+  }
+  .dot-red { background: #ef4444; }
+  .dot-green { background: #22c55e; }
+  .dot-yellow { background: #eab308; }
+
+  .main {
+    flex: 1;
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .video-panel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    position: relative;
+  }
+  #video {
+    max-width: 100%;
+    max-height: 100%;
+    background: #000;
+  }
+  .video-overlay {
+    position: absolute;
+    top: 12px; left: 12px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    font-family: monospace;
+  }
+  .latency-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    background: rgba(0,0,0,0.7);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: monospace;
+  }
+
+  .control-panel {
+    width: 280px;
+    background: #111118;
+    border-left: 1px solid #222;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-connect { background: #22c55e; color: #000; width: 100%; }
+  .btn-connect:hover { background: #16a34a; }
+  .btn-connect.connected { background: #ef4444; }
+  .btn-connect.connected:hover { background: #dc2626; }
+  .btn-connect.connecting { background: #eab308; color: #000; }
+
+  .dpad {
+    display: grid;
+    grid-template-areas:
+      ". up ."
+      "left stop right"
+      ". down .";
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .dpad .btn {
+    background: #1e1e2e;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    padding: 16px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dpad .btn:hover { background: #2a2a3e; }
+  .dpad .btn:active { background: #3a3a4e; }
+  .dpad .btn-up { grid-area: up; }
+  .dpad .btn-down { grid-area: down; }
+  .dpad .btn-left { grid-area: left; }
+  .dpad .btn-right { grid-area: right; }
+  .dpad .btn-stop {
+    grid-area: stop;
+    background: #dc2626;
+    color: white;
+    border-color: #dc2626;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .dpad .btn-stop:hover { background: #b91c1c; }
+
+  .speed-control { display: flex; flex-direction: column; gap: 6px; }
+  .speed-control input { width: 100%; accent-color: #22c55e; }
+  .speed-value { font-family: monospace; font-size: 13px; text-align: center; color: #aaa; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 12px;
+    font-family: monospace;
+  }
+  .info-label { color: #666; }
+  .info-value { color: #ccc; text-align: right; }
+
+  .key-hint {
+    font-size: 11px;
+    color: #555;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #222;
+    border-radius: 6px;
+    line-height: 1.6;
+  }
+
+  /* Terminal panel */
+  .terminal-panel {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 320px;
+    background: #0d0d0d;
+    border-top: 2px solid #333;
+    flex-direction: column;
+    z-index: 100;
+  }
+  .terminal-panel.open { display: flex; }
+  .terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #111118;
+    border-bottom: 1px solid #222;
+    font-size: 13px;
+  }
+  .terminal-header span { color: #22c55e; font-family: monospace; font-weight: 600; }
+  #termContainer { flex: 1; padding: 8px; overflow: hidden; }
+
+  /* Passcode modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #111118;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 32px;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .modal h2 { font-size: 16px; font-weight: 600; }
+  .modal p { font-size: 13px; color: #888; }
+  .modal input {
+    background: #0a0a0f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 12px;
+    color: #fff;
+    font-size: 14px;
+    font-family: monospace;
+    letter-spacing: 4px;
+    text-align: center;
+    outline: none;
+    width: 100%;
+  }
+  .modal input:focus { border-color: #22c55e; }
+  .modal-error { color: #ef4444; font-size: 13px; text-align: center; display: none; }
+  .btn-terminal { background: #1e1e2e; color: #e0e0e0; border: 1px solid #333; width: 100%; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>NVENTR Teleop</h1>
+  <div class="status-bar">
+    <span><span class="status-dot dot-red" id="dotWebrtc"></span>WebRTC</span>
+    <span><span class="status-dot dot-red" id="dotBridge"></span>Bridge</span>
+    <span id="streamInfo"></span>
+  </div>
+</header>
+
+<div class="main">
+  <div class="video-panel">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="video-overlay" id="videoOverlay">No stream</div>
+    <div class="latency-badge" id="latencyBadge">RTT: --ms</div>
+  </div>
+
+  <div class="control-panel">
+    <div>
+      <button class="btn btn-connect" id="btnConnect" onclick="toggleConnection()">
+        Connect WebRTC
+      </button>
+      <button class="btn btn-connect" id="btnMjpeg" onclick="toggleMjpeg()" style="margin-top:6px; background:#3b82f6;">
+        MJPEG Fallback
+      </button>
+    </div>
+
+    <div>
+      <div class="panel-title">Drive Controls</div>
+      <div class="dpad">
+        <button class="btn btn-up" onmousedown="move(1,0)" onmouseup="stopMove()" ontouchstart="move(1,0)" ontouchend="stopMove()">W</button>
+        <button class="btn btn-left" onmousedown="move(0,1)" onmouseup="stopMove()" ontouchstart="move(0,1)" ontouchend="stopMove()">A</button>
+        <button class="btn btn-stop" onclick="eStop()">STOP</button>
+        <button class="btn btn-right" onmousedown="move(0,-1)" onmouseup="stopMove()" ontouchstart="move(0,-1)" ontouchend="stopMove()">D</button>
+        <button class="btn btn-down" onmousedown="move(-1,0)" onmouseup="stopMove()" ontouchstart="move(-1,0)" ontouchend="stopMove()">S</button>
+      </div>
+    </div>
+
+    <div class="speed-control">
+      <div class="panel-title">Speed</div>
+      <input type="range" id="speedSlider" min="0.1" max="1.0" step="0.1" value="0.3">
+      <div class="speed-value" id="speedLabel">0.3 m/s</div>
+    </div>
+
+    <div>
+      <div class="panel-title">Status</div>
+      <div class="info-grid">
+        <span class="info-label">RTT</span>
+        <span class="info-value" id="infoRtt">--</span>
+        <span class="info-label">WebRTC</span>
+        <span class="info-value" id="infoState">disconnected</span>
+        <span class="info-label">Streams</span>
+        <span class="info-value" id="infoStreams">0</span>
+        <span class="info-label">E-Stop</span>
+        <span class="info-value" id="infoEstop">off</span>
+      </div>
+    </div>
+
+    <div class="key-hint">
+      Keyboard: <b>W</b> forward &middot; <b>S</b> back<br>
+      <b>A</b> left &middot; <b>D</b> right &middot; <b>Space</b> stop
+    </div>
+
+    <div>
+      <div class="panel-title">Jetson Terminal</div>
+      <button class="btn btn-terminal" onclick="openTerminalModal()">
+        &#x1F4BB; Open Terminal
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Passcode Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>Jetson Terminal Access</h2>
+    <p>Enter passcode to open a live terminal on the Jetson.</p>
+    <input type="password" id="passcodeInput" placeholder="••••••••"
+      maxlength="32" onkeydown="if(event.key==='Enter') submitPasscode()">
+    <div class="modal-error" id="modalError">Incorrect passcode</div>
+    <button class="btn btn-connect" onclick="submitPasscode()">Connect</button>
+    <button class="btn btn-terminal" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Terminal Panel -->
+<div class="terminal-panel" id="terminalPanel">
+  <div class="terminal-header">
+    <span>&#x25CF; jetson@rosmaster-robot-01 via NVENTR</span>
+    <button class="btn btn-terminal" style="padding:4px 12px; width:auto;" onclick="closeTerminal()">✕ Close</button>
+  </div>
+  <div id="termContainer"></div>
+</div>
+
+<script>
+const API = window.location.origin;
+let pc = null;
+let connected = false;
+let moveInterval = null;
+
+const $ = id => document.getElementById(id);
+
+// --- Speed slider ---
+$('speedSlider').addEventListener('input', e => {
+  $('speedLabel').textContent = parseFloat(e.target.value).toFixed(1) + ' m/s';
+});
+
+// --- WebRTC connection ---
+async function toggleConnection() {
+  if (connected) {
+    disconnect();
+  } else {
+    await connect();
+  }
+}
+
+async function connect() {
+  const btn = $('btnConnect');
+  btn.textContent = 'Connecting...';
+  btn.className = 'btn btn-connect connecting';
+
+  try {
+    const host = window.location.hostname;
+    pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'turn:' + host + ':3478', username: 'nventr', credential: 'nventr2026' },
+        { urls: 'turn:' + host + ':3478?transport=tcp', username: 'nventr', credential: 'nventr2026' },
+      ]
+    });
+
+    pc.addEventListener('track', e => {
+      $('video').srcObject = e.streams[0];
+      $('videoOverlay').textContent = 'WebRTC stream active';
+      $('dotWebrtc').className = 'status-dot dot-green';
+    });
+
+    pc.addEventListener('connectionstatechange', () => {
+      $('infoState').textContent = pc.connectionState;
+      if (pc.connectionState === 'connected') {
+        $('dotWebrtc').className = 'status-dot dot-green';
+        startLatencyPolling();
+      } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        disconnect();
+      }
+    });
+
+    pc.addTransceiver('video', { direction: 'recvonly' });
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    // Wait for browser ICE gathering to complete (includes TURN candidates)
+    if (pc.iceGatheringState !== 'complete') {
+      await new Promise(resolve => {
+        const check = () => {
+          if (pc.iceGatheringState === 'complete') resolve();
+        };
+        pc.addEventListener('icegatheringstatechange', check);
+        setTimeout(resolve, 8000); // 8s timeout fallback
+      });
+    }
+    console.log('Browser ICE gathering done, sending offer');
+
+    const resp = await fetch(API + '/api/webrtc/offer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sdp: pc.localDescription.sdp, type: pc.localDescription.type }),
+    });
+
+    const answer = await resp.json();
+    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+
+    connected = true;
+    btn.textContent = 'Disconnect';
+    btn.className = 'btn btn-connect connected';
+  } catch (err) {
+    console.error('WebRTC connect failed:', err);
+    btn.textContent = 'Connect WebRTC';
+    btn.className = 'btn btn-connect';
+    $('dotWebrtc').className = 'status-dot dot-red';
+  }
+}
+
+function disconnect() {
+  if (pc) {
+    pc.close();
+    pc = null;
+  }
+  connected = false;
+  $('video').srcObject = null;
+  $('btnConnect').textContent = 'Connect WebRTC';
+  $('btnConnect').className = 'btn btn-connect';
+  $('dotWebrtc').className = 'status-dot dot-red';
+  $('infoState').textContent = 'disconnected';
+  $('videoOverlay').textContent = 'No stream';
+}
+
+// --- Latency polling ---
+function startLatencyPolling() {
+  setInterval(async () => {
+    if (!connected) return;
+    const t0 = performance.now();
+    try {
+      const r = await fetch(API + '/health');
+      const data = await r.json();
+      const rtt = Math.round(performance.now() - t0);
+      $('latencyBadge').textContent = `RTT: ${rtt}ms`;
+      $('infoRtt').textContent = rtt + 'ms';
+      $('dotBridge').className = 'status-dot dot-green';
+      $('infoStreams').textContent = data.active_streams || '?';
+    } catch {
+      $('dotBridge').className = 'status-dot dot-red';
+    }
+  }, 2000);
+}
+
+// --- Robot commands ---
+function getSpeed() {
+  return parseFloat($('speedSlider').value);
+}
+
+async function sendMove(lx, az) {
+  try {
+    const r = await fetch(API + '/api/move', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ linear_x: lx, angular_z: az }),
+    });
+    const data = await r.json();
+    $('infoEstop').textContent = data.emergency_stop ? 'ON' : 'off';
+  } catch {}
+}
+
+function move(lxDir, azDir) {
+  const speed = getSpeed();
+  sendMove(lxDir * speed, azDir * speed);
+  if (moveInterval) clearInterval(moveInterval);
+  moveInterval = setInterval(() => sendMove(lxDir * speed, azDir * speed), 200);
+}
+
+function stopMove() {
+  if (moveInterval) { clearInterval(moveInterval); moveInterval = null; }
+  sendMove(0, 0);
+}
+
+async function eStop() {
+  try {
+    await fetch(API + '/api/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    $('infoEstop').textContent = 'ON';
+  } catch {}
+}
+
+// --- Keyboard controls ---
+const keyState = {};
+document.addEventListener('keydown', e => {
+  if (keyState[e.key]) return;
+  keyState[e.key] = true;
+  const s = getSpeed();
+  switch (e.key.toLowerCase()) {
+    case 'w': move(1, 0); break;
+    case 's': move(-1, 0); break;
+    case 'a': move(0, 1); break;
+    case 'd': move(0, -1); break;
+    case ' ': e.preventDefault(); eStop(); break;
+  }
+});
+document.addEventListener('keyup', e => {
+  keyState[e.key] = false;
+  if ('wasd'.includes(e.key.toLowerCase())) stopMove();
+});
+
+// --- MJPEG fallback ---
+let mjpegActive = false;
+function toggleMjpeg() {
+  const vid = $('video');
+  const btn = $('btnMjpeg');
+  if (mjpegActive) {
+    vid.src = '';
+    vid.srcObject = null;
+    btn.textContent = 'MJPEG Fallback';
+    btn.style.background = '#3b82f6';
+    $('videoOverlay').textContent = 'No stream';
+    $('dotWebrtc').className = 'status-dot dot-red';
+    mjpegActive = false;
+  } else {
+    if (connected) disconnect();
+    const img = document.createElement('img');
+    img.src = API + '/api/video/stream';
+    img.style.maxWidth = '100%';
+    img.style.maxHeight = '100%';
+    img.id = 'mjpeg-img';
+    vid.style.display = 'none';
+    vid.parentElement.appendChild(img);
+    btn.textContent = 'Stop MJPEG';
+    btn.style.background = '#ef4444';
+    $('videoOverlay').textContent = 'MJPEG stream active';
+    $('dotWebrtc').className = 'status-dot dot-yellow';
+    $('infoState').textContent = 'mjpeg';
+    mjpegActive = true;
+    startLatencyPolling();
+  }
+}
+
+// --- Initial health check ---
+(async () => {
+  try {
+    const r = await fetch(API + '/health');
+    if (r.ok) $('dotBridge').className = 'status-dot dot-green';
+  } catch {}
+})();
+
+// --- Terminal ---
+const TERMINAL_PASSCODE = 'nventr2026';
+let term = null;
+let termWs = null;
+let fitAddon = null;
+
+function openTerminalModal() {
+  $('modalOverlay').classList.add('open');
+  $('passcodeInput').value = '';
+  $('modalError').style.display = 'none';
+  setTimeout(() => $('passcodeInput').focus(), 100);
+}
+
+function closeModal() {
+  $('modalOverlay').classList.remove('open');
+}
+
+function submitPasscode() {
+  const val = $('passcodeInput').value;
+  if (val !== TERMINAL_PASSCODE) {
+    $('modalError').style.display = 'block';
+    $('passcodeInput').value = '';
+    return;
+  }
+  closeModal();
+  openTerminal();
+}
+
+function openTerminal() {
+  $('terminalPanel').classList.add('open');
+
+  if (!term) {
+    term = new Terminal({
+      cursorBlink: true,
+      fontSize: 13,
+      fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+      theme: { background: '#0d0d0d', foreground: '#e0e0e0', cursor: '#22c55e' },
+      cols: 120,
+      rows: 16,
+    });
+    fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    term.open($('termContainer'));
+    fitAddon.fit();
+  }
+
+  const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = `${wsProto}://${location.host}/api/terminal`;
+  termWs = new WebSocket(wsUrl);
+
+  termWs.onopen = () => {
+    term.writeln('\r\n\x1b[32m● Connected to Jetson terminal\x1b[0m\r\n');
+  };
+
+  termWs.onmessage = e => term.write(e.data);
+
+  termWs.onclose = () => {
+    term.writeln('\r\n\x1b[31m● Disconnected\x1b[0m');
+  };
+
+  termWs.onerror = () => {
+    term.writeln('\r\n\x1b[31m● Connection error\x1b[0m');
+  };
+
+  term.onData(data => {
+    if (termWs && termWs.readyState === WebSocket.OPEN) {
+      termWs.send(data);
+    }
+  });
+
+  window.addEventListener('resize', () => fitAddon && fitAddon.fit());
+}
+
+function closeTerminal() {
+  $('terminalPanel').classList.remove('open');
+  if (termWs) { termWs.close(); termWs = null; }
+}
+</script>
+</body>
+</html>

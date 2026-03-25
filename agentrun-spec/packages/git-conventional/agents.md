@@ -1,0 +1,7 @@
+- Use conventional commit format: `type(scope): description` (feat, fix, docs, refactor, test, chore)
+- Subject line: lowercase, imperative mood, no period, max 72 chars
+- Branch names: `feat/description`, `fix/issue-description`, kebab-case
+- PR title follows conventional commit format
+- PRs include: What, Why, How, Testing sections
+- Keep PRs under 400 lines; one logical change per PR
+- Squash-merge feature branches to main

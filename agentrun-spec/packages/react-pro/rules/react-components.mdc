@@ -1,0 +1,34 @@
+---
+description: React component patterns with TypeScript
+globs: "**/*.tsx"
+alwaysApply: false
+---
+# React Components
+
+## Component Structure
+- Use functional components exclusively (no class components)
+- Export named components: `export function UserProfile() {}` (not default exports)
+- Define Props type inline or as `interface UserProfileProps {}`
+- Destructure props in the function signature
+
+## TypeScript
+- Define explicit prop types — never use `any`
+- Use `React.ReactNode` for children, `React.MouseEvent<HTMLButtonElement>` for handlers
+- Prefer `interface` over `type` for component props (extendable)
+- Use `as const` for literal unions and configuration objects
+
+## Patterns
+- Keep components under 100 lines; extract sub-components when larger
+- Co-locate related files: `UserProfile.tsx`, `UserProfile.test.tsx`, `UserProfile.module.css`
+- Use early returns for conditional rendering instead of nested ternaries
+- Move complex logic to custom hooks, keep components as thin rendering layers
+
+## Performance
+- Wrap expensive computations in `useMemo`
+- Wrap callback props in `useCallback` when passing to memoized children
+- Use `React.memo()` only when profiling shows re-render bottlenecks
+- Avoid creating objects/arrays in render — hoist static values
+
+## Styling
+- Prefer CSS Modules or Tailwind over inline styles
+- Use semantic class names that describe purpose, not appearance

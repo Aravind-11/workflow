@@ -1,0 +1,35 @@
+---
+description: Test structure, naming, and organization conventions
+globs: "**/test_*"
+alwaysApply: false
+---
+# Test Structure
+
+## Naming
+- Test files mirror source files: `auth.py` -> `test_auth.py`, `Auth.tsx` -> `Auth.test.tsx`
+- Test names describe the scenario, not the method: `test_expired_token_returns_401`
+- Group related tests in classes or describe blocks
+
+## Organization
+- Follow Arrange-Act-Assert (Given-When-Then) pattern
+- One logical assertion per test (multiple asserts on one result is fine)
+- Keep tests independent — no ordering dependencies or shared mutable state
+- Use factories/fixtures for test data, not copy-pasted literals
+
+## What to Test
+- Test behavior, not implementation details
+- Cover: happy path, edge cases, error cases, boundary values
+- Test the public API, not private internals
+- Integration tests for critical flows (auth, payments, data pipelines)
+
+## What NOT to Test
+- Framework internals (don't test that React renders a div)
+- Simple getters/setters with no logic
+- Third-party library behavior
+- Generated code
+
+## Test Speed
+- Unit tests should run in <100ms each
+- Mock external dependencies (APIs, databases, filesystems)
+- Use in-memory databases for integration tests when possible
+- Run slow tests in a separate suite (mark with `@pytest.mark.slow` or `.skip`)

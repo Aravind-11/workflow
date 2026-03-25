@@ -1,0 +1,7 @@
+- NEVER hardcode secrets, API keys, or passwords — use env vars or secrets managers
+- Validate ALL user input server-side; use allowlists over denylists
+- Use parameterized queries — never string-concatenate SQL
+- Hash passwords with bcrypt/argon2; use short-lived JWTs with refresh rotation
+- Check authorization on every request, not just route level
+- Don't log sensitive data (passwords, tokens, PII); do log security events
+- Use established auth libraries — don't roll your own crypto or auth

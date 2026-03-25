@@ -1,0 +1,7 @@
+- Follow Arrange-Act-Assert pattern; one logical assertion per test
+- Test names describe the scenario: `test_expired_token_returns_401`
+- Test behavior, not implementation details; cover happy path + edge cases + errors
+- Mock at the boundary (APIs, databases, clocks) — not internal collaborators
+- Keep tests independent with no shared mutable state
+- Unit tests should run in <100ms; mock expensive dependencies
+- Use factories/fixtures for test data, not copy-pasted literals

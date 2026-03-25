@@ -18,7 +18,10 @@ export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getAuthContext();
-  const navItems = ctx ? filterNav(ctx.permissions) : [];
+  const hidden = new Set(ctx?.hiddenNavPaths ?? []);
+  const navItems = ctx
+    ? filterNav(ctx.permissions).filter((n) => !hidden.has(n.href))
+    : [];
   const authClient = ctx
     ? {
         email: ctx.email,

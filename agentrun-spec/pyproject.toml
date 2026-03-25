@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "agentrun"
+version = "0.1.0"
+description = "The package manager for AI coding agent rules — install .cursor/rules and AGENTS.md from a curated registry"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "AgentRun Contributors"}
+]
+keywords = ["ai", "agents", "cursor", "rules", "agents-md", "package-manager"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff"]
+
+[project.scripts]
+agentrun = "agentrun:cli"
+
+[project.urls]
+Homepage = "https://github.com/agentrun/agentrun"
+Documentation = "https://agentrun.dev"
+Repository = "https://github.com/agentrun/agentrun"
+Issues = "https://github.com/agentrun/agentrun/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+agentrun = ["packages/**/*", "registry/*.json"]

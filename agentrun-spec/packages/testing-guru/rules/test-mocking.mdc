@@ -1,0 +1,32 @@
+---
+description: Mocking and test doubles best practices
+globs: "**/test_*"
+alwaysApply: false
+---
+# Mocking Best Practices
+
+## When to Mock
+- External services (APIs, databases, message queues)
+- Time-dependent code (clocks, timers, delays)
+- Expensive operations (file I/O, network, heavy computation)
+- Non-deterministic code (random, UUIDs)
+
+## When NOT to Mock
+- The code under test itself
+- Simple value objects or data structures
+- Pure functions with no side effects
+- Collaborators that are fast and deterministic
+
+## Mock Patterns
+- Mock at the boundary, not deep inside the call chain
+- Prefer dependency injection over monkey-patching
+- Verify interactions: `mock.assert_called_once_with(expected_args)`
+- Use `side_effect` for simulating sequences or errors
+- Reset mocks between tests to prevent state leakage
+
+## Test Doubles
+- **Stub**: returns canned data, no verification
+- **Mock**: verifies interactions (calls, arguments)
+- **Fake**: working implementation with shortcuts (in-memory DB)
+- **Spy**: wraps real object, records calls
+- Choose the simplest double that validates the behavior you need

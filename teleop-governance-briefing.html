@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teleoperation Governance Briefing — nventr</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; }
+
+  .header { background: #1e293b; color: #fff; position: sticky; top: 0; z-index: 100; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+  .header-badge { background: #6366f1; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 20px; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  .exec-summary { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #fff; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .exec-summary h2 { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #e2e8f0; }
+  .exec-summary p { font-size: 15px; color: #cbd5e1; margin-bottom: 12px; }
+  .exec-summary strong { color: #fff; }
+
+  .section { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .section-header { padding: 20px 28px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+  .section-header h2 { font-size: 16px; font-weight: 700; color: #1e293b; }
+  .section-num { font-size: 11px; font-weight: 700; background: #6366f1; color: #fff; padding: 3px 10px; border-radius: 20px; flex-shrink: 0; }
+  .section-body { padding: 24px 28px; }
+  .section-body p { font-size: 14px; color: #475569; margin-bottom: 14px; }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  h3 { font-size: 14px; font-weight: 700; color: #1e293b; margin: 20px 0 10px; }
+  h3:first-child { margin-top: 0; }
+
+  ul { padding-left: 20px; margin-bottom: 14px; }
+  li { font-size: 14px; color: #475569; margin-bottom: 6px; }
+  li strong { color: #1e293b; }
+
+  .comparison-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  .comparison-table th { background: #f1f5f9; padding: 10px 14px; text-align: left; font-weight: 700; color: #1e293b; border: 1px solid #e2e8f0; }
+  .comparison-table td { padding: 10px 14px; border: 1px solid #e2e8f0; color: #475569; vertical-align: top; }
+  .comparison-table tr:nth-child(even) td { background: #f8fafc; }
+
+  .threat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .threat-card { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; }
+  .threat-card.amber { background: #fffbeb; border-color: #fde68a; }
+  .threat-card.blue { background: #eff6ff; border-color: #bfdbfe; }
+  .threat-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #1e293b; }
+  .threat-card ul { padding-left: 16px; margin-bottom: 0; }
+  .threat-card li { font-size: 12px; margin-bottom: 4px; }
+
+  .principle-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin: 16px 0; text-align: center; }
+  .principle-box p { font-size: 16px; font-weight: 700; color: #166534; margin: 0; }
+  .principle-box .sub { font-size: 13px; font-weight: 400; color: #4ade80; margin-top: 4px; }
+
+  .control-layer { display: flex; align-items: stretch; gap: 0; margin: 16px 0; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
+  .control-layer .layer { flex: 1; padding: 14px; text-align: center; font-size: 12px; font-weight: 600; }
+  .control-layer .arrow { display: flex; align-items: center; padding: 0 6px; color: #94a3b8; font-size: 16px; background: #f8fafc; }
+  .l1 { background: #dbeafe; color: #1e40af; }
+  .l2 { background: #e0e7ff; color: #3730a3; }
+  .l3 { background: #fef3c7; color: #92400e; }
+  .l4 { background: #d1fae5; color: #065f46; }
+  .l5 { background: #f0fdf4; color: #166534; }
+
+  .callout { background: #eff6ff; border-left: 4px solid #6366f1; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout p { font-size: 13px; color: #1e40af; margin: 0; }
+  .callout strong { color: #1e293b; }
+
+  .phase-row { display: flex; align-items: stretch; gap: 16px; margin: 16px 0; }
+  .phase-card { flex: 1; border-radius: 8px; padding: 18px; border: 1px solid #e2e8f0; }
+  .phase-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .phase-card.p1 { background: #fef2f2; border-color: #fecaca; }
+  .phase-card.p1 h4 { color: #991b1b; }
+  .phase-card.p2 { background: #fffbeb; border-color: #fde68a; }
+  .phase-card.p2 h4 { color: #92400e; }
+  .phase-card.p3 { background: #f0fdf4; border-color: #bbf7d0; }
+  .phase-card.p3 h4 { color: #166534; }
+  .phase-card li { font-size: 12px; }
+
+  .bottom-line { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; border-radius: 12px; padding: 28px 32px; margin-top: 32px; text-align: center; }
+  .bottom-line h2 { font-size: 18px; margin-bottom: 12px; }
+  .bottom-line p { font-size: 14px; color: #c7d2fe; max-width: 700px; margin: 0 auto; }
+
+  .footer { text-align: center; padding: 24px; font-size: 11px; color: #94a3b8; }
+
+  @media (max-width: 768px) {
+    .threat-grid { grid-template-columns: 1fr; }
+    .phase-row { flex-direction: column; }
+    .control-layer { flex-direction: column; }
+    .control-layer .arrow { justify-content: center; padding: 4px; }
+  }
+
+  @media print {
+    .header { position: static; }
+    body { background: #fff; }
+    .section, .exec-summary { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Teleoperation Governance &amp; Audit Framework</h1>
+    <div class="header-sub">nventr &mdash; Leadership Briefing &bull; February 2026</div>
+  </div>
+  <span class="header-badge">INTERNAL</span>
+</div>
+
+<div class="container">
+
+<!-- ───────── EXECUTIVE SUMMARY ───────── -->
+<div class="exec-summary">
+  <h2>Executive Summary</h2>
+  <p>Warehouse teleoperation is not a streaming problem. It is a <strong>human-in-the-loop control system with physical consequences</strong> &mdash; heavy machinery moving at speed, in proximity to people and inventory, directed remotely by a human operator whose actions cannot be physically observed.</p>
+  <p>This creates a risk profile comparable to <strong>air traffic control, financial trading floors, and industrial SCADA systems</strong>. It demands the same caliber of governance: immutable audit trails, separation of duties, proactive anomaly detection, and safety enforcement that no single human can override.</p>
+  <p>This document explains <strong>why we chose Air Traffic Control as our reference model</strong>, what threat vectors exist, and how we propose to address them across technology, process, and organizational design.</p>
+</div>
+
+<!-- ───────── 1. WHY ATC ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Why Air Traffic Control Is the Right Reference Model</h2>
+  </div>
+  <div class="section-body">
+    <p>We evaluated several governance paradigms before selecting ATC. The comparison below shows why it is the closest structural analog to warehouse teleoperation.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Characteristic</th><th>Air Traffic Control</th><th>Warehouse Teleoperation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>A human directs heavy machinery remotely</td><td>Controller directs aircraft via radio</td><td>Operator directs robot via control interface</td></tr>
+        <tr><td>Errors have immediate physical consequences</td><td>Collision, loss of life</td><td>Collision, equipment damage, worker injury</td></tr>
+        <tr><td>Operator actions are not directly visible</td><td>Controller issues voice commands from tower</td><td>Operator issues control inputs from remote station</td></tr>
+        <tr><td>Insider threat and authority misuse are possible</td><td>Controller error or negligence</td><td>Rogue operator, rogue manager, gaming metrics</td></tr>
+        <tr><td>Legal and regulatory liability</td><td>FAA/ICAO mandated audits</td><td>OSHA exposure, insurance, contractual SLAs</td></tr>
+        <tr><td>Requires full post-incident reconstruction</td><td>Radar + voice recording, black box</td><td>Video + command log + telemetry replay</td></tr>
+      </tbody>
+    </table>
+
+    <h3>What Makes ATC Work</h3>
+    <ul>
+      <li><strong>Every action is logged.</strong> Radar tracks, voice recordings, and controller instructions are captured and retained.</li>
+      <li><strong>No one can silently alter history.</strong> Recordings are tamper-proof and independently stored.</li>
+      <li><strong>Decisions are fully reconstructable.</strong> After any incident, investigators can replay exactly what happened.</li>
+      <li><strong>Controllers are continuously monitored.</strong> Performance is measured, fatigue is managed, deviations are flagged.</li>
+      <li><strong>Oversight is independent of local supervisors.</strong> Safety boards and regulators operate outside the operational chain of command.</li>
+    </ul>
+
+    <div class="callout">
+      <p><strong>Key insight:</strong> ATC does not rely on "good people behaving well." It relies on structural constraints, constant observability, clear accountability, institutional separation, and technical safety backstops. We must build teleoperation the same way.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 2. THREAT MODEL ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Threat Model &mdash; What Can Go Wrong</h2>
+  </div>
+  <div class="section-body">
+    <p>We design for four failure modes. Good systems are resilient to all four.</p>
+
+    <div class="threat-grid">
+      <div class="threat-card">
+        <h4>A. Rogue Operator</h4>
+        <ul>
+          <li>Intentionally causes damage or disruption</li>
+          <li>Moves robot outside approved task scope</li>
+          <li>Idles to reduce productivity</li>
+          <li>Takes manual control when autonomy could handle it</li>
+          <li>Games performance metrics</li>
+        </ul>
+      </div>
+      <div class="threat-card amber">
+        <h4>B. Rogue Manager</h4>
+        <ul>
+          <li>Overrides safety limits without justification</li>
+          <li>Suppresses or dismisses alerts</li>
+          <li>Shields underperforming operators</li>
+          <li>Reassigns blame after incidents</li>
+          <li>Edits or obstructs audit trails</li>
+        </ul>
+      </div>
+      <div class="threat-card blue">
+        <h4>C. Rogue Robot (Software Fault)</h4>
+        <ul>
+          <li>Executes unintended command</li>
+          <li>Misinterprets control input</li>
+          <li>Continues after operator disconnect</li>
+          <li>Fails to obey emergency stop</li>
+          <li>Operates outside safety envelope</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="principle-box">
+      <p>Design Principle: No single human can cause irreversible harm without detection.</p>
+      <p class="sub">We cannot rely on "manager oversight," "good culture," or "trust."</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 3. CORE ARCHITECTURE ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>The Most Important Design Rule</h2>
+  </div>
+  <div class="section-body">
+    <p>Human input must never reach hardware directly. Teleop input is treated as a <strong>suggestion</strong>, not a raw motor command. Safety enforcement sits below the human layer and cannot be bypassed.</p>
+
+    <div class="control-layer">
+      <div class="layer l1">Operator<br><small>Issues movement suggestion</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="layer l2">Control API<br><small>Validates &amp; authenticates</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="layer l3">Safety Layer<br><small>Enforces hard caps</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="layer l4">Motion Planner<br><small>Computes safe actuation</small></div>
+      <div class="arrow">&rarr;</div>
+      <div class="layer l5">Actuator<br><small>Executes movement</small></div>
+    </div>
+
+    <p>On-robot safety enforcement includes: hard speed caps, geofencing, collision avoidance (never disabled), physical + remote emergency stop, and heartbeat timeout (operator disconnect triggers immediate robot halt).</p>
+  </div>
+</div>
+
+<!-- ───────── 4. 5-LAYER AUDIT MODEL ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Five-Layer Audit Model (ATC-Grade)</h2>
+  </div>
+  <div class="section-body">
+    <p>To achieve full reconstruction capability, we must be able to answer for any incident: <em>What did the operator see? What did they command? What did the robot execute? What was the environment state? Who authorized it?</em></p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Layer</th><th>What It Records</th><th>ATC Equivalent</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1. Command Log (Immutable)</strong></td>
+          <td>Operator ID, session ID, robot ID, task ID, exact commands, timestamp, client device ID, auth token. Stored append-only with cryptographic hash chaining. No deletes, no edits, ever.</td>
+          <td>Flight strip / radar track log</td>
+        </tr>
+        <tr>
+          <td><strong>2. Environment Snapshot</strong></td>
+          <td>Robot telemetry (position, speed, battery), active safety constraints, sensor state, proximity alerts, autonomy mode &mdash; captured at each command timestamp.</td>
+          <td>Radar / weather data overlay</td>
+        </tr>
+        <tr>
+          <td><strong>3. Video &amp; Screen Recording</strong></td>
+          <td>Raw robot camera feed, operator screen capture, control input overlay, UI state &mdash; all with synchronized timestamps.</td>
+          <td>Radar replay + voice recording</td>
+        </tr>
+        <tr>
+          <td><strong>4. Communication Log</strong></td>
+          <td>Voice, chat, radio, or messaging between operators, supervisors, and coordination staff &mdash; timestamp-linked to sessions.</td>
+          <td>ATC voice tapes</td>
+        </tr>
+        <tr>
+          <td><strong>5. Oversight &amp; Escalation Log</strong></td>
+          <td>Manual overrides, safety envelope adjustments, emergency stops, alert dismissals, privilege changes, session terminations. Manager overrides generate separate audit trails.</td>
+          <td>Supervisor logbook / incident binder</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong>Tamper resistance:</strong> WORM storage with retention lock, daily SHA-256 hash anchors stored externally, all systems time-synced via secure NTP/PTP (&lt;5ms drift). Without timestamp integrity, audit is meaningless.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 5. SEPARATION OF DUTIES ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Separation of Duties</h2>
+  </div>
+  <div class="section-body">
+    <p>ATC works because <strong>Controller &ne; Supervisor &ne; Safety Investigator</strong>. No role can both act and erase evidence. We enforce the same principle.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Role</th><th>Can Do</th><th>Cannot Do</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Operator</strong></td>
+          <td>Control assigned robots within task scope</td>
+          <td>Delete logs, modify thresholds, suppress alerts, self-certify</td>
+        </tr>
+        <tr>
+          <td><strong>Site Manager</strong></td>
+          <td>Assign operators, pause operations, request escalation</td>
+          <td>Delete or edit audit trail, suppress safety alerts, override without logging</td>
+        </tr>
+        <tr>
+          <td><strong>Compliance / Auditor</strong></td>
+          <td>Review all logs, freeze artifacts, suspend privileges, conduct independent review</td>
+          <td>Control any robot, alter operational parameters</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Manager Override Safeguards</h3>
+    <ul>
+      <li>All overrides auto-notify regional oversight &mdash; overrides are never silent</li>
+      <li>Override frequency is tracked and thresholded; exceeding limits triggers automatic escalation</li>
+      <li>Safety envelope changes require multi-party approval (manager + regional safety officer)</li>
+      <li>Manager risk scores are computed alongside operator risk scores</li>
+      <li>Randomized audit sampling and quarterly external review</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ───────── 6. PROACTIVE MONITORING ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>Proactive Monitoring &amp; Behavioral Analytics</h2>
+  </div>
+  <div class="section-body">
+    <p>ATC does not wait for accidents. Neither should we. Beyond event logging, we need behavioral analytics to detect gaming, inefficiency, and subtle misuse before they cause harm.</p>
+
+    <h3>Operator Risk Score (Rolling)</h3>
+    <p>Per-operator metrics compared against peer baselines, historical self-baselines, and shift baselines. Significant deviation auto-flags for review.</p>
+    <ul>
+      <li>Average teleop duration per task and % of tasks requiring teleop</li>
+      <li>Command rate and micro-correction frequency</li>
+      <li>Idle time while robot is in active teleop</li>
+      <li>Override frequency and safety proximity events</li>
+      <li>Out-of-hours manual engagement and disconnect-mid-task events</li>
+    </ul>
+
+    <h3>Alert Escalation Architecture</h3>
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Severity</th><th>Action</th><th>Notification</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Low</strong></td><td>Log event</td><td>Site manager</td></tr>
+        <tr><td><strong>Medium</strong></td><td>Generate ticket with replay snippet</td><td>Site manager + regional ops (within 1 hour)</td></tr>
+        <tr><td><strong>High</strong></td><td>Auto-disable operator teleop privileges</td><td>Regional ops + safety officer + incident package</td></tr>
+        <tr><td><strong>Critical</strong></td><td>Auto-disable + freeze session logs</td><td>Regional director + central compliance + immediate review</td></tr>
+      </tbody>
+    </table>
+    <p>Alerts go to <strong>multiple independent parties</strong> &mdash; not just the site manager. This prevents any single gatekeeper from suppressing risk events.</p>
+  </div>
+</div>
+
+<!-- ───────── 7. INCIDENT RESPONSE ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Incident Response Protocol</h2>
+  </div>
+  <div class="section-body">
+    <p>Modeled on ATC incident investigation: independent, evidence-based, and reconstructable.</p>
+    <ol style="padding-left: 20px;">
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Freeze</strong> &mdash; Auto-lock session logs, video archive, and telemetry for the incident window.</li>
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Package</strong> &mdash; System auto-generates a replay package: command log + 30&ndash;120s synchronized video (before/after) + telemetry + operator screen + chat log + hash verification.</li>
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Assign</strong> &mdash; Independent reviewer (not the site manager who owns the operator) reconstructs the timeline.</li>
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Investigate</strong> &mdash; Determine root cause: human error, malicious action, software bug, or hardware failure.</li>
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Remediate</strong> &mdash; Patch (if system), retrain/suspend (if human), update SOPs (if systemic).</li>
+      <li style="font-size: 14px; color: #475569; margin-bottom: 8px;"><strong>Report</strong> &mdash; Produce incident report with timeline, evidence, actions, and lessons learned. Archive immutably.</li>
+    </ol>
+    <div class="callout">
+      <p><strong>No manager self-review.</strong> The person whose team is involved in an incident must never be the sole reviewer of that incident.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 8. OPERATOR CERTIFICATION ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>Operator Selection &amp; Certification (ATC-Style)</h2>
+  </div>
+  <div class="section-body">
+    <p>ATC controllers undergo rigorous selection, extended training, progressive certification, and continuous performance monitoring. We apply the same pipeline.</p>
+    <ul>
+      <li><strong>Screening:</strong> Cognitive aptitude testing (multi-tasking, spatial reasoning, stress tolerance), background checks, integrity assessments.</li>
+      <li><strong>Training pipeline:</strong> Simulator academy &rarr; supervised live operations with mentor &rarr; practical certification exam &rarr; independent operation.</li>
+      <li><strong>Progressive privileges:</strong> New operators start on non-critical tasks; full teleop access requires certification for each robot class and warehouse.</li>
+      <li><strong>Recertification:</strong> Periodic (quarterly or after incidents). Certification is revocable.</li>
+      <li><strong>Fatigue management:</strong> Shift limits, mandatory breaks, maximum consecutive hours &mdash; fatigue treated as a systemic risk.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ───────── 9. SESSION GOVERNANCE ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2>Session Governance Model</h2>
+  </div>
+  <div class="section-body">
+    <p>Every teleop session is scoped, time-bounded, and fully recorded. No open-ended control privileges.</p>
+    <ul>
+      <li><strong>Start authorization</strong> required (authenticated, assigned task)</li>
+      <li><strong>Scope limit</strong> &mdash; task-bounded; operator cannot control unassigned robots or areas</li>
+      <li><strong>Maximum duration</strong> with auto-expiry</li>
+      <li><strong>Safety envelope</strong> enforced at the robot layer, below the operator</li>
+      <li><strong>Auto-record</strong> starts and stops with session lifecycle</li>
+      <li><strong>Heartbeat monitoring</strong> &mdash; disconnect triggers immediate robot halt</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ───────── 10. ROLLOUT ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2>Prioritized Rollout Plan</h2>
+  </div>
+  <div class="section-body">
+    <div class="phase-row">
+      <div class="phase-card p1">
+        <h4>Phase 1 &mdash; 30 Days (Safety Foundation)</h4>
+        <ul>
+          <li>Immutable command logging (append-only store)</li>
+          <li>On-robot safety layer (hard caps + heartbeat)</li>
+          <li>Session recording (video + operator screen)</li>
+          <li>Define roles, SOPs, and access controls</li>
+        </ul>
+      </div>
+      <div class="phase-card p2">
+        <h4>Phase 2 &mdash; 90 Days (Monitoring &amp; Governance)</h4>
+        <ul>
+          <li>Rule-based risk engine and alert thresholds</li>
+          <li>Ticketing integration with auto replay snippets</li>
+          <li>Pilot operator certification program</li>
+          <li>Daily hash anchoring and WORM retention</li>
+        </ul>
+      </div>
+      <div class="phase-card p3">
+        <h4>Phase 3 &mdash; 180 Days (Maturity)</h4>
+        <ul>
+          <li>Full behavioral analytics (anomaly detection)</li>
+          <li>Randomized audits + independent compliance</li>
+          <li>Manager override governance + auto-escalation</li>
+          <li>Publish safety KPIs and Just Culture policies</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───────── 11. THE ASK ───────── -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">11</span>
+    <h2>The Question Every Customer Will Ask</h2>
+  </div>
+  <div class="section-body">
+    <div class="principle-box">
+      <p>"What controls prevent a single teleoperator or warehouse manager from manipulating or suppressing teleoperation risk events?"</p>
+      <p class="sub">Our governance framework must have a complete answer to this question.</p>
+    </div>
+    <p>Enterprise customers, insurers, and regulators will evaluate us on the maturity of our answer. Having ATC-grade governance is not over-engineering &mdash; it is the minimum credible posture for a system where humans remotely control heavy machinery in occupied spaces.</p>
+  </div>
+</div>
+
+<!-- ───────── BOTTOM LINE ───────── -->
+<div class="bottom-line">
+  <h2>Bottom Line</h2>
+  <p>Teleoperation is a distributed control system with insider-threat exposure, operating heavy machinery, carrying legal liability. We chose Air Traffic Control as our governance reference because it is the most proven model for exactly this problem class: humans directing physical assets remotely, where errors have immediate and irreversible consequences. Building to this standard is what separates a product demo from a production-grade system that enterprises and regulators will trust.</p>
+</div>
+
+</div><!-- /container -->
+
+<div class="footer">nventr &bull; Teleoperation Governance Briefing &bull; February 2026 &bull; Internal Use</div>
+
+</body>
+</html>

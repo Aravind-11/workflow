@@ -1,0 +1,7 @@
+- Use type hints on all function signatures (parameters and return types)
+- Follow PEP 8 naming: `snake_case` functions, `PascalCase` classes, `UPPER_SNAKE` constants
+- Use `pathlib.Path` over `os.path`, f-strings over `.format()`
+- Write tests with pytest; name files `test_*.py`, use fixtures for setup
+- Keep functions under 30 lines; extract helpers when longer
+- Use `X | None` syntax (not `Optional[X]`), lowercase generics (`list[str]`)
+- Catch specific exceptions, never bare `except:`

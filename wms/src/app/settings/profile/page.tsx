@@ -2,6 +2,8 @@ import { requireAuth } from "@/lib/auth/session";
 import { prisma } from "@/server/db/prisma";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { NavCustomizer } from "@/components/profile/nav-customizer";
+import { filterNav } from "@/lib/nav/config";
 
 export default async function ProfilePage() {
   const ctx = await requireAuth();
@@ -23,7 +25,7 @@ export default async function ProfilePage() {
     <div className="space-y-8">
       <SectionHeader
         title="My Profile"
-        description="Update your display name and see your role assignments."
+        description="Update your display name, customize your sidebar, and see your role assignments."
       />
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -77,6 +79,18 @@ export default async function ProfilePage() {
           )}
         </section>
       </div>
+
+      {/* Sidebar customization */}
+      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-navy-border dark:bg-navy-surface">
+        <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-gray-100">Customize sidebar</h2>
+        <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+          Toggle which sections appear in your sidebar. Hidden sections are still accessible via URL.
+        </p>
+        <NavCustomizer
+          allItems={filterNav(ctx.permissions).map((n) => ({ href: n.href, label: n.label }))}
+          initialHidden={user.hiddenNavPaths}
+        />
+      </section>
     </div>
   );
 }

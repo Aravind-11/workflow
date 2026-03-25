@@ -35,3 +35,15 @@ export async function updateProfile(_prev: ProfileResult | null, formData: FormD
   revalidatePath("/");
   return { ok: true };
 }
+
+export async function updateHiddenNav(hiddenPaths: string[]): Promise<ProfileResult> {
+  const ctx = await requireAuth();
+
+  await prisma.user.update({
+    where: { id: ctx.userId },
+    data: { hiddenNavPaths: hiddenPaths },
+  });
+
+  revalidatePath("/");
+  return { ok: true };
+}
