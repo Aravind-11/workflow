@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReceiptStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { AttachmentsSection } from "@/components/attachments/attachments-section";
 import { postReceiptAction } from "@/features/logistics/actions";
 import { getReceipt } from "@/features/logistics/service";
 
@@ -66,6 +67,8 @@ export default async function ReceiptDetailPage({
           </tbody>
         </table>
       </section>
+
+      <AttachmentsSection entityType="Receipt" entityId={id} />
     </div>
   );
 }
