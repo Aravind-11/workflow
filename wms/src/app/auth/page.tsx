@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 async function provisionUser(email: string, fullName: string): Promise<string | null> {
@@ -28,16 +28,45 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  /** Supabase email confirmation is on: signUp returns no session until user clicks the link. */
+  const [awaitingEmailConfirmation, setAwaitingEmailConfirmation] = useState(false);
+
+  /** Email confirmation link lands on /auth with a new session — provision MongoDB user and go to the app. */
+  useEffect(() => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session?.user?.email) return;
+      if (event !== "SIGNED_IN" && event !== "INITIAL_SESSION") return;
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth")) return;
+      const meta = session.user.user_metadata as { full_name?: string } | undefined;
+      const name = meta?.full_name?.trim() || session.user.email.split("@")[0];
+      const err = await provisionUser(session.user.email, name);
+      if (!err) window.location.href = "/";
+    });
+    return () => listener.subscription.unsubscribe();
+  }, [supabase]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setAwaitingEmailConfirmation(false);
 
     if (mode === "signup") {
-      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
+          data: { full_name: fullName.trim() || email.split("@")[0] },
+        },
+      });
       if (signUpError) {
         setError(signUpError.message);
+        setLoading(false);
+        return;
+      }
+      if (!signUpData.session) {
+        setAwaitingEmailConfirmation(true);
         setLoading(false);
         return;
       }
@@ -71,6 +100,27 @@ export default function AuthPage() {
         </h1>
         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">Warehouse Management System</p>
 
+        {awaitingEmailConfirmation ? (
+          <div className="space-y-4 rounded-xl border border-blue-200 bg-blue-50/80 p-4 text-sm text-slate-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-gray-200">
+            <p className="font-medium text-slate-900 dark:text-gray-100">Check your email</p>
+            <p className="leading-relaxed text-slate-700 dark:text-gray-300">
+              We sent a confirmation link to <span className="font-medium">{email}</span>. Open it to verify your
+              account, then come back and <strong>sign in</strong> with your password. Your workspace access is
+              created on first successful sign-in.
+            </p>
+            <button
+              type="button"
+              className="w-full rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-navy-border dark:bg-navy dark:text-gray-200 dark:hover:bg-white/5"
+              onClick={() => {
+                setAwaitingEmailConfirmation(false);
+                setMode("signin");
+              }}
+            >
+              Go to sign in
+            </button>
+          </div>
+        ) : (
+        <>
         <form className="space-y-4" onSubmit={handleSubmit}>
           {mode === "signup" && (
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -125,11 +175,17 @@ export default function AuthPage() {
           <button
             type="button"
             className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-            onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); }}
+            onClick={() => {
+              setMode(mode === "signin" ? "signup" : "signin");
+              setError("");
+              setAwaitingEmailConfirmation(false);
+            }}
           >
             {mode === "signin" ? "Create one" : "Sign in"}
           </button>
         </p>
+        </>
+        )}
       </div>
     </div>
   );
