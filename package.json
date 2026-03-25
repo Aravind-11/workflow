@@ -6,6 +6,6 @@
   },
   "scripts": {
     "postinstall": "npm install --prefix wms",
-    "build": "npm run build --prefix wms"
+    "build": "npm run build --prefix wms && node scripts/sync-next-build.mjs"
   }
 }
