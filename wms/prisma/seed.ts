@@ -180,10 +180,10 @@ async function main() {
     }
 
     const morning = await prisma.shift.create({
-      data: { warehouseId: warehouse.id, name: "Morning Shift", shiftType: ShiftType.MORNING, startTime: "06:00", endTime: "14:00" },
+      data: { warehouseId: warehouse.id, name: "1st Shift", shiftType: ShiftType.FIRST, startTime: "06:00", endTime: "14:00" },
     });
     const evening = await prisma.shift.create({
-      data: { warehouseId: warehouse.id, name: "Evening Shift", shiftType: ShiftType.EVENING, startTime: "14:00", endTime: "22:00" },
+      data: { warehouseId: warehouse.id, name: "2nd Shift", shiftType: ShiftType.SECOND, startTime: "14:00", endTime: "22:00" },
     });
 
     for (const worker of warehouseWorkers) {
