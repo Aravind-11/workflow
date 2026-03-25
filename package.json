@@ -1,6 +1,9 @@
 {
   "name": "workflow",
   "private": true,
+  "dependencies": {
+    "next": "16.2.0"
+  },
   "scripts": {
     "postinstall": "npm install --prefix wms",
     "build": "npm run build --prefix wms"
