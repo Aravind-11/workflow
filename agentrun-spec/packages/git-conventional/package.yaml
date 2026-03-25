@@ -1,0 +1,15 @@
+name: git-conventional
+version: 1.0.0
+description: "Conventional commits, PR descriptions, and branch naming standards"
+author: agentrun
+tags: [git, commits, pull-requests, workflow]
+license: MIT
+ide_targets: [cursor, agents.md]
+rules:
+  - file: rules/conventional-commits.mdc
+    activation: always
+  - file: rules/pr-descriptions.mdc
+    activation: auto
+agents_md:
+  section: "Git & PR Guidelines"
+  file: agents.md

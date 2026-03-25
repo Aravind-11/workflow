@@ -1,0 +1,17 @@
+name: testing-guru
+version: 1.0.0
+description: "Testing best practices: test structure, mocking, coverage, TDD workflow"
+author: agentrun
+tags: [testing, tdd, mocking, coverage]
+license: MIT
+ide_targets: [cursor, agents.md]
+rules:
+  - file: rules/test-structure.mdc
+    activation: glob
+    globs: ["**/test_*", "**/*.test.*", "**/*.spec.*", "**/tests/**"]
+  - file: rules/test-mocking.mdc
+    activation: glob
+    globs: ["**/test_*", "**/*.test.*", "**/*.spec.*"]
+agents_md:
+  section: "Testing Guidelines"
+  file: agents.md

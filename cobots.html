@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cobots — Human-AI Supervised Warehouse Robotics | nventr</title>
+<meta name="description" content="cobots by nventr: collaborative warehouse robotics with human-AI teleoperation, edge intelligence, and real-time anomaly detection for 100+ robot fleets.">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  /* ─── NAV ─── */
+  .nav { background: #0f172a; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #1e293b; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .nav-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+  .nav-logo span { color: #22c55e; }
+  .nav-tag { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; border: 1px solid #334155; padding: 2px 8px; border-radius: 4px; }
+  .nav-links { display: flex; align-items: center; gap: 32px; }
+  .nav-links a { color: #94a3b8; text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; }
+  .nav-links a:hover { color: #fff; }
+  .nav-cta { background: #22c55e; color: #fff; font-size: 13px; font-weight: 600; padding: 8px 20px; border-radius: 8px; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
+  .nav-cta:hover { background: #16a34a; transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero { background: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #0f172a 100%); color: #fff; padding: 100px 32px 80px; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -50%; right: -30%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%); pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -40%; left: -20%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%); pointer-events: none; }
+  .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .hero-eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #22c55e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .hero-eyebrow::before { content: ''; width: 24px; height: 2px; background: #22c55e; }
+  .hero h1 { font-size: 52px; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+  .hero h1 .green { color: #22c55e; }
+  .hero h1 .indigo { color: #818cf8; }
+  .hero-desc { font-size: 18px; color: #94a3b8; line-height: 1.7; margin-bottom: 32px; max-width: 540px; }
+  .hero-desc strong { color: #e2e8f0; font-weight: 600; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: #22c55e; color: #fff; font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 10px; text-decoration: none; transition: all 0.25s; border: none; cursor: pointer; }
+  .btn-primary:hover { background: #16a34a; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(34,197,94,0.25); }
+  .btn-secondary { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #e2e8f0; font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 10px; text-decoration: none; border: 1px solid #334155; transition: all 0.25s; cursor: pointer; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.05); border-color: #64748b; transform: translateY(-1px); }
+
+  .hero-visual { display: flex; justify-content: center; align-items: center; }
+  .arch-preview { background: rgba(255,255,255,0.03); border: 1px solid #334155; border-radius: 16px; padding: 28px; width: 100%; max-width: 480px; }
+  .arch-layer-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .arch-layer-row:last-child { margin-bottom: 0; }
+  .arch-chip { flex: 1; padding: 10px 12px; border-radius: 8px; text-align: center; font-size: 11px; font-weight: 600; border: 1px solid; transition: all 0.3s; }
+  .arch-chip:hover { transform: translateY(-2px); }
+  .al-app { background: rgba(20,184,166,0.1); border-color: rgba(20,184,166,0.3); color: #5eead4; }
+  .al-cloud { background: rgba(139,92,246,0.1); border-color: rgba(139,92,246,0.3); color: #c4b5fd; }
+  .al-transport { background: rgba(2,132,199,0.1); border-color: rgba(2,132,199,0.3); color: #7dd3fc; }
+  .al-edge { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); color: #fcd34d; }
+  .al-field { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.3); color: #86efac; }
+  .arch-arrow { display: flex; justify-content: center; padding: 4px 0; }
+  .arch-arrow svg { opacity: 0.3; }
+  .arch-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; margin-bottom: 6px; }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar { background: #fff; border-bottom: 1px solid #e2e8f0; }
+  .stats-inner { max-width: 1200px; margin: 0 auto; padding: 32px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; }
+  .stat { text-align: center; }
+  .stat-val { font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+  .stat-val .unit { font-size: 16px; font-weight: 600; color: #64748b; }
+  .stat-label { font-size: 11px; color: #94a3b8; font-weight: 500; margin-top: 2px; }
+
+  /* ─── SECTION TITLES ─── */
+  .section-title { text-align: center; margin-bottom: 48px; }
+  .section-title .eyebrow { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: #22c55e; margin-bottom: 12px; }
+  .section-title h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; color: #0f172a; margin-bottom: 12px; }
+  .section-title p { font-size: 16px; color: #64748b; max-width: 640px; margin: 0 auto; }
+
+  /* ─── MISSION ─── */
+  .mission { padding: 80px 32px; background: #fff; }
+  .mission-inner { max-width: 1200px; margin: 0 auto; }
+  .mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .mission-visual { background: linear-gradient(135deg, #ecfdf5, #f0fdf4); border: 2px solid #d1fae5; border-radius: 16px; padding: 40px; position: relative; }
+  .mission-principle { text-align: center; }
+  .mission-principle .icon { font-size: 48px; margin-bottom: 16px; }
+  .mission-principle h3 { font-size: 22px; font-weight: 800; color: #065f46; margin-bottom: 8px; }
+  .mission-principle p { font-size: 14px; color: #047857; }
+  .mission-layers { display: flex; gap: 0; margin-top: 24px; border-radius: 8px; overflow: hidden; border: 1px solid #d1fae5; }
+  .mission-layer { flex: 1; padding: 12px 8px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ml-1 { background: #dbeafe; color: #1e40af; }
+  .ml-2 { background: #e0e7ff; color: #3730a3; }
+  .ml-3 { background: #fef3c7; color: #92400e; }
+  .ml-4 { background: #d1fae5; color: #065f46; }
+  .ml-5 { background: #f0fdf4; color: #166534; }
+  .mission-text h3 { font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.5px; }
+  .mission-text p { font-size: 15px; color: #475569; margin-bottom: 16px; }
+  .mission-values { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+  .mission-value { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+  .mission-value h4 { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .mission-value h4 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mission-value p { font-size: 12px; color: #64748b; }
+
+  /* ─── SERVICES ─── */
+  .services { padding: 80px 32px; background: #f8fafc; }
+  .services-inner { max-width: 1200px; margin: 0 auto; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .service-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 28px; transition: all 0.3s; position: relative; overflow: hidden; }
+  .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 14px 14px 0 0; }
+  .service-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+  .service-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 20px; }
+  .service-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+  .service-card p { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+  .service-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .service-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; color: #475569; }
+
+  .sc-teleop::before { background: #14b8a6; }
+  .sc-teleop .service-icon { background: #ccfbf1; color: #0d9488; }
+  .sc-edge::before { background: #f59e0b; }
+  .sc-edge .service-icon { background: #fef3c7; color: #d97706; }
+  .sc-ai::before { background: #ec4899; }
+  .sc-ai .service-icon { background: #fce7f3; color: #db2777; }
+  .sc-fleet::before { background: #22c55e; }
+  .sc-fleet .service-icon { background: #dcfce7; color: #16a34a; }
+  .sc-infra::before { background: #6366f1; }
+  .sc-infra .service-icon { background: #eef2ff; color: #4f46e5; }
+  .sc-safety::before { background: #ef4444; }
+  .sc-safety .service-icon { background: #fee2e2; color: #dc2626; }
+
+  /* ─── TECHNOLOGY ─── */
+  .technology { padding: 80px 32px; background: #0f172a; color: #fff; }
+  .technology .section-title .eyebrow { color: #22c55e; }
+  .technology .section-title h2 { color: #fff; }
+  .technology .section-title p { color: #94a3b8; }
+  .tech-inner { max-width: 1200px; margin: 0 auto; }
+  .tech-layers { display: flex; flex-direction: column; gap: 12px; }
+  .tech-layer { display: flex; align-items: stretch; gap: 12px; }
+  .tech-layer-label { writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 12px 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; min-width: 32px; flex-shrink: 0; }
+  .tech-layer-content { flex: 1; display: flex; flex-wrap: wrap; gap: 10px; padding: 16px; border-radius: 10px; border: 1px dashed; }
+  .tech-box { padding: 14px 16px; border-radius: 8px; font-size: 12px; border: 1px solid; min-width: 150px; flex: 1; transition: all 0.25s; }
+  .tech-box:hover { transform: translateY(-2px); }
+  .tech-box-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+  .tech-box-sub { font-size: 11px; opacity: 0.75; line-height: 1.4; }
+
+  .tl-app .tech-layer-label { background: rgba(20,184,166,0.15); color: #5eead4; }
+  .tl-app .tech-layer-content { border-color: rgba(20,184,166,0.3); }
+  .tl-app .tech-box { background: rgba(20,184,166,0.08); border-color: rgba(20,184,166,0.2); color: #ccfbf1; }
+  .tl-cloud .tech-layer-label { background: rgba(139,92,246,0.15); color: #c4b5fd; }
+  .tl-cloud .tech-layer-content { border-color: rgba(139,92,246,0.3); }
+  .tl-cloud .tech-box { background: rgba(139,92,246,0.08); border-color: rgba(139,92,246,0.2); color: #ede9fe; }
+  .tl-transport .tech-layer-label { background: rgba(2,132,199,0.15); color: #7dd3fc; }
+  .tl-transport .tech-layer-content { border-color: rgba(2,132,199,0.3); }
+  .tl-transport .tech-box { background: rgba(2,132,199,0.08); border-color: rgba(2,132,199,0.2); color: #e0f2fe; }
+  .tl-edge .tech-layer-label { background: rgba(245,158,11,0.15); color: #fcd34d; }
+  .tl-edge .tech-layer-content { border-color: rgba(245,158,11,0.3); }
+  .tl-edge .tech-box { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); color: #fef3c7; }
+  .tl-field .tech-layer-label { background: rgba(34,197,94,0.15); color: #86efac; }
+  .tl-field .tech-layer-content { border-color: rgba(34,197,94,0.3); }
+  .tl-field .tech-box { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.2); color: #dcfce7; }
+
+  .tech-cross { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .tech-cross-card { padding: 16px 20px; border-radius: 10px; border: 1px solid; }
+  .tech-cross-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .tech-cross-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tech-cross-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+  .tcc-security { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); color: #fca5a5; }
+  .tcc-security .tech-cross-tag { background: rgba(239,68,68,0.12); color: #fca5a5; }
+  .tcc-obs { border-color: rgba(6,182,212,0.3); background: rgba(6,182,212,0.06); color: #67e8f9; }
+  .tcc-obs .tech-cross-tag { background: rgba(6,182,212,0.12); color: #67e8f9; }
+
+  /* ─── DIFFERENTIATORS ─── */
+  .differentiators { padding: 80px 32px; background: #fff; }
+  .diff-inner { max-width: 1200px; margin: 0 auto; }
+  .diff-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  .diff-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 32px; display: flex; gap: 20px; align-items: flex-start; transition: all 0.3s; }
+  .diff-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-2px); }
+  .diff-num { font-size: 32px; font-weight: 800; color: #e2e8f0; line-height: 1; flex-shrink: 0; }
+  .diff-card h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+  .diff-card p { font-size: 13px; color: #64748b; }
+
+  /* ─── USE CASES ─── */
+  .use-cases { padding: 80px 32px; background: #f8fafc; }
+  .uc-inner { max-width: 1200px; margin: 0 auto; }
+  .uc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .uc-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; transition: all 0.3s; }
+  .uc-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+  .uc-img { height: 160px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+  .uc-img-1 { background: linear-gradient(135deg, #ecfdf5, #d1fae5); }
+  .uc-img-2 { background: linear-gradient(135deg, #eef2ff, #e0e7ff); }
+  .uc-img-3 { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+  .uc-body { padding: 24px; }
+  .uc-body h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+  .uc-body p { font-size: 13px; color: #64748b; margin-bottom: 12px; }
+  .uc-stats { display: flex; gap: 16px; }
+  .uc-stat { font-size: 11px; color: #94a3b8; }
+  .uc-stat strong { color: #0f172a; font-weight: 700; }
+
+  /* ─── CTA ─── */
+  .cta { padding: 80px 32px; background: linear-gradient(135deg, #065f46 0%, #047857 50%, #059669 100%); color: #fff; text-align: center; }
+  .cta-inner { max-width: 700px; margin: 0 auto; }
+  .cta h2 { font-size: 36px; font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+  .cta p { font-size: 16px; color: #a7f3d0; margin-bottom: 32px; }
+  .cta-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .btn-white { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: #065f46; font-size: 15px; font-weight: 700; padding: 14px 28px; border-radius: 10px; text-decoration: none; transition: all 0.25s; border: none; cursor: pointer; }
+  .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+  .btn-outline-white { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: #fff; font-size: 15px; font-weight: 600; padding: 14px 28px; border-radius: 10px; text-decoration: none; border: 1px solid rgba(255,255,255,0.3); transition: all 0.25s; cursor: pointer; }
+  .btn-outline-white:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+
+  /* ─── FOOTER ─── */
+  .footer { background: #0f172a; color: #94a3b8; padding: 48px 32px 32px; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 32px; }
+  .footer-brand .nav-logo { margin-bottom: 12px; }
+  .footer-brand p { font-size: 13px; color: #64748b; max-width: 280px; }
+  .footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 12px; }
+  .footer-col a { display: block; font-size: 13px; color: #94a3b8; text-decoration: none; margin-bottom: 8px; transition: color 0.2s; }
+  .footer-col a:hover { color: #fff; }
+  .footer-bottom { border-top: 1px solid #1e293b; padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+
+  @media (max-width: 1024px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .hero-visual { order: -1; }
+    .hero h1 { font-size: 40px; }
+    .stats-inner { grid-template-columns: repeat(3, 1fr); }
+    .mission-grid { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: repeat(2, 1fr); }
+    .tech-layer { flex-direction: column; }
+    .tech-layer-label { writing-mode: horizontal-tb; transform: none; min-width: auto; }
+    .diff-grid { grid-template-columns: 1fr; }
+    .uc-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero { padding: 60px 20px 48px; }
+    .hero h1 { font-size: 32px; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    .services-grid { grid-template-columns: 1fr; }
+    .tech-cross { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ NAV ═══════ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo"><span>co</span>bots</div>
+      <span class="nav-tag">by nventr</span>
+    </a>
+    <div class="nav-links">
+      <a href="#mission">Mission</a>
+      <a href="#services">Services</a>
+      <a href="#technology">Technology</a>
+      <a href="#use-cases">Use Cases</a>
+      <a href="#contact" class="nav-cta">Get in Touch</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-eyebrow">Human-AI Supervised Robotics</div>
+      <h1>Warehouse automation with a <span class="green">human</span> at the <span class="indigo">edge</span></h1>
+      <p class="hero-desc">
+        <strong>cobots</strong> combines autonomous robotics with real-time human teleoperation and AI anomaly detection.
+        Every robot is supervised. Every action is auditable. Every decision can be overridden by a trained operator.
+      </p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn-primary">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Start a Pilot
+        </a>
+        <a href="#technology" class="btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          View Architecture
+        </a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="arch-preview">
+        <div class="arch-label">Layered Architecture</div>
+        <div class="arch-layer-row">
+          <div class="arch-chip al-app">Dashboard</div>
+          <div class="arch-chip al-app">REST / GraphQL</div>
+          <div class="arch-chip al-app">ML Studio</div>
+        </div>
+        <div class="arch-arrow"><svg width="12" height="10"><path d="M6 0v10M2 6l4 4 4-4" stroke="#334155" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="arch-layer-row">
+          <div class="arch-chip al-cloud">Stream Processor</div>
+          <div class="arch-chip al-cloud">Anomaly Engine</div>
+          <div class="arch-chip al-cloud">Delta Lake</div>
+        </div>
+        <div class="arch-arrow"><svg width="12" height="10"><path d="M6 0v10M2 6l4 4 4-4" stroke="#334155" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="arch-layer-row">
+          <div class="arch-chip al-transport">WebRTC GW</div>
+          <div class="arch-chip al-transport">MQTT Broker</div>
+          <div class="arch-chip al-transport">S3 Batch</div>
+        </div>
+        <div class="arch-arrow"><svg width="12" height="10"><path d="M6 0v10M2 6l4 4 4-4" stroke="#334155" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="arch-layer-row">
+          <div class="arch-chip al-edge">Fidelity Ctrl</div>
+          <div class="arch-chip al-edge">Privacy Filter</div>
+          <div class="arch-chip al-edge">Sync Mgr</div>
+        </div>
+        <div class="arch-arrow"><svg width="12" height="10"><path d="M6 0v10M2 6l4 4 4-4" stroke="#334155" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="arch-layer-row">
+          <div class="arch-chip al-field">Sensors</div>
+          <div class="arch-chip al-field">Edge AI</div>
+          <div class="arch-chip al-field">Compression</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ STATS BAR ═══════ -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-val">100<span class="unit">+</span></div>
+      <div class="stat-label">Robot Fleet Baseline</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">&lt;3<span class="unit">s</span></div>
+      <div class="stat-label">Anomaly Detection E2E</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">10:1</div>
+      <div class="stat-label">Edge Compression Ratio</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">99.9<span class="unit">%</span></div>
+      <div class="stat-label">Upload Success SLA</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">24/7</div>
+      <div class="stat-label">Human Supervision</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">5<span class="unit">-layer</span></div>
+      <div class="stat-label">Security Architecture</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ MISSION ═══════ -->
+<section class="mission" id="mission">
+  <div class="mission-inner">
+    <div class="mission-grid">
+      <div class="mission-visual">
+        <div class="mission-principle">
+          <div class="icon">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="24" r="10" stroke="#059669" stroke-width="2.5" fill="#d1fae5"/>
+              <path d="M16 52c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#059669" stroke-width="2.5" fill="none"/>
+              <circle cx="50" cy="20" r="8" stroke="#6366f1" stroke-width="2" fill="#eef2ff"/>
+              <path d="M46 20h8M50 16v8" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+              <path d="M44 28l-4 4" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+            </svg>
+          </div>
+          <h3>Human + AI, Together</h3>
+          <p>Autonomy where safe. Human override always available.</p>
+        </div>
+        <div class="mission-layers">
+          <div class="mission-layer ml-1">Robot AI</div>
+          <div class="mission-layer ml-2">Edge Intel</div>
+          <div class="mission-layer ml-3">Cloud AI</div>
+          <div class="mission-layer ml-4">Teleop</div>
+          <div class="mission-layer ml-5">Oversight</div>
+        </div>
+      </div>
+      <div class="mission-text">
+        <h3>Our mission: make robots trustworthy enough to operate in shared spaces</h3>
+        <p>
+          Fully autonomous robots aren't ready for complex warehouse environments where humans, goods, and vehicles
+          intersect. <strong>cobots</strong> takes a different approach: layered supervision where AI handles routine
+          operations and trained human operators step in for edge cases, anomalies, and safety-critical decisions.
+        </p>
+        <p>
+          Every robotic action flows through five control layers -- from on-device AI to human escalation. The result
+          is a system that's fast enough for production, safe enough for regulators, and transparent enough for
+          your operations team.
+        </p>
+        <div class="mission-values">
+          <div class="mission-value">
+            <h4><span class="dot" style="background:#22c55e"></span> Safety First</h4>
+            <p>Hardware kill-switches, watchdog timers, and human override at every layer</p>
+          </div>
+          <div class="mission-value">
+            <h4><span class="dot" style="background:#6366f1"></span> Full Auditability</h4>
+            <p>Immutable logs, checksummed data, tamper-evident compliance trails</p>
+          </div>
+          <div class="mission-value">
+            <h4><span class="dot" style="background:#f59e0b"></span> Edge Intelligence</h4>
+            <p>10:1 data reduction on-device with privacy-preserving filters at the edge</p>
+          </div>
+          <div class="mission-value">
+            <h4><span class="dot" style="background:#ef4444"></span> Explainable AI</h4>
+            <p>XAI summaries for every anomaly -- operators see why, not just what</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SERVICES ═══════ -->
+<section class="services" id="services">
+  <div class="services-inner">
+    <div class="section-title">
+      <div class="eyebrow">What We Deliver</div>
+      <h2>End-to-end robotic warehouse services</h2>
+      <p>From sensor arrays to executive dashboards -- a fully integrated platform that scales from pilot to fleet</p>
+    </div>
+    <div class="services-grid">
+
+      <div class="service-card sc-teleop">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="3" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 20h8M11 16v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <h3>Teleoperation Dashboard</h3>
+        <p>Live WebRTC multi-camera views with joystick control, escalation workflows, and XAI-powered anomaly summaries. Role-based access for teleoperators, supervisors, and auditors.</p>
+        <div class="service-tags">
+          <span class="service-tag">WebRTC</span>
+          <span class="service-tag">React/TS</span>
+          <span class="service-tag">RBAC</span>
+          <span class="service-tag">2FA</span>
+        </div>
+      </div>
+
+      <div class="service-card sc-edge">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h8M7 12h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="5" r="3" fill="currentColor" opacity="0.3"/></svg>
+        </div>
+        <h3>Edge Gateway Platform</h3>
+        <p>On-site edge boxes that aggregate sensor streams, apply dynamic fidelity control, run privacy anonymisation (face/plate redaction), and manage batch uploads with checksum verification.</p>
+        <div class="service-tags">
+          <span class="service-tag">Fidelity Control</span>
+          <span class="service-tag">Privacy Filters</span>
+          <span class="service-tag">Local TSDB</span>
+        </div>
+      </div>
+
+      <div class="service-card sc-ai">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l8 4v6c0 4-3.2 7.4-8 8-4.8-.6-8-4-8-8V6l8-4z" stroke="currentColor" stroke-width="1.5"/><path d="M8 11l3 3 4-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>AI / MLOps Pipeline</h3>
+        <p>Full ML lifecycle from data pipeline through training to deployment. ViT/LSTM ensembles, drift monitoring, and reinforcement learning optimisation -- with advisory mode before any autonomous action.</p>
+        <div class="service-tags">
+          <span class="service-tag">Triton</span>
+          <span class="service-tag">MLflow</span>
+          <span class="service-tag">Canary Deploy</span>
+          <span class="service-tag">Drift Detection</span>
+        </div>
+      </div>
+
+      <div class="service-card sc-fleet">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="6" cy="11" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="7" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="15" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M9 10l4-2M9 12l4 2" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <h3>Fleet Management</h3>
+        <p>Device registration, health monitoring, and over-the-air configuration for 100+ robot fleets. Heartbeat tracking, auto-provisioning, and bandwidth-aware policy control.</p>
+        <div class="service-tags">
+          <span class="service-tag">MQTT</span>
+          <span class="service-tag">OTA Updates</span>
+          <span class="service-tag">Health Monitoring</span>
+        </div>
+      </div>
+
+      <div class="service-card sc-infra">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="3" width="18" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="2" y="14" width="18" height="5" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M11 8v6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/><circle cx="6" cy="5.5" r="1" fill="currentColor"/><circle cx="6" cy="16.5" r="1" fill="currentColor"/></svg>
+        </div>
+        <h3>Cloud Infrastructure</h3>
+        <p>Kubernetes-native microservices with GitOps deployment, auto-scaling on queue depth, and tiered data lifecycle from hot Kafka streams to cold Glacier archives.</p>
+        <div class="service-tags">
+          <span class="service-tag">EKS/GKE</span>
+          <span class="service-tag">ArgoCD</span>
+          <span class="service-tag">Delta Lake</span>
+          <span class="service-tag">Kafka</span>
+        </div>
+      </div>
+
+      <div class="service-card sc-safety">
+        <div class="service-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2l8 4v6c0 4-3.2 7.4-8 8-4.8-.6-8-4-8-8V6l8-4z" stroke="currentColor" stroke-width="1.5"/><path d="M11 7v4M11 14h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <h3>Security & Compliance</h3>
+        <p>Defense-in-depth with TLS 1.3 everywhere, mutual TLS for device comms, KMS-managed encryption, immutable audit logs, and edge-side data anonymisation.</p>
+        <div class="service-tags">
+          <span class="service-tag">mTLS</span>
+          <span class="service-tag">KMS</span>
+          <span class="service-tag">Immutable Audit</span>
+          <span class="service-tag">RBAC</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ TECHNOLOGY ═══════ -->
+<section class="technology" id="technology">
+  <div class="tech-inner">
+    <div class="section-title">
+      <div class="eyebrow">Architecture</div>
+      <h2>Built on five layers of intelligence</h2>
+      <p>From sensor arrays on the warehouse floor to executive dashboards in the cloud -- every layer is observable, auditable, and human-overridable</p>
+    </div>
+
+    <div class="tech-layers">
+      <div class="tech-layer tl-app">
+        <div class="tech-layer-label">APPS</div>
+        <div class="tech-layer-content">
+          <div class="tech-box"><div class="tech-box-title">Teleoperator Dashboard</div><div class="tech-box-sub">Live WebRTC, escalation controls, XAI summaries</div></div>
+          <div class="tech-box"><div class="tech-box-title">REST / GraphQL API</div><div class="tech-box-sub">Device mgmt, fidelity control, anomaly queries</div></div>
+          <div class="tech-box"><div class="tech-box-title">Ops Dashboards</div><div class="tech-box-sub">Grafana metrics, Kibana logs, SLO tracking</div></div>
+          <div class="tech-box"><div class="tech-box-title">ML Studio</div><div class="tech-box-sub">Model registry, training jobs, experiments</div></div>
+        </div>
+      </div>
+
+      <div class="tech-layer tl-cloud">
+        <div class="tech-layer-label">CLOUD</div>
+        <div class="tech-layer-content">
+          <div class="tech-box"><div class="tech-box-title">Stream Processor</div><div class="tech-box-sub">Kafka / Kinesis, sharded by robot + site</div></div>
+          <div class="tech-box"><div class="tech-box-title">Anomaly Engine</div><div class="tech-box-sub">Real-time ViT/LSTM ensembles via Triton</div></div>
+          <div class="tech-box"><div class="tech-box-title">RL Optimiser</div><div class="tech-box-sub">Offline RL, canary evaluation, advisory mode</div></div>
+          <div class="tech-box"><div class="tech-box-title">Delta Lake</div><div class="tech-box-sub">S3-backed, hot/warm/cold lifecycle</div></div>
+          <div class="tech-box"><div class="tech-box-title">Audit Service</div><div class="tech-box-sub">Immutable, SHA256-checksummed, KMS encrypted</div></div>
+        </div>
+      </div>
+
+      <div class="tech-layer tl-transport">
+        <div class="tech-layer-label">TRANSPORT</div>
+        <div class="tech-layer-content">
+          <div class="tech-box"><div class="tech-box-title">WebRTC Gateway</div><div class="tech-box-sub">SFU multi-view, adaptive bitrate, TURN/STUN</div></div>
+          <div class="tech-box"><div class="tech-box-title">MQTT Broker Cluster</div><div class="tech-box-sub">QoS=1, HA, JWT auth, EMQX</div></div>
+          <div class="tech-box"><div class="tech-box-title">API Gateway</div><div class="tech-box-sub">TLS termination, RBAC, rate limiting</div></div>
+          <div class="tech-box"><div class="tech-box-title">S3 Batch Channel</div><div class="tech-box-sub">Multipart upload, checksum verify, retry</div></div>
+        </div>
+      </div>
+
+      <div class="tech-layer tl-edge">
+        <div class="tech-layer-label">EDGE</div>
+        <div class="tech-layer-content">
+          <div class="tech-box"><div class="tech-box-title">Fidelity Controller</div><div class="tech-box-sub">Dynamic bandwidth and power policy engine</div></div>
+          <div class="tech-box"><div class="tech-box-title">Privacy Filter</div><div class="tech-box-sub">Face/plate redaction before cloud upload</div></div>
+          <div class="tech-box"><div class="tech-box-title">Sync Manager</div><div class="tech-box-sub">Off-peak batch scheduler, DR queuing</div></div>
+          <div class="tech-box"><div class="tech-box-title">Local TSDB</div><div class="tech-box-sub">InfluxDB / ClickHouse telemetry buffer</div></div>
+        </div>
+      </div>
+
+      <div class="tech-layer tl-field">
+        <div class="tech-layer-label">FIELD</div>
+        <div class="tech-layer-content">
+          <div class="tech-box"><div class="tech-box-title">Sensor Array</div><div class="tech-box-sub">Camera, LiDAR, IMU, mic -- 30 MB/s raw</div></div>
+          <div class="tech-box"><div class="tech-box-title">Edge AI Module</div><div class="tech-box-sub">ONNX / TensorRT keyframe + detection</div></div>
+          <div class="tech-box"><div class="tech-box-title">Compression Engine</div><div class="tech-box-sub">H.265/HEVC, variable GOP, 10:1 ratio</div></div>
+          <div class="tech-box"><div class="tech-box-title">Safety Systems</div><div class="tech-box-sub">Watchdog, kill-switch, heartbeat agent</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tech-cross">
+      <div class="tech-cross-card tcc-security">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L2 3.5v3.5c0 3 2.2 5.6 5 6 2.8-.4 5-3 5-6V3.5L7 1z" stroke="#fca5a5" stroke-width="1.2"/></svg>
+          Security & Compliance
+        </h4>
+        <div class="tech-cross-tags">
+          <span class="tech-cross-tag">TLS 1.3</span>
+          <span class="tech-cross-tag">mTLS</span>
+          <span class="tech-cross-tag">RBAC</span>
+          <span class="tech-cross-tag">KMS</span>
+          <span class="tech-cross-tag">Immutable Audit</span>
+          <span class="tech-cross-tag">Edge Anonymisation</span>
+        </div>
+      </div>
+      <div class="tech-cross-card tcc-obs">
+        <h4>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#67e8f9" stroke-width="1.2"/><path d="M4 8l2-3 2 2 3-3" stroke="#67e8f9" stroke-width="1.2" fill="none"/></svg>
+          Observability & SRE
+        </h4>
+        <div class="tech-cross-tags">
+          <span class="tech-cross-tag">OpenTelemetry</span>
+          <span class="tech-cross-tag">Prometheus</span>
+          <span class="tech-cross-tag">Grafana</span>
+          <span class="tech-cross-tag">ELK</span>
+          <span class="tech-cross-tag">Distributed Tracing</span>
+          <span class="tech-cross-tag">SLO Tracking</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ DIFFERENTIATORS ═══════ -->
+<section class="differentiators" id="differentiators">
+  <div class="diff-inner">
+    <div class="section-title">
+      <div class="eyebrow">The cobots Edge</div>
+      <h2>Why human-supervised beats fully autonomous</h2>
+      <p>Autonomy is a spectrum, not a switch. Our layered approach earns trust incrementally while delivering value from day one.</p>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-card">
+        <div class="diff-num">01</div>
+        <div>
+          <h3>Human override at every layer</h3>
+          <p>From hardware kill-switches on the robot to one-click fidelity escalation in the dashboard, a human can always take control. RL policies run in advisory mode until proven safe.</p>
+        </div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">02</div>
+        <div>
+          <h3>Explainable anomaly detection</h3>
+          <p>Every AI flag comes with an XAI summary explaining <em>why</em> it was flagged, not just a confidence score. Operators see context -- bounding boxes, temporal patterns, sensor correlations.</p>
+        </div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">03</div>
+        <div>
+          <h3>Privacy by design</h3>
+          <p>Face and plate redaction happens at the edge -- before data ever leaves the warehouse. Differential privacy in analytics pipelines, data minimisation by default, and DSR-ready architecture.</p>
+        </div>
+      </div>
+      <div class="diff-card">
+        <div class="diff-num">04</div>
+        <div>
+          <h3>Audit-grade traceability</h3>
+          <p>Immutable, checksummed, append-only logs for every escalation, fidelity change, and control action. Full distributed tracing from device to cloud with OpenTelemetry.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ USE CASES ═══════ -->
+<section class="use-cases" id="use-cases">
+  <div class="uc-inner">
+    <div class="section-title">
+      <div class="eyebrow">Applications</div>
+      <h2>Built for the real warehouse floor</h2>
+      <p>Proven across inbound receiving, putaway, pick-and-pack, and outbound staging workflows</p>
+    </div>
+    <div class="uc-grid">
+      <div class="uc-card">
+        <div class="uc-img uc-img-1">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect x="10" y="20" width="20" height="20" rx="3" stroke="#059669" stroke-width="2.5"/>
+            <rect x="34" y="20" width="20" height="20" rx="3" stroke="#059669" stroke-width="2.5"/>
+            <rect x="22" y="8" width="20" height="20" rx="3" stroke="#059669" stroke-width="2.5" opacity="0.5"/>
+            <path d="M20 44v8M44 44v8" stroke="#059669" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="20" cy="54" r="3" stroke="#059669" stroke-width="2"/>
+            <circle cx="44" cy="54" r="3" stroke="#059669" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="uc-body">
+          <h3>Autonomous Inbound & Putaway</h3>
+          <p>Robots handle receiving dock to storage location with camera-verified label scanning. Human operators supervise via live feeds and override routing decisions in real time.</p>
+          <div class="uc-stats">
+            <div class="uc-stat"><strong>7 sensors</strong> per robot</div>
+            <div class="uc-stat"><strong>&lt;3s</strong> anomaly alert</div>
+          </div>
+        </div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-img uc-img-2">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect x="8" y="12" width="48" height="32" rx="4" stroke="#4f46e5" stroke-width="2.5"/>
+            <circle cx="32" cy="28" r="8" stroke="#4f46e5" stroke-width="2"/>
+            <circle cx="32" cy="28" r="3" fill="#4f46e5" opacity="0.3"/>
+            <path d="M8 48h48" stroke="#4f46e5" stroke-width="2" stroke-dasharray="4 4"/>
+            <circle cx="20" cy="52" r="3" stroke="#4f46e5" stroke-width="1.5"/>
+            <circle cx="44" cy="52" r="3" stroke="#4f46e5" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="uc-body">
+          <h3>Surveillance & Anomaly Detection</h3>
+          <p>Continuous multi-camera coverage with edge-AI keyframe extraction. Cloud-based ViT/LSTM ensembles score anomalies in real-time and push XAI explanations to the teleop dashboard.</p>
+          <div class="uc-stats">
+            <div class="uc-stat"><strong>10:1</strong> compression</div>
+            <div class="uc-stat"><strong>99.9%</strong> upload SLA</div>
+          </div>
+        </div>
+      </div>
+      <div class="uc-card">
+        <div class="uc-img uc-img-3">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect x="14" y="16" width="36" height="28" rx="3" stroke="#d97706" stroke-width="2.5"/>
+            <path d="M14 24h36M24 24v20M40 24v20" stroke="#d97706" stroke-width="1.5"/>
+            <rect x="26" y="28" width="12" height="6" rx="1" fill="#d97706" opacity="0.2"/>
+            <path d="M22 52l-6 4M42 52l6 4" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="uc-body">
+          <h3>Outbound Staging & Dispatch</h3>
+          <p>Coordinated robotic pick-and-sort with forklift and arm orchestration. Fleet management ensures optimal task allocation while human supervisors handle exceptions and dock scheduling.</p>
+          <div class="uc-stats">
+            <div class="uc-stat"><strong>100+</strong> robot fleet</div>
+            <div class="uc-stat"><strong>24/7</strong> ops</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CTA ═══════ -->
+<section class="cta" id="contact">
+  <div class="cta-inner">
+    <h2>Ready to see cobots in action?</h2>
+    <p>We're partnering with forward-thinking warehouse operators to deploy human-AI supervised robotics at scale. Start with a single-site pilot and grow to full fleet.</p>
+    <div class="cta-actions">
+      <a href="mailto:hello@nventr.com" class="btn-white">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4l6 5 6-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+        Contact Us
+      </a>
+      <a href="#technology" class="btn-outline-white">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        View Full Architecture
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="nav-logo" style="margin-bottom:12px"><span style="color:#22c55e">co</span>bots</div>
+        <p>Human-AI supervised warehouse robotics. A platform by nventr for the next generation of logistics automation.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#services">Teleoperation</a>
+        <a href="#services">Edge Gateway</a>
+        <a href="#services">AI / MLOps</a>
+        <a href="#services">Fleet Management</a>
+      </div>
+      <div class="footer-col">
+        <h4>Resources</h4>
+        <a href="#technology">Architecture</a>
+        <a href="#differentiators">Approach</a>
+        <a href="#use-cases">Use Cases</a>
+        <a href="#">Documentation</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About nventr</a>
+        <a href="#">Careers</a>
+        <a href="#contact">Contact</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>cobots by nventr &middot; Warehouse Robotics Platform &middot; 2026</span>
+      <span>Built for trust. Designed for scale.</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+services:
+  gazebo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gazebo-warehouse-sim
+    working_dir: /workspace
+    environment:
+      - HEADLESS=${HEADLESS:-true}
+      - WORLD_FILE=${WORLD_FILE:-/workspace/worlds/warehouse.world}
+    volumes:
+      - ./:/workspace
+    stdin_open: true
+    tty: true
+    command: bash /workspace/scripts/run_gazebo.sh
+
+  gazebo-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gazebo-warehouse-sim-gui
+    profiles: ["gui"]
+    working_dir: /workspace
+    environment:
+      - DISPLAY=${DISPLAY:-host.docker.internal:0}
+      - QT_X11_NO_MITSHM=1
+      - LIBGL_ALWAYS_SOFTWARE=1
+      - HEADLESS=false
+      - WORLD_FILE=${WORLD_FILE:-/workspace/worlds/warehouse.world}
+    volumes:
+      - ./:/workspace
+    stdin_open: true
+    tty: true
+    command: bash /workspace/scripts/run_gazebo.sh
+

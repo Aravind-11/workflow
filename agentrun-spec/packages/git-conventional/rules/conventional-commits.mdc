@@ -1,0 +1,35 @@
+---
+description: Conventional commit message format and git workflow
+alwaysApply: true
+---
+# Conventional Commits
+
+## Format
+```
+type(scope): short description
+
+[optional body]
+
+[optional footer]
+```
+
+## Types
+- `feat`: New feature (bumps minor version)
+- `fix`: Bug fix (bumps patch version)
+- `docs`: Documentation only
+- `style`: Formatting, whitespace (no code change)
+- `refactor`: Code restructuring (no feature or fix)
+- `test`: Adding or fixing tests
+- `chore`: Build, CI, dependency updates
+
+## Rules
+- Subject line: lowercase, imperative mood, no period, max 72 chars
+- Body: wrap at 72 chars, explain WHY not WHAT
+- Breaking changes: add `!` after type or `BREAKING CHANGE:` in footer
+- Reference issues: `Closes #123` or `Fixes #456` in footer
+
+## Branch Naming
+- `feat/short-description`
+- `fix/issue-number-description`
+- `chore/dependency-updates`
+- Keep branch names under 50 chars, use kebab-case

@@ -1,0 +1,36 @@
+---
+description: Security review patterns for code changes
+alwaysApply: false
+---
+# Security Review
+
+## Input Validation
+- Validate and sanitize ALL user input at the boundary (API handlers, form processors)
+- Use allowlists over denylists for input validation
+- Validate data types, lengths, ranges, and formats
+- Never trust client-side validation alone — always validate server-side
+
+## Authentication & Authorization
+- Use established auth libraries (passport, next-auth, django-auth) — don't roll your own
+- Hash passwords with bcrypt/argon2 — never MD5/SHA for passwords
+- Implement rate limiting on auth endpoints
+- Check authorization on every request, not just at the route level
+- Use short-lived tokens (JWTs: <15 min) with refresh token rotation
+
+## Injection Prevention
+- Use parameterized queries / ORM methods — never string-concatenate SQL
+- Escape output for the context (HTML, URL, JS, CSS)
+- Use Content Security Policy headers
+- Validate file uploads: check MIME type, limit size, rename files
+
+## Secrets
+- NEVER hardcode secrets, API keys, or passwords in source code
+- Use environment variables or a secrets manager (Vault, AWS Secrets Manager)
+- Add secret patterns to `.gitignore` and use git-secrets or gitleaks
+- Rotate credentials regularly and after any suspected exposure
+
+## Data Protection
+- Encrypt sensitive data at rest and in transit (TLS everywhere)
+- Minimize data collection — don't store what you don't need
+- Log security events but NEVER log sensitive data (passwords, tokens, PII)
+- Implement proper error handling that doesn't leak internal details

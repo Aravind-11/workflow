@@ -1,0 +1,15 @@
+name: security-reviewer
+version: 1.0.0
+description: "Security review patterns: OWASP top 10, input validation, auth, and secrets management"
+author: agentrun
+tags: [security, owasp, auth, validation]
+license: MIT
+ide_targets: [cursor, agents.md]
+rules:
+  - file: rules/security-review.mdc
+    activation: auto
+  - file: rules/secrets-check.mdc
+    activation: always
+agents_md:
+  section: "Security Guidelines"
+  file: agents.md

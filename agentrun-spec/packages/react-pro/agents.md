@@ -1,0 +1,7 @@
+- Use functional components only, with explicit TypeScript prop interfaces
+- Export named components (not default exports)
+- Move complex logic to custom hooks (`use*`); keep components thin
+- Use `useMemo`/`useCallback` when profiling shows re-render issues
+- Fetch data with TanStack Query or SWR, not raw `useEffect`
+- Every `useEffect` must have correct dependencies and cleanup
+- Keep components under 100 lines; extract sub-components when larger

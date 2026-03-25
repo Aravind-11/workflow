@@ -1,0 +1,17 @@
+name: react-pro
+version: 1.0.0
+description: "React best practices: functional components, hooks, TypeScript, and performance"
+author: agentrun
+tags: [react, typescript, frontend, hooks]
+license: MIT
+ide_targets: [cursor, agents.md]
+rules:
+  - file: rules/react-components.mdc
+    activation: glob
+    globs: ["**/*.tsx", "**/*.jsx"]
+  - file: rules/react-hooks.mdc
+    activation: glob
+    globs: ["**/use*.ts", "**/use*.tsx", "**/hooks/**"]
+agents_md:
+  section: "React Guidelines"
+  file: agents.md

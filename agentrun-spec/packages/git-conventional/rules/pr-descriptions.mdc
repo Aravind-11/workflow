@@ -1,0 +1,24 @@
+---
+description: Pull request description standards
+alwaysApply: false
+---
+# Pull Request Standards
+
+## PR Title
+- Follow conventional commit format: `feat(auth): add OAuth2 login`
+- Prefix with ticket number if applicable: `[PROJ-123] feat: ...`
+
+## PR Description Template
+Every PR should include:
+1. **What**: One-sentence summary of the change
+2. **Why**: Motivation or issue being solved
+3. **How**: Brief technical approach (for non-trivial changes)
+4. **Testing**: How this was tested (manual steps or test commands)
+5. **Screenshots**: For UI changes (before/after)
+
+## PR Hygiene
+- Keep PRs small: aim for <400 lines changed
+- One logical change per PR — don't bundle unrelated fixes
+- Self-review before requesting others
+- Respond to review comments within 24 hours
+- Squash-merge feature branches to keep main history clean

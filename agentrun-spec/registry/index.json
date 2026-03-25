@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "packages": {
+    "python-expert": {
+      "description": "Python best practices: type hints, PEP 8, pytest patterns, and project structure",
+      "author": "agentrun",
+      "repo": "agentrun/rules-python-expert",
+      "latest": "1.0.0",
+      "tags": ["python", "typing", "testing", "pep8"],
+      "downloads": 0
+    },
+    "react-pro": {
+      "description": "React best practices: functional components, hooks, TypeScript, and performance",
+      "author": "agentrun",
+      "repo": "agentrun/rules-react-pro",
+      "latest": "1.0.0",
+      "tags": ["react", "typescript", "frontend", "hooks"],
+      "downloads": 0
+    },
+    "security-reviewer": {
+      "description": "Security review patterns: OWASP top 10, input validation, auth, and secrets management",
+      "author": "agentrun",
+      "repo": "agentrun/rules-security-reviewer",
+      "latest": "1.0.0",
+      "tags": ["security", "owasp", "auth", "validation"],
+      "downloads": 0
+    },
+    "testing-guru": {
+      "description": "Testing best practices: test structure, mocking, coverage, TDD workflow",
+      "author": "agentrun",
+      "repo": "agentrun/rules-testing-guru",
+      "latest": "1.0.0",
+      "tags": ["testing", "tdd", "mocking", "coverage"],
+      "downloads": 0
+    },
+    "git-conventional": {
+      "description": "Conventional commits, PR descriptions, and branch naming standards",
+      "author": "agentrun",
+      "repo": "agentrun/rules-git-conventional",
+      "latest": "1.0.0",
+      "tags": ["git", "commits", "pull-requests", "workflow"],
+      "downloads": 0
+    }
+  }
+}

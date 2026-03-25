@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teleoperation Governance Architecture — nventr</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; }
+
+  .header { background: #1e293b; color: #fff; position: sticky; top: 0; z-index: 100; }
+  .header-top { padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; }
+  .header h1 { font-size: 18px; font-weight: 700; }
+  .header-sub { font-size: 12px; color: #94a3b8; }
+  .export-btn { background: #6366f1; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 6px; }
+  .export-btn:hover { background: #4f46e5; }
+  .export-btn:active { transform: scale(0.97); }
+  .export-btn.exporting { opacity: 0.6; pointer-events: none; }
+
+  .canvas { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+  .title-bar { text-align: center; margin-bottom: 28px; }
+  .title-bar h2 { font-size: 18px; font-weight: 700; color: #1e293b; }
+  .title-bar p { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  .section-title {
+    width: 100%; max-width: 1300px;
+    padding: 12px 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
+    border-radius: 12px 12px 0 0;
+    border: 1px solid #e2e8f0; border-bottom: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .num { background: #6366f1; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 10px; flex-shrink: 0; }
+  .section-title .sev { font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 8px; margin-left: auto; flex-shrink: 0; }
+  .sev-crit { background: #fee2e2; color: #991b1b; }
+  .sev-high { background: #ffedd5; color: #9a3412; }
+
+  .card-row {
+    display: flex; gap: 0;
+    width: 100%; max-width: 1300px;
+    border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .card {
+    flex: 1; min-width: 0;
+    padding: 16px 14px;
+    text-align: center;
+    border-right: 1px solid #f1f5f9;
+  }
+  .card:last-child { border-right: none; }
+  .card h4 { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+  .card p { font-size: 11px; color: #64748b; line-height: 1.55; }
+  .card .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; color: #6366f1; background: #eef2ff; padding: 1px 5px; border-radius: 3px; }
+
+  .arrow-down { display: flex; flex-direction: column; align-items: center; padding: 6px 0; }
+  .arrow-down .line { width: 2px; height: 14px; background: #cbd5e1; }
+  .arrow-down .label { font-size: 10px; color: #64748b; padding: 3px 12px; background: #fff; border-radius: 10px; border: 1px solid #e2e8f0; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .arrow-down .tri { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid #cbd5e1; }
+
+  .chain-row {
+    display: flex; align-items: center; gap: 0; justify-content: center;
+    width: 100%; max-width: 1300px;
+    background: #fff; border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 20px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .chain-node {
+    padding: 10px 10px; text-align: center;
+    border: 2px solid #e2e8f0; border-radius: 8px;
+    background: #f8fafc; min-width: 120px;
+  }
+  .chain-node h4 { font-size: 11px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+  .chain-node p { font-size: 9px; color: #64748b; line-height: 1.4; }
+  .chain-node .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 9px; color: #6366f1; }
+  .chain-node.highlight { border-color: #f59e0b; background: #fffbeb; box-shadow: 0 0 12px rgba(245,158,11,0.15); }
+  .chain-node.start { border-radius: 24px; border-color: #6366f1; background: #eef2ff; }
+  .chain-node.end { border-radius: 24px; border-color: #059669; background: #ecfdf5; }
+  .chain-node.danger { border-color: #ef4444; background: #fef2f2; }
+  .chain-node.nventr { border-color: #6366f1; background: #eef2ff; }
+  .chain-arrow { font-size: 9px; color: #94a3b8; padding: 0 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; white-space: nowrap; }
+  .chain-arrow span { font-size: 14px; color: #cbd5e1; }
+
+  .principle-banner {
+    max-width: 1300px; width: 100%;
+    padding: 14px 24px; margin: 4px 0;
+    border-radius: 8px; text-align: center;
+    font-size: 12px; font-weight: 600;
+    background: #eef2ff; border: 1px solid #c7d2fe; color: #4338ca;
+  }
+  .principle-banner.warn {
+    background: #fef2f2; border-color: #fecaca; color: #991b1b;
+  }
+
+  .split-row { display: flex; gap: 16px; width: 100%; max-width: 1300px; }
+  .split-col { flex: 1; display: flex; flex-direction: column; gap: 0; }
+  .split-col .section-title { border-radius: 12px 12px 0 0; }
+  .split-col .card-col {
+    background: #fff; border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 12px 12px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .split-col .card-col .card-item {
+    padding: 14px 18px; border-bottom: 1px solid #f1f5f9;
+  }
+  .split-col .card-col .card-item:last-child { border-bottom: none; }
+  .split-col .card-col .card-item h4 { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .split-col .card-col .card-item p { font-size: 11px; color: #64748b; line-height: 1.55; }
+  .split-col .card-col .card-item .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 10px; color: #6366f1; background: #eef2ff; padding: 1px 5px; border-radius: 3px; }
+
+  .tri-row { display: flex; gap: 16px; width: 100%; max-width: 1300px; }
+  .tri-col { flex: 1; display: flex; flex-direction: column; gap: 0; }
+  .tri-col .section-title { border-radius: 12px 12px 0 0; }
+  .tri-col .card-col {
+    background: #fff; border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 12px 12px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    flex: 1;
+  }
+  .tri-col .card-col .card-item {
+    padding: 14px 16px; border-bottom: 1px solid #f1f5f9;
+  }
+  .tri-col .card-col .card-item:last-child { border-bottom: none; }
+  .tri-col .card-col .card-item h4 { font-size: 12px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+  .tri-col .card-col .card-item p { font-size: 10px; color: #64748b; line-height: 1.5; }
+  .tri-col .card-col .card-item .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 9px; color: #6366f1; background: #eef2ff; padding: 1px 4px; border-radius: 3px; }
+
+  .st-red { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+  .st-blue { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+  .st-green { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+  .st-yellow { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+  .st-purple { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+  .st-slate { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+  .st-cyan { background: #ecfeff; color: #155e75; border-color: #a5f3fc; }
+  .st-orange { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+  .st-pink { background: #fdf2f8; color: #9d174d; border-color: #fbcfe8; }
+  .st-teal { background: #f0fdfa; color: #115e59; border-color: #99f6e4; }
+  .st-indigo { background: #eef2ff; color: #3730a3; border-color: #c7d2fe; }
+
+  .accent-red .card { border-top: 3px solid #f87171; }
+  .accent-blue .card { border-top: 3px solid #60a5fa; }
+  .accent-green .card { border-top: 3px solid #4ade80; }
+  .accent-yellow .card { border-top: 3px solid #fbbf24; }
+  .accent-purple .card { border-top: 3px solid #a78bfa; }
+  .accent-slate .card { border-top: 3px solid #94a3b8; }
+  .accent-cyan .card { border-top: 3px solid #22d3ee; }
+  .accent-teal .card { border-top: 3px solid #2dd4bf; }
+  .accent-indigo .card { border-top: 3px solid #818cf8; }
+  .accent-orange .card { border-top: 3px solid #fb923c; }
+
+  .esc-low { border-left: 4px solid #4ade80 !important; text-align: left !important; }
+  .esc-med { border-left: 4px solid #fbbf24 !important; text-align: left !important; }
+  .esc-high { border-left: 4px solid #fb923c !important; text-align: left !important; }
+  .esc-crit { border-left: 4px solid #ef4444 !important; text-align: left !important; }
+
+  .footer { text-align: center; padding: 24px; font-size: 11px; color: #94a3b8; }
+
+  @media (max-width: 900px) {
+    .card-row, .chain-row { flex-direction: column; }
+    .chain-arrow span { transform: rotate(90deg); }
+    .split-row, .tri-row { flex-direction: column; }
+  }
+  @media print { .header { position: static; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>Teleoperation Governance Architecture</h1>
+      <div class="header-sub">nventr &mdash; ATC-Grade Control, Audit &amp; Oversight Framework &bull; February 2026</div>
+    </div>
+    <button class="export-btn" onclick="exportPNG()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Export PNG
+    </button>
+  </div>
+</div>
+
+<div class="canvas">
+  <div class="title-bar">
+    <h2>End-to-End Teleoperation Governance &amp; Technical Architecture</h2>
+    <p>Threats &rarr; Certification &rarr; Session &rarr; Vendor APIs &rarr; nventr Abstraction &rarr; Control Chain &rarr; Edge/Cloud &rarr; Audit &rarr; Tamper Resistance &rarr; Roles &rarr; Monitoring &rarr; Escalation &rarr; Incident Response</p>
+  </div>
+
+  <div class="flow">
+
+    <!-- ═══ 01. THREATS ═══ -->
+    <div class="section-title st-red"><span class="num">01</span> THREAT VECTORS — What We Defend Against</div>
+    <div class="card-row accent-red">
+      <div class="card">
+        <h4>Rogue Operator</h4>
+        <p>Intentional damage &middot; Task boundary violation &middot; Idle / throughput gaming &middot; Unnecessary manual control &middot; Performance metric fraud</p>
+      </div>
+      <div class="card">
+        <h4>Rogue Manager</h4>
+        <p>Override safety limits &middot; Suppress or dismiss alerts &middot; Shield bad operators &middot; Obstruct audit trail &middot; Reassign blame</p>
+      </div>
+      <div class="card">
+        <h4>Robot / Software Fault</h4>
+        <p>Unintended command exec &middot; Misinterpret input &middot; Continue after disconnect &middot; Fail to obey E-stop &middot; Dual-path control bypass</p>
+      </div>
+      <div class="card">
+        <h4>Honest Mistake</h4>
+        <p>Error under pressure &middot; Fatigue-induced slip &middot; Ambiguous situation &middot; Training gap &middot; Miscommunication</p>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Mitigated by all layers below</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 02. CERTIFICATION ═══ -->
+    <div class="section-title st-blue"><span class="num">02</span> OPERATOR CERTIFICATION GATE — Before Any Access Is Granted</div>
+    <div class="card-row accent-blue">
+      <div class="card"><h4>1. Screen</h4><p>Cognitive aptitude test &middot; Background check &middot; Integrity assessment</p></div>
+      <div class="card"><h4>2. Train</h4><p>Simulator academy &middot; Safety procedures &middot; SOP training</p></div>
+      <div class="card"><h4>3. Supervise</h4><p>Mentor shadow &middot; Graded live tasks &middot; Performance evaluation</p></div>
+      <div class="card"><h4>4. Certify</h4><p>Practical exam &middot; Per robot class &middot; Per warehouse site</p></div>
+      <div class="card"><h4>5. Recertify</h4><p>Quarterly review &middot; Post-incident review &middot; Revocable at any time</p></div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Certified operator enters session</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 03. SESSION ═══ -->
+    <div class="section-title st-green"><span class="num">03</span> SESSION GOVERNANCE — Every Teleop Session Is Scoped &amp; Bounded</div>
+    <div class="card-row accent-green">
+      <div class="card"><h4>Authenticate</h4><p>SSO + MFA &middot; Device verified &middot; Certification valid</p></div>
+      <div class="card"><h4>Scope Lock</h4><p>Assigned task only &middot; Assigned robot only &middot; Assigned zone only</p></div>
+      <div class="card"><h4>Time Bound</h4><p>Max duration cap &middot; Auto-expiry &middot; Shift limits enforced</p></div>
+      <div class="card"><h4>Auto-Record</h4><p>Starts with session &middot; Stops with session &middot; No opt-out</p></div>
+      <div class="card"><h4>Heartbeat</h4><p>50ms watchdog &middot; Disconnect = immediate E-stop via <span class="mono">API 6004</span></p></div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Session active — commands flow through vendor API stack</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 04. VENDOR API STACK ═══ -->
+    <div class="section-title st-orange"><span class="num">04</span> VENDOR API STACK — AIVISON SRC (Seer Robot Controller) &mdash; Not ROS2</div>
+    <div class="split-row">
+      <div class="split-col">
+        <div class="section-title st-orange" style="font-size:10px;">RDSCore — Fleet Scheduler (HTTP REST + WebSocket)</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Protocol</h4>
+            <p>HTTP/1.1 REST on port <span class="mono">8088</span> &middot; WebSocket on port <span class="mono">8089</span> for push telemetry at 10Hz</p>
+          </div>
+          <div class="card-item">
+            <h4>Key APIs</h4>
+            <p><span class="mono">POST /setOrder</span> &middot; <span class="mono">POST /terminate</span> &middot; <span class="mono">POST /lock</span> &middot; <span class="mono">POST /pause-navigation</span> &middot; <span class="mono">POST /saveParams</span></p>
+          </div>
+          <div class="card-item">
+            <h4>Control Model</h4>
+            <p>Order-based: task = sequence of blocks (waypoint + operation). Not real-time velocity. Used for navigation-level commands.</p>
+          </div>
+          <div class="card-item">
+            <h4>Safety Exposure</h4>
+            <p><span class="mono">/saveParams</span> can permanently change speed caps, geofence boundaries, navigation tolerances. No built-in access control.</p>
+          </div>
+        </div>
+      </div>
+      <div class="split-col">
+        <div class="section-title st-red" style="font-size:10px;">Robokit — Direct Robot Control (Binary TCP)</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Protocol</h4>
+            <p>Custom binary frame (16-byte header: sync 0x5A + version + seq + length + type) over 6 TCP ports <span class="mono">19204–19301</span></p>
+          </div>
+          <div class="card-item">
+            <h4>Key APIs</h4>
+            <p><span class="mono">API 2010</span> Open Loop Motion (raw vx/vy/w) &middot; <span class="mono">API 4005</span> Seize Control &middot; <span class="mono">API 6004</span> Soft E-stop &middot; <span class="mono">API 4101</span> Set Params Permanent</p>
+          </div>
+          <div class="card-item">
+            <h4>Control Model</h4>
+            <p>Direct hardware control: raw velocity commands to motor driver. Real-time. Telemetry push at 100–200ms via port <span class="mono">19301</span>.</p>
+          </div>
+          <div class="card-item">
+            <h4>Safety Exposure</h4>
+            <p><span class="mono">API 2010</span> has NO geofencing, NO speed cap, NO collision check. It executes raw velocity immediately on the motor driver.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="principle-banner warn">
+      <strong>Critical Risk:</strong> RDSCore and Robokit can both control the same robot simultaneously. Neither is aware of what the other is doing. This is the primary architectural attack surface.
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">nventr wraps both APIs behind a unified safety-enforced abstraction</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 05. NVENTR ABSTRACTION ═══ -->
+    <div class="section-title st-indigo"><span class="num">05</span> nventr ABSTRACTION LAYER — Wrapper, Safety Process &amp; Adapter Architecture</div>
+    <div class="tri-row">
+      <div class="tri-col">
+        <div class="section-title st-indigo" style="font-size:10px;">Lock &amp; Control Acquisition</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Permanent Lock Hold</h4>
+            <p>nventr holds <span class="mono">API 4005</span> Seize Control on every robot at all times. SRC set to Control Mode via <span class="mono">API 4003</span>. Other controllers get rejection responses.</p>
+          </div>
+          <div class="card-item">
+            <h4>Lock Monitoring</h4>
+            <p>Monitor <span class="mono">locked</span> field in telemetry push (<span class="mono">19301</span>). If <span class="mono">locked=false</span> appears &rarr; immediate re-lock + CRITICAL alert + soft E-stop.</p>
+          </div>
+          <div class="card-item">
+            <h4>Lock Release</h4>
+            <p>Only during decommissioning or planned maintenance. Requires multi-party approval (Section 13, Rule 2).</p>
+          </div>
+        </div>
+      </div>
+      <div class="tri-col">
+        <div class="section-title st-indigo" style="font-size:10px;">Edge Safety Process</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Speed Cap Enforcement</h4>
+            <p>Clamp |vx|, |vy|, |w| to configurable maxima before calling <span class="mono">API 2010</span>. nventr's own config — does not rely on robot-side params.</p>
+          </div>
+          <div class="card-item">
+            <h4>Geofence Validation</h4>
+            <p>On every command, query robot position from telemetry push. Validate target is within session's assigned zone. Reject + log if not.</p>
+          </div>
+          <div class="card-item">
+            <h4>Collision Pre-Check</h4>
+            <p>Use <span class="mono">block_x, block_y, block_reason</span> from telemetry. If obstacle within threshold &rarr; rate-limit or halt motion.</p>
+          </div>
+          <div class="card-item">
+            <h4>E-Stop Authority</h4>
+            <p>Only the Safety Process calls <span class="mono">API 6004</span>. No other nventr component has this permission. E-stop never routes through fleet scheduler.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tri-col">
+        <div class="section-title st-indigo" style="font-size:10px;">Vendor Adapter Interface</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Abstract Robot Contract</h4>
+            <p>Each robot described by a capability contract: motion type, max speed, attachments, telemetry push interval. Vendor-independent.</p>
+          </div>
+          <div class="card-item">
+            <h4>Adapter Methods</h4>
+            <p><span class="mono">VelocityCommand()</span> &middot; <span class="mono">NavigateTo()</span> &middot; <span class="mono">EmergencyStop()</span> &middot; <span class="mono">GetTelemetry()</span> &middot; <span class="mono">AcquireLock()</span> &middot; <span class="mono">ReleaseLock()</span></p>
+          </div>
+          <div class="card-item">
+            <h4>Future-Proof</h4>
+            <p>AIVISON adapter today calls Robokit/RDSCore. Future vendor adapter calls ROS2 or other protocol. Safety and governance layers never change.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Abstraction layer enforces the control chain below</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 06. CONTROL CHAIN ═══ -->
+    <div class="section-title st-yellow"><span class="num">06</span> CONTROL CHAIN — Technically Mapped to Actual APIs</div>
+    <div class="chain-row">
+      <div class="chain-node start">
+        <h4>Operator</h4>
+        <p>Joystick vx/vy/w<br/>or "go to station X"</p>
+      </div>
+      <div class="chain-arrow"><span>&rarr;</span>intent</div>
+      <div class="chain-node nventr">
+        <h4>nventr Control API</h4>
+        <p>Validate &middot; Auth &middot; Rate limit<br/>Session scope check</p>
+      </div>
+      <div class="chain-arrow"><span>&rarr;</span>validated</div>
+      <div class="chain-node highlight">
+        <h4>nventr Safety Process</h4>
+        <p>Speed clamp &middot; Geofence<br/>Collision pre-check<br/>E-stop authority<br/><span class="mono">&lt;30ms latency budget</span></p>
+      </div>
+      <div class="chain-arrow"><span>&rarr;</span>safe cmd</div>
+      <div class="chain-node nventr">
+        <h4>Vendor Adapter</h4>
+        <p>Translate to vendor API<br/><span class="mono">AIVISON adapter</span></p>
+      </div>
+      <div class="chain-arrow"><span>&rarr;</span>vendor call</div>
+      <div class="chain-node danger">
+        <h4>Robokit API 2010</h4>
+        <p>Open Loop Motion<br/><span class="mono">{vx, vy, w, duration}</span><br/>Raw motor execution</p>
+      </div>
+      <div class="chain-arrow"><span>&rarr;</span>motor cmd</div>
+      <div class="chain-node end">
+        <h4>Actuator</h4>
+        <p>Physical movement</p>
+      </div>
+    </div>
+
+    <div class="principle-banner">
+      <strong>Core Rule:</strong> nventr Safety Process sits inline in the real-time path. Operator intent never reaches <span style="font-family:monospace">API 2010</span> without passing through speed clamp, geofence, and collision checks. The direct Robokit path is locked — only nventr's Safety Process can issue commands.
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Control and telemetry split across edge and cloud</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 07. EDGE / CLOUD ═══ -->
+    <div class="section-title st-slate"><span class="num">07</span> HYBRID EDGE / CLOUD ARCHITECTURE</div>
+    <div class="split-row">
+      <div class="split-col">
+        <div class="section-title st-teal" style="font-size:10px;">Edge Node (Per Warehouse)</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>What Runs Here</h4>
+            <p>nventr Safety Process &middot; Robokit lock holder &middot; Watchdog heartbeat (50ms) &middot; Vendor Adapter &middot; Write-ahead audit log buffer &middot; Hash-chain process &middot; Local WORM append store</p>
+          </div>
+          <div class="card-item">
+            <h4>Why Edge</h4>
+            <p>Safety enforcement must be &lt;30ms latency. Network round-trip to cloud disqualifies cloud-only for real-time control.</p>
+          </div>
+          <div class="card-item">
+            <h4>Connectivity</h4>
+            <p>LAN to robots &lt;5ms &middot; WAN to cloud for audit sync (tolerates higher latency, not in control path)</p>
+          </div>
+          <div class="card-item">
+            <h4>Failure Mode</h4>
+            <p>If cloud sync fails, edge continues operating and buffering. Audit data queued, not lost. Sync resumes on reconnect.</p>
+          </div>
+        </div>
+      </div>
+      <div class="split-col">
+        <div class="section-title st-purple" style="font-size:10px;">Cloud (Central)</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>What Runs Here</h4>
+            <p>WORM audit storage (L1–L5) &middot; Hash chain verification &middot; Risk scoring engine &middot; Alert escalation pipeline &middot; Geo-separated auth service &middot; Compliance / auditor portals &middot; Session recording archive</p>
+          </div>
+          <div class="card-item">
+            <h4>Why Cloud</h4>
+            <p>Audit integrity, multi-facility correlation, geo-separated approval workflow, independent auditor access — all require a location not controlled by any single facility.</p>
+          </div>
+          <div class="card-item">
+            <h4>Geo-Separated Auth</h4>
+            <p>Permanent parameter changes at one facility require approval from a person at a different facility. Cloud verifies approver location.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Every action at every step is captured in the audit pipeline</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 08. AUDIT ═══ -->
+    <div class="section-title st-purple"><span class="num">08</span> 5-LAYER IMMUTABLE AUDIT — Full Reconstruction Capability</div>
+    <div class="card-row accent-purple">
+      <div class="card">
+        <h4>L1 &middot; Command Log</h4>
+        <p>Every input with operator ID, session, robot, task, timestamp, device. Append-only, hash-chained via async WAL pipeline. No deletes ever.</p>
+      </div>
+      <div class="card">
+        <h4>L2 &middot; Environment</h4>
+        <p>Robot telemetry from <span class="mono">port 19301</span> push (100ms). Position, speed, battery, sensors, safety state. Both robot + edge timestamps stored.</p>
+      </div>
+      <div class="card">
+        <h4>L3 &middot; Video + Screen</h4>
+        <p>Robot camera feed, operator screen capture, control overlay, synchronized timestamps.</p>
+      </div>
+      <div class="card">
+        <h4>L4 &middot; Communications</h4>
+        <p>Voice, chat, radio, messaging — all timestamp-linked to active session.</p>
+      </div>
+      <div class="card">
+        <h4>L5 &middot; Oversight Log</h4>
+        <p>Overrides, E-stops (<span class="mono">API 6004</span>), alert dismissals, privilege changes, parameter modifications, session terminations.</p>
+      </div>
+    </div>
+
+    <div class="principle-banner">
+      <strong>Audit Pipeline:</strong> Edge WAL buffer &rarr; dedicated hash-chain process (SHA-256, async, never blocks control path) &rarr; local WORM append store &rarr; cloud sync every 30s or on session end &rarr; cloud WORM with daily anchor.
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Stored in tamper-proof infrastructure</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 09. TAMPER RESISTANCE ═══ -->
+    <div class="section-title st-slate"><span class="num">09</span> TAMPER RESISTANCE — No One Can Alter History</div>
+    <div class="card-row accent-slate">
+      <div class="card">
+        <h4>WORM Storage</h4>
+        <p>Object store with retention lock — write once, read many. Edge + cloud.</p>
+      </div>
+      <div class="card">
+        <h4>Hash Chain</h4>
+        <p>SHA-256 — each entry linked to previous. Store base files + configs that produce the hash (required for reproducibility).</p>
+      </div>
+      <div class="card">
+        <h4>Daily Anchor</h4>
+        <p>Digest verified by internal team at a <strong>geo-separated facility</strong> — not an external third party.</p>
+      </div>
+      <div class="card">
+        <h4>Time Sync</h4>
+        <p>NTP/PTP &lt;5ms drift. Cross-check robot <span class="mono">create_on</span> timestamps against edge wall clock. Drift &gt;5ms = alert.</p>
+      </div>
+      <div class="card">
+        <h4>Access Audit</h4>
+        <p>All access to logs is itself logged and hash-chained.</p>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Audit data feeds governance: roles, monitoring, and parameter control</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 10. SPLIT: ROLES + MONITORING ═══ -->
+    <div class="split-row">
+      <div class="split-col">
+        <div class="section-title st-orange"><span class="num">10</span> SEPARATION OF DUTIES — Four Distinct Roles</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Operator</h4>
+            <p><strong>CAN:</strong> Control assigned robots within task scope<br/><strong>CANNOT:</strong> Delete logs, modify thresholds, suppress alerts, self-certify</p>
+          </div>
+          <div class="card-item">
+            <h4>Site Manager</h4>
+            <p><strong>CAN:</strong> Assign operators, pause operations, request escalation<br/><strong>CANNOT:</strong> Delete audit trail, suppress safety alerts, silent override, self-review incidents</p>
+          </div>
+          <div class="card-item">
+            <h4>Compliance Officer</h4>
+            <p><strong>CAN:</strong> Review policies, verify controls are followed, suspend privileges, escalate to regional<br/><strong>CANNOT:</strong> Control any robot, alter operational parameters, access raw audit data</p>
+          </div>
+          <div class="card-item">
+            <h4>Auditor (Independent)</h4>
+            <p><strong>CAN:</strong> Read-only access to all logs, freeze artifacts, conduct independent reviews, produce audit reports<br/><strong>CANNOT:</strong> Control any robot, alter parameters, make operational decisions, modify audit data</p>
+          </div>
+        </div>
+      </div>
+      <div class="split-col">
+        <div class="section-title st-cyan"><span class="num">11</span> PROACTIVE MONITORING</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Operator Risk Score (Rolling)</h4>
+            <p>Teleop duration &middot; % tasks teleoped &middot; Micro-corrections/min &middot; Idle time &middot; Override frequency &middot; Safety proximity events &middot; Out-of-hours engagement</p>
+          </div>
+          <div class="card-item">
+            <h4>Manager Risk Score (Rolling)</h4>
+            <p>Override count/day &middot; Alert dismissal rate &middot; Safety limit changes &middot; Incident self-review attempts</p>
+          </div>
+          <div class="card-item">
+            <h4>Baseline Comparison</h4>
+            <p>Compare against peer baseline, historical self-baseline, and shift baseline. Significant deviation = auto-flag before damage occurs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Anomalies, role violations, and parameter changes route to governance</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 11. SPLIT: PARAM INTERCEPT + OVERRIDES + ESCALATION ═══ -->
+    <div class="tri-row">
+      <div class="tri-col">
+        <div class="section-title st-red" style="font-size:10px;"><span class="num">12</span> PARAMETER MODIFICATION INTERCEPT</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>Intercept All Permanent Changes</h4>
+            <p>nventr proxy blocks <span class="mono">/saveParams</span> (RDSCore) and <span class="mono">API 4101</span> (Robokit). No direct calls allowed.</p>
+          </div>
+          <div class="card-item">
+            <h4>Multi-Party + Geo-Separated</h4>
+            <p>Permanent param changes require approval from a person at a <strong>different facility</strong>. Cloud verifies approver location.</p>
+          </div>
+          <div class="card-item">
+            <h4>Before/After Hash</h4>
+            <p>At session start: hash all robot params via <span class="mono">API 1400</span>. At session end: re-read and compare. Unapproved diff = CRITICAL alert.</p>
+          </div>
+        </div>
+      </div>
+      <div class="tri-col">
+        <div class="section-title st-pink" style="font-size:10px;"><span class="num">13</span> MANAGER OVERRIDE SAFEGUARDS</div>
+        <div class="card-col">
+          <div class="card-item">
+            <h4>1. Log Everything</h4>
+            <p>Reason code, Manager ID, duration, scope, task ID — separate immutable audit trail</p>
+          </div>
+          <div class="card-item">
+            <h4>2. Safety Changes = Multi-Party</h4>
+            <p>Manager + Regional Safety Officer + geo-separated approver</p>
+          </div>
+          <div class="card-item">
+            <h4>3. Auto-Revert &amp; Notify</h4>
+            <p>Overrides revert after 5 min &middot; Auto-notify regional oversight &middot; Feeds manager risk score</p>
+          </div>
+          <div class="card-item">
+            <h4>4. Threshold Enforcement</h4>
+            <p>Exceeding override frequency &rarr; auto-escalation to regional director</p>
+          </div>
+        </div>
+      </div>
+      <div class="tri-col">
+        <div class="section-title st-red" style="font-size:10px;"><span class="num">14</span> ALERT ESCALATION</div>
+        <div class="card-col">
+          <div class="card-item esc-low">
+            <h4>LOW</h4>
+            <p>Log event &middot; Notify site manager</p>
+          </div>
+          <div class="card-item esc-med">
+            <h4>MEDIUM</h4>
+            <p>Ticket + replay snippet &middot; Manager + regional ops &middot; SLA: 1hr</p>
+          </div>
+          <div class="card-item esc-high">
+            <h4>HIGH</h4>
+            <p>Auto-disable operator &middot; Regional ops + safety officer &middot; Incident package</p>
+          </div>
+          <div class="card-item esc-crit">
+            <h4>CRITICAL</h4>
+            <p>Disable + freeze logs &middot; Regional director + compliance &middot; Immediate review</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Critical events and robot safety failures trigger incident response</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 12. ROBOT SAFETY ═══ -->
+    <div class="section-title st-teal"><span class="num">15</span> ROBOT SAFETY BACKSTOPS — Enforced by nventr Edge Safety Process</div>
+    <div class="card-row accent-teal">
+      <div class="card">
+        <h4>Speed Caps</h4>
+        <p>nventr clamps vx/vy/w before <span class="mono">API 2010</span>. Does not rely on robot-side params (can be changed via <span class="mono">API 4101</span>).</p>
+      </div>
+      <div class="card">
+        <h4>Geofence</h4>
+        <p>Position checked against session zone on every command. nventr-enforced, not vendor-enforced.</p>
+      </div>
+      <div class="card">
+        <h4>Collision Avoidance</h4>
+        <p>Uses <span class="mono">block_x/y</span> from telemetry push. Threshold-based halt. Never disabled.</p>
+      </div>
+      <div class="card">
+        <h4>E-Stop</h4>
+        <p><span class="mono">API 6004</span> &middot; Only Safety Process can call &middot; Never routes through fleet scheduler &middot; Highest priority</p>
+      </div>
+      <div class="card">
+        <h4>Heartbeat Watchdog</h4>
+        <p>50ms heartbeat. On miss: <span class="mono">API 6004</span> E-stop + <span class="mono">API 3003</span> Cancel Nav in parallel. Does not wait for ControlMotionDuration.</p>
+      </div>
+      <div class="card">
+        <h4>Lock Guard</h4>
+        <p>nventr holds <span class="mono">API 4005</span> lock permanently. Lock-lost = CRITICAL alert + immediate E-stop + re-lock.</p>
+      </div>
+    </div>
+
+    <div class="arrow-down"><div class="line"></div><div class="label">Any failure triggers forensic protocol</div><div class="line"></div><div class="tri"></div></div>
+
+    <!-- ═══ 13. INCIDENT RESPONSE ═══ -->
+    <div class="section-title st-indigo"><span class="num">16</span> INCIDENT RESPONSE — ATC-Grade Forensic Protocol</div>
+    <div class="card-row accent-indigo">
+      <div class="card"><h4>1. Freeze</h4><p>Auto-lock session logs, video archive, and telemetry</p></div>
+      <div class="card"><h4>2. Package</h4><p>Auto-generate replay: command log + 30–120s video + telemetry + screen + chat + hash</p></div>
+      <div class="card"><h4>3. Assign</h4><p>Independent reviewer — NOT the site manager who owns the operator</p></div>
+      <div class="card"><h4>4. Investigate</h4><p>Timeline reconstruction &middot; Root cause: human error, malicious, software bug, or hardware</p></div>
+      <div class="card"><h4>5. Remediate</h4><p>System &rarr; patch &middot; Human &rarr; retrain or suspend &middot; Process &rarr; SOP update</p></div>
+      <div class="card"><h4>6. Report</h4><p>Timeline, evidence, actions, lessons learned — archived immutably</p></div>
+    </div>
+
+    <!-- ═══ BOTTOM PRINCIPLE ═══ -->
+    <div class="principle-banner" style="margin-top: 20px;">
+      <strong>Design Principle:</strong> No single human can cause irreversible harm without detection. No single role can both act and erase evidence. Safety enforcement is built by nventr, not configured on the vendor — because the vendor APIs have no built-in safety.
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">nventr &bull; Teleoperation Governance &amp; Technical Architecture &bull; February 2026 &bull; Internal Use</div>
+
+<script>
+function exportPNG() {
+  var btn = document.querySelector('.export-btn');
+  btn.classList.add('exporting');
+  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Exporting...';
+  var target = document.querySelector('.canvas');
+  html2canvas(target, {
+    scale: 2,
+    backgroundColor: '#f8fafc',
+    useCORS: true,
+    logging: false,
+    windowWidth: 1500
+  }).then(function(canvas) {
+    var link = document.createElement('a');
+    link.download = 'teleop-governance-architecture-nventr.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.classList.remove('exporting');
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Export PNG';
+  }).catch(function() {
+    btn.classList.remove('exporting');
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Export PNG';
+    alert('Export failed. Please try again.');
+  });
+}
+</script>
+</body>
+</html>

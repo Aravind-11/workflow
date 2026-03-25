@@ -1,0 +1,18 @@
+.xr-enter-button {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+}
+
+button {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: #64748b;
+}

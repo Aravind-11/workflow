@@ -1,0 +1,17 @@
+[Unit]
+Description=NVENTR FRP Client
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jetson
+WorkingDirectory=/home/jetson/frp
+ExecStart=/home/jetson/frp/frpc -c /home/jetson/frp/frpc.ini
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
