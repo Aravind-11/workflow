@@ -5,6 +5,7 @@ import { createContext, useContext } from "react";
 export type AuthClientState = {
   email: string;
   fullName: string;
+  nickname: string | null;
   permissions: string[];
   roleNames: string[];
 };
