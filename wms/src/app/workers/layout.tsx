@@ -1,17 +1,16 @@
 import { WorkerSubNav } from "@/components/workers/worker-subnav";
 import { P } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/session";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export default async function WorkersLayout({ children }: { children: React.ReactNode }) {
   await requirePermission(P.workers.manage);
   return (
     <div className="space-y-6">
-      <div className="mb-2">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Labor &amp; scheduling</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
-          Worker directory, assignments, shifts, and time tracking.
-        </p>
-      </div>
+      <SectionHeader
+        title="Labor & Scheduling"
+        description="Worker directory, assignments, shifts, and time tracking."
+      />
       <WorkerSubNav />
       {children}
     </div>

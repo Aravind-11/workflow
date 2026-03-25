@@ -1,14 +1,18 @@
 import { P } from "@/lib/auth/permissions";
 import { requirePermission } from "@/lib/auth/session";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { WorkflowBreadcrumb } from "@/components/ui/WorkflowBreadcrumb";
 
 export default async function PackingLayout({ children }: { children: React.ReactNode }) {
   await requirePermission(P.packing.manage);
   return (
     <div className="space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Packing</h1>
-        <p className="text-sm text-gray-500">Pack lists confirm quantities before shipping.</p>
-      </div>
+      <SectionHeader
+        title="Packing"
+        description="Verify picked quantities and pack into containers for shipping."
+      >
+        <WorkflowBreadcrumb active="packing" />
+      </SectionHeader>
       {children}
     </div>
   );
