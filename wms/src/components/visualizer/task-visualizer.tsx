@@ -37,6 +37,7 @@ export function TaskVisualizer({
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedZoneName, setSelectedZoneName] = useState<string | null>(null);
+  const [previousZone, setPreviousZone] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
@@ -63,17 +64,30 @@ export function TaskVisualizer({
 
   function handleZoneClick(zoneName: string) {
     setSelectedTaskId(null);
+    setPreviousZone(null);
     setSelectedZoneName(zoneName);
   }
 
   function handleTaskClick(taskId: string) {
+    if (selectedZoneName) {
+      setPreviousZone(selectedZoneName);
+    }
     setSelectedZoneName(null);
     setSelectedTaskId(taskId);
+  }
+
+  function handleBackToZone() {
+    if (previousZone) {
+      setSelectedTaskId(null);
+      setSelectedZoneName(previousZone);
+      setPreviousZone(null);
+    }
   }
 
   function handleCloseSidebar() {
     setSelectedTaskId(null);
     setSelectedZoneName(null);
+    setPreviousZone(null);
   }
 
   function saveFloorPlan() {
@@ -160,11 +174,13 @@ export function TaskVisualizer({
               logs={taskLogs[selectedTask.id] ?? []}
               zones={zones}
               workers={workers}
+              onBack={previousZone ? handleBackToZone : undefined}
               onClose={handleCloseSidebar}
             />
           ) : selectedZone ? (
             <ZoneDetailSidebar
               zone={selectedZone}
+              warehouseId={warehouseId}
               tasks={zoneTasks}
               allTasks={tasks}
               taskLogs={taskLogs}
