@@ -1,6 +1,12 @@
-import { TaskStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
-import type { FloorArrow, FloorPlanData, FloorZone, TaskLogEntry, TaskOnMap } from "./types";
+import type {
+  FloorArrow,
+  FloorPlanData,
+  FloorZone,
+  RouteTemplate,
+  TaskLogEntry,
+  TaskOnMap,
+} from "./types";
 
 export async function getFloorPlan(
   warehouseId: string,
@@ -21,13 +27,17 @@ export async function getTasksForMap(
   warehouseId: string,
 ): Promise<TaskOnMap[]> {
   const tasks = await prisma.task.findMany({
-    where: {
-      warehouseId,
-      status: { in: [TaskStatus.OPEN, TaskStatus.IN_PROGRESS] },
-    },
+    where: { warehouseId },
     include: {
       workerProfile: { select: { firstName: true, lastName: true } },
       location: { select: { locationCode: true, zone: true } },
+      routeTemplate: { select: { zoneSequence: true } },
+      logs: {
+        where: { action: "TICKET" },
+        take: 1,
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
+      },
     },
     orderBy: [{ priority: "asc" }, { createdAt: "desc" }],
   });
@@ -47,6 +57,11 @@ export async function getTasksForMap(
     locationCode: t.location?.locationCode ?? null,
     dueDate: t.dueDate?.toISOString() ?? null,
     createdAt: t.createdAt.toISOString(),
+    routeTemplateId: t.routeTemplateId,
+    expectedRoute: t.routeTemplate
+      ? (t.routeTemplate.zoneSequence as string[])
+      : null,
+    hasTicket: t.logs.length > 0,
   }));
 }
 
@@ -63,5 +78,20 @@ export async function getTaskLogs(taskId: string): Promise<TaskLogEntry[]> {
     message: l.message,
     zoneName: l.zoneName,
     createdAt: l.createdAt.toISOString(),
+  }));
+}
+
+export async function getRouteTemplates(
+  warehouseId: string,
+): Promise<RouteTemplate[]> {
+  const templates = await prisma.routeTemplate.findMany({
+    where: { warehouseId },
+    orderBy: { name: "asc" },
+  });
+
+  return templates.map((t) => ({
+    id: t.id,
+    name: t.name,
+    zoneSequence: t.zoneSequence as string[],
   }));
 }

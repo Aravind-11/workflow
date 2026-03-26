@@ -6,18 +6,23 @@ import { Button } from "@/components/ui/button";
 import {
   addTaskLogAction,
   assignTaskAction,
+  assignRouteToTaskAction,
   deleteTaskAction,
   raiseTicketAction,
   updateTaskStatusAction,
   updateTaskZoneAction,
 } from "@/features/floor-plan/actions";
-import type { FloorZone, TaskLogEntry, TaskOnMap } from "@/features/floor-plan/types";
+import { TaskPathTracer } from "./task-path-tracer";
+import type { FloorZone, RouteTemplate, TaskLogEntry, TaskOnMap } from "@/features/floor-plan/types";
 
 type Props = {
   task: TaskOnMap;
   logs: TaskLogEntry[];
   zones: FloorZone[];
   workers: { id: string; name: string }[];
+  routes: RouteTemplate[];
+  showPathOnMap: boolean;
+  onToggleShowPath: (v: boolean) => void;
   onBack?: () => void;
   onClose: () => void;
 };
@@ -33,7 +38,17 @@ const TICKET_REASONS = [
 const inputCls =
   "w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
 
-export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose }: Props) {
+export function TaskDetailSidebar({
+  task,
+  logs,
+  zones,
+  workers,
+  routes,
+  showPathOnMap,
+  onToggleShowPath,
+  onBack,
+  onClose,
+}: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
@@ -54,7 +69,6 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
 
   return (
     <div className="flex h-full flex-col overflow-y-auto border-l border-slate-200 bg-white dark:border-navy-border dark:bg-navy-surface">
-      {/* Header */}
       {onBack && (
         <button
           type="button"
@@ -91,146 +105,95 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {/* Status */}
         <section>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">
-            Status
-          </label>
-          <select
-            className={inputCls + " mt-1"}
-            value={task.status}
-            disabled={isPending}
-            onChange={(e) =>
-              act(() => updateTaskStatusAction({ taskId: task.id, status: e.target.value }))
-            }
-          >
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s.replace(/_/g, " ")}
-              </option>
-            ))}
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Status</label>
+          <select className={inputCls + " mt-1"} value={task.status} disabled={isPending}
+            onChange={(e) => act(() => updateTaskStatusAction({ taskId: task.id, status: e.target.value }))}>
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
           </select>
         </section>
 
         {/* Assignment */}
         <section>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">
-            Assigned to
-          </label>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Assigned to</label>
           <div className="mt-1 flex items-center gap-1.5">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                task.assigneeType === "ROBOT"
-                  ? "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300"
-                  : task.assigneeName
-                    ? "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300"
-                    : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
-              }`}
-            >
-              {task.assigneeType === "ROBOT"
-                ? "Robot"
-                : task.assigneeName ?? "Unassigned"}
+            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+              task.assigneeType === "ROBOT"
+                ? "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300"
+                : task.assigneeName
+                  ? "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300"
+                  : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
+            }`}>
+              {task.assigneeType === "ROBOT" ? "Robot" : task.assigneeName ?? "Unassigned"}
             </span>
           </div>
           <div className="mt-2 flex gap-1">
-            <select
-              className={inputCls + " flex-1"}
-              disabled={isPending}
-              defaultValue=""
+            <select className={inputCls + " flex-1"} disabled={isPending} defaultValue=""
               onChange={(e) => {
                 const val = e.target.value;
-                if (val === "ROBOT") {
-                  act(() =>
-                    assignTaskAction({ taskId: task.id, assigneeType: "ROBOT", workerProfileId: null }),
-                  );
-                } else if (val === "UNASSIGN") {
-                  act(() =>
-                    assignTaskAction({ taskId: task.id, assigneeType: null, workerProfileId: null }),
-                  );
-                } else if (val) {
-                  act(() =>
-                    assignTaskAction({ taskId: task.id, assigneeType: "HUMAN", workerProfileId: val }),
-                  );
-                }
+                if (val === "ROBOT") act(() => assignTaskAction({ taskId: task.id, assigneeType: "ROBOT", workerProfileId: null }));
+                else if (val === "UNASSIGN") act(() => assignTaskAction({ taskId: task.id, assigneeType: null, workerProfileId: null }));
+                else if (val) act(() => assignTaskAction({ taskId: task.id, assigneeType: "HUMAN", workerProfileId: val }));
                 e.target.value = "";
-              }}
-            >
+              }}>
               <option value="">Reassign…</option>
               <option value="ROBOT">Robot</option>
               <option value="UNASSIGN">Unassign</option>
-              {workers.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name}
-                </option>
-              ))}
+              {workers.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
             </select>
           </div>
         </section>
 
         {/* Zone */}
         <section>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">
-            Zone
-          </label>
-          <select
-            className={inputCls + " mt-1"}
-            value={task.zoneName ?? ""}
-            disabled={isPending}
-            onChange={(e) =>
-              act(() =>
-                updateTaskZoneAction({ taskId: task.id, zoneName: e.target.value || null }),
-              )
-            }
-          >
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Zone</label>
+          <select className={inputCls + " mt-1"} value={task.zoneName ?? ""} disabled={isPending}
+            onChange={(e) => act(() => updateTaskZoneAction({ taskId: task.id, zoneName: e.target.value || null }))}>
             <option value="">No zone</option>
-            {zones.map((z) => (
-              <option key={z.id} value={z.name}>
-                {z.name}
-              </option>
-            ))}
+            {zones.map((z) => <option key={z.id} value={z.name}>{z.name}</option>)}
           </select>
         </section>
 
+        {/* Route template */}
+        <section>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Expected route</label>
+          <select className={inputCls + " mt-1"} value={task.routeTemplateId ?? ""} disabled={isPending}
+            onChange={(e) => act(() => assignRouteToTaskAction({ taskId: task.id, routeTemplateId: e.target.value || null }))}>
+            <option value="">No route</option>
+            {routes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name} ({r.zoneSequence.join(" → ")})
+              </option>
+            ))}
+          </select>
+          {task.expectedRoute && (
+            <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+              {task.expectedRoute.join(" → ")}
+            </p>
+          )}
+        </section>
+
+        {/* Path tracer */}
+        <TaskPathTracer
+          logs={logs}
+          expectedRoute={task.expectedRoute}
+          showOnMap={showPathOnMap}
+          onToggleShowOnMap={onToggleShowPath}
+        />
+
         {/* Info */}
         <section className="space-y-1 text-xs text-slate-600 dark:text-slate-400">
-          {task.locationCode && (
-            <p>
-              <span className="font-medium text-slate-700 dark:text-gray-300">Location:</span>{" "}
-              {task.locationCode}
-            </p>
-          )}
-          {task.dueDate && (
-            <p>
-              <span className="font-medium text-slate-700 dark:text-gray-300">Due:</span>{" "}
-              {new Date(task.dueDate).toLocaleString()}
-            </p>
-          )}
-          <p>
-            <span className="font-medium text-slate-700 dark:text-gray-300">Created:</span>{" "}
-            {new Date(task.createdAt).toLocaleString()}
-          </p>
+          {task.locationCode && <p><span className="font-medium text-slate-700 dark:text-gray-300">Location:</span> {task.locationCode}</p>}
+          {task.dueDate && <p><span className="font-medium text-slate-700 dark:text-gray-300">Due:</span> {new Date(task.dueDate).toLocaleString()}</p>}
+          <p><span className="font-medium text-slate-700 dark:text-gray-300">Created:</span> {new Date(task.createdAt).toLocaleString()}</p>
         </section>
 
         {/* Add note */}
         <section>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">
-            Add note
-          </label>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400">Add note</label>
           <div className="mt-1 flex gap-1">
-            <input
-              className={inputCls + " flex-1"}
-              placeholder="Type a note…"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-            <Button
-              type="button"
-              size="sm"
-              disabled={!note.trim() || isPending}
-              onClick={() => {
-                const msg = note.trim();
-                setNote("");
-                act(() => addTaskLogAction({ taskId: task.id, message: msg }));
-              }}
-            >
+            <input className={inputCls + " flex-1"} placeholder="Type a note…" value={note} onChange={(e) => setNote(e.target.value)} />
+            <Button type="button" size="sm" disabled={!note.trim() || isPending}
+              onClick={() => { const m = note.trim(); setNote(""); act(() => addTaskLogAction({ taskId: task.id, message: m })); }}>
               Add
             </Button>
           </div>
@@ -239,65 +202,25 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
         {/* Raise ticket */}
         <section>
           {!showTicketForm ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+            <Button type="button" variant="outline" size="sm"
               className="w-full border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10"
-              onClick={() => setShowTicketForm(true)}
-            >
+              onClick={() => setShowTicketForm(true)}>
               Raise ticket
             </Button>
           ) : (
             <div className="space-y-2 rounded-lg border border-amber-200 bg-amber-50/50 p-3 dark:border-amber-500/20 dark:bg-amber-500/5">
-              <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
-                Raise a ticket
-              </p>
-              <select
-                className={inputCls}
-                value={ticketReason}
-                onChange={(e) => setTicketReason(e.target.value)}
-              >
-                {TICKET_REASONS.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
+              <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Raise a ticket</p>
+              <select className={inputCls} value={ticketReason} onChange={(e) => setTicketReason(e.target.value)}>
+                {TICKET_REASONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
-              <input
-                className={inputCls}
-                placeholder="Additional details (optional)"
-                value={ticketDetails}
-                onChange={(e) => setTicketDetails(e.target.value)}
-              />
+              <input className={inputCls} placeholder="Additional details (optional)" value={ticketDetails} onChange={(e) => setTicketDetails(e.target.value)} />
               <div className="flex gap-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={isPending}
-                  onClick={() => {
-                    const d = ticketDetails.trim();
-                    setShowTicketForm(false);
-                    setTicketDetails("");
-                    act(() =>
-                      raiseTicketAction({
-                        taskId: task.id,
-                        reason: ticketReason,
-                        details: d || undefined,
-                      }),
-                    );
-                  }}
-                >
+                <Button type="button" size="sm" disabled={isPending}
+                  onClick={() => { const d = ticketDetails.trim(); setShowTicketForm(false); setTicketDetails("");
+                    act(() => raiseTicketAction({ taskId: task.id, reason: ticketReason, details: d || undefined })); }}>
                   Submit
                 </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowTicketForm(false)}
-                >
-                  Cancel
-                </Button>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setShowTicketForm(false)}>Cancel</Button>
               </div>
             </div>
           )}
@@ -306,77 +229,40 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
         {/* Delete task */}
         <section>
           {!confirmDelete ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
+            <Button type="button" variant="outline" size="sm"
               className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
-              onClick={() => setConfirmDelete(true)}
-            >
+              onClick={() => setConfirmDelete(true)}>
               Delete task
             </Button>
           ) : (
             <div className="space-y-2 rounded-lg border border-red-200 bg-red-50/50 p-3 dark:border-red-500/20 dark:bg-red-500/5">
-              <p className="text-xs font-medium text-red-800 dark:text-red-300">
-                Delete this task and all its logs? This cannot be undone.
-              </p>
+              <p className="text-xs font-medium text-red-800 dark:text-red-300">Delete this task and all its logs? This cannot be undone.</p>
               <div className="flex gap-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  className="bg-red-600 text-white hover:bg-red-700"
-                  disabled={isPending}
-                  onClick={() => {
-                    startTransition(async () => {
-                      const r = await deleteTaskAction({ taskId: task.id });
-                      if (r.ok) {
-                        onClose();
-                        router.refresh();
-                      } else {
-                        setMsg(r.error ?? "Delete failed");
-                        setConfirmDelete(false);
-                      }
-                    });
-                  }}
-                >
+                <Button type="button" size="sm" className="bg-red-600 text-white hover:bg-red-700" disabled={isPending}
+                  onClick={() => { startTransition(async () => {
+                    const r = await deleteTaskAction({ taskId: task.id });
+                    if (r.ok) { onClose(); router.refresh(); } else { setMsg(r.error ?? "Delete failed"); setConfirmDelete(false); }
+                  }); }}>
                   Yes, delete
                 </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setConfirmDelete(false)}
-                >
-                  Cancel
-                </Button>
+                <Button type="button" variant="secondary" size="sm" onClick={() => setConfirmDelete(false)}>Cancel</Button>
               </div>
             </div>
           )}
         </section>
 
-        {/* Task log */}
+        {/* Activity log */}
         <section>
-          <h4 className="text-xs font-semibold text-slate-700 dark:text-gray-300">
-            Activity log
-          </h4>
+          <h4 className="text-xs font-semibold text-slate-700 dark:text-gray-300">Activity log</h4>
           <div className="mt-2 space-y-2">
-            {logs.length === 0 && (
-              <p className="text-xs text-slate-400 dark:text-slate-500">No activity yet.</p>
-            )}
+            {logs.length === 0 && <p className="text-xs text-slate-400 dark:text-slate-500">No activity yet.</p>}
             {logs.map((log) => (
-              <div
-                key={log.id}
-                className="rounded-lg border border-slate-100 p-2 dark:border-navy-border"
-              >
+              <div key={log.id} className="rounded-lg border border-slate-100 p-2 dark:border-navy-border">
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${logBadge(log.action)}`}
-                  >
+                  <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${logBadge(log.action)}`}>
                     {log.action.replace(/_/g, " ")}
                   </span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                    {new Date(log.createdAt).toLocaleString()}
-                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">{new Date(log.createdAt).toLocaleString()}</span>
                 </div>
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{log.message}</p>
               </div>
@@ -390,15 +276,10 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
 
 function logBadge(action: string): string {
   switch (action) {
-    case "TICKET":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300";
-    case "STATUS_CHANGE":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300";
-    case "ZONE_CHANGE":
-      return "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300";
-    case "ASSIGNMENT":
-      return "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300";
-    default:
-      return "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300";
+    case "TICKET": return "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300";
+    case "STATUS_CHANGE": return "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300";
+    case "ZONE_CHANGE": return "bg-purple-100 text-purple-800 dark:bg-purple-500/15 dark:text-purple-300";
+    case "ASSIGNMENT": return "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300";
+    default: return "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300";
   }
 }

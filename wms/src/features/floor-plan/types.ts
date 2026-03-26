@@ -23,6 +23,12 @@ export type FloorPlanData = {
   arrows: FloorArrow[];
 };
 
+export type RouteTemplate = {
+  id: string;
+  name: string;
+  zoneSequence: string[];
+};
+
 export type TaskOnMap = {
   id: string;
   title: string;
@@ -36,6 +42,9 @@ export type TaskOnMap = {
   locationCode: string | null;
   dueDate: string | null;
   createdAt: string;
+  routeTemplateId: string | null;
+  expectedRoute: string[] | null;
+  hasTicket: boolean;
 };
 
 export type TaskLogEntry = {
@@ -44,4 +53,18 @@ export type TaskLogEntry = {
   message: string;
   zoneName: string | null;
   createdAt: string;
+};
+
+export type TaskTransition = {
+  taskId: string;
+  fromZone: string;
+  toZone: string;
+  progress: number;
+};
+
+export type WrongZoneAlert = {
+  taskId: string;
+  taskTitle: string;
+  expectedZone: string;
+  actualZone: string;
 };

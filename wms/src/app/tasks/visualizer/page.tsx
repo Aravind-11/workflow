@@ -1,5 +1,10 @@
 import { TaskVisualizer } from "@/components/visualizer/task-visualizer";
-import { getFloorPlan, getTaskLogs, getTasksForMap } from "@/features/floor-plan/service";
+import {
+  getFloorPlan,
+  getRouteTemplates,
+  getTaskLogs,
+  getTasksForMap,
+} from "@/features/floor-plan/service";
 import { listWarehousesForSelect } from "@/features/logistics/service";
 import { listWorkersForWarehouse } from "@/features/workers/service";
 import { pickString } from "@/lib/utils";
@@ -21,10 +26,11 @@ export default async function VisualizerPage({
     );
   }
 
-  const [floorPlan, tasks, workersRaw] = await Promise.all([
+  const [floorPlan, tasks, workersRaw, routeTemplates] = await Promise.all([
     getFloorPlan(warehouseId),
     getTasksForMap(warehouseId),
     listWorkersForWarehouse(warehouseId),
+    getRouteTemplates(warehouseId),
   ]);
 
   const taskLogs: Record<string, Awaited<ReturnType<typeof getTaskLogs>>> = {};
@@ -71,6 +77,7 @@ export default async function VisualizerPage({
         tasks={tasks}
         taskLogs={taskLogs}
         workers={workers}
+        routeTemplates={routeTemplates}
       />
     </div>
   );
