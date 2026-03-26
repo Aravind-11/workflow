@@ -7,12 +7,10 @@ import { addWeeks, eachDayOfInterval, format, isSameDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   assignSchedulesAction,
-  createShiftTemplateAction,
   swapSchedulesAction,
   updateScheduleAction,
 } from "@/features/workers/actions";
 import type { ShiftRow, WorkerMini, LocMini, SchedRow } from "@/features/workers/types/schedule";
-import { CreateShiftModal } from "./create-shift-modal";
 import { AssignWorkersModal } from "./assign-workers-modal";
 import { SwapSchedulesModal } from "./swap-schedules-modal";
 
@@ -44,7 +42,6 @@ export function WeeklyScheduleBoard({
   );
 
   const [msg, setMsg] = useState<string | null>(null);
-  const [shiftOpen, setShiftOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
 
@@ -114,9 +111,6 @@ export function WeeklyScheduleBoard({
           </Button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="secondary" size="sm" onClick={() => setShiftOpen(true)}>
-            New shift template
-          </Button>
           <Button type="button" size="sm" onClick={() => setAssignOpen(true)}>
             Assign workers
           </Button>
@@ -202,27 +196,6 @@ export function WeeklyScheduleBoard({
           </tbody>
         </table>
       </div>
-
-      <CreateShiftModal
-        open={shiftOpen}
-        onClose={() => setShiftOpen(false)}
-        onSubmit={async (form) => {
-          setMsg(null);
-          const r = await createShiftTemplateAction({
-            warehouseId,
-            name: form.name,
-            shiftType: form.shiftType,
-            startTime: form.startTime,
-            endTime: form.endTime,
-            isOvernight: form.isOvernight,
-          });
-          if (!r.ok) setMsg(r.error);
-          else {
-            setShiftOpen(false);
-            router.refresh();
-          }
-        }}
-      />
 
       <AssignWorkersModal
         open={assignOpen}
