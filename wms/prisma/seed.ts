@@ -160,7 +160,7 @@ async function main() {
       data: { warehouseId: warehouse.id, zone: "DOCK", aisle: "00", rack: "00", bin: "STAGE", locationCode: "DOCK-STAGE" },
     });
 
-    const workerCountForWarehouse = warehouseIdx < 5 ? 2 : 1;
+    const workerCountForWarehouse = 8;
     const warehouseWorkers = [];
     for (let i = 0; i < workerCountForWarehouse; i++) {
       const [firstName, lastName] = workerSeed[globalWorkerIdx % workerSeed.length];
