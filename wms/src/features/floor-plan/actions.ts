@@ -454,3 +454,74 @@ export async function pollRouteTemplatesAction(
     zoneSequence: t.zoneSequence as string[],
   }));
 }
+
+// --- Simulation seeding ---
+
+const seedSimSchema = z.object({
+  warehouseId: z.string().min(1),
+  zoneNames: z.array(z.string().min(1)).min(2),
+});
+
+const DEMO_TASKS = [
+  { title: "Pick Order #101", taskType: "PICK" as const, priority: 1 },
+  { title: "Put Away Pallet #22", taskType: "PUTAWAY" as const, priority: 2 },
+  { title: "Cycle Count Aisle 5", taskType: "CYCLE_COUNT" as const, priority: 3 },
+  { title: "Replenish Bin R-14", taskType: "PUTAWAY" as const, priority: 2 },
+  { title: "QC Inspection Lot #8", taskType: "RECEIPT" as const, priority: 4 },
+] as const;
+
+export async function seedSimulationAction(
+  input: unknown,
+): Promise<ActionResult<{ taskIds: string[]; routeTemplateId: string }>> {
+  const parsed = seedSimSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid input" };
+
+  const { warehouseId, zoneNames } = parsed.data;
+  const auth = await guardAction(P.tasks.manage, warehouseId);
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  const ctx = await requireAuth();
+
+  // Create or reuse a "Demo Flow" route template
+  let rt = await prisma.routeTemplate.findFirst({
+    where: { warehouseId, name: "Demo Flow" },
+  });
+  if (!rt) {
+    rt = await prisma.routeTemplate.create({
+      data: { warehouseId, name: "Demo Flow", zoneSequence: zoneNames },
+    });
+  } else {
+    await prisma.routeTemplate.update({
+      where: { id: rt.id },
+      data: { zoneSequence: zoneNames },
+    });
+  }
+
+  const taskIds: string[] = [];
+  for (const demo of DEMO_TASKS) {
+    const task = await prisma.task.create({
+      data: {
+        warehouseId,
+        title: demo.title,
+        taskType: demo.taskType,
+        priority: demo.priority,
+        status: "IN_PROGRESS",
+        zoneId: zoneNames[0],
+        routeTemplateId: rt.id,
+      },
+    });
+    await prisma.taskLog.create({
+      data: {
+        taskId: task.id,
+        userId: ctx.userId,
+        action: "ZONE_CHANGE",
+        message: `Task started in zone "${zoneNames[0]}"`,
+        zoneName: zoneNames[0],
+      },
+    });
+    taskIds.push(task.id);
+  }
+
+  revalidatePath("/tasks");
+  return { ok: true, data: { taskIds, routeTemplateId: rt.id } };
+}
