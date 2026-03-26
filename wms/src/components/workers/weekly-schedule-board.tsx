@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScheduleConfirmation } from "@prisma/client";
-import { addWeeks, eachDayOfInterval, format, isSameDay } from "date-fns";
+import { addWeeks, eachDayOfInterval, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
   assignSchedulesAction,
@@ -13,6 +13,24 @@ import {
 import type { ShiftRow, WorkerMini, LocMini, SchedRow } from "@/features/workers/types/schedule";
 import { AssignWorkersModal } from "./assign-workers-modal";
 import { SwapSchedulesModal } from "./swap-schedules-modal";
+
+/** Parse a date string into a local Date, avoiding UTC timezone shifts. */
+function parseLocalDate(v: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+    const [y, m, d] = v.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  const d = new Date(v);
+  return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+}
+
+function sameDate(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
 
 type Props = {
   warehouseId: string;
@@ -34,8 +52,8 @@ export function WeeklyScheduleBoard({
   locations,
 }: Props) {
   const router = useRouter();
-  const weekStart = useMemo(() => new Date(weekStartIso), [weekStartIso]);
-  const weekEnd = useMemo(() => new Date(weekEndIso), [weekEndIso]);
+  const weekStart = useMemo(() => parseLocalDate(weekStartIso), [weekStartIso]);
+  const weekEnd = useMemo(() => parseLocalDate(weekEndIso), [weekEndIso]);
   const days = useMemo(
     () => eachDayOfInterval({ start: weekStart, end: weekEnd }),
     [weekStart, weekEnd],
@@ -52,7 +70,8 @@ export function WeeklyScheduleBoard({
   const cellMap = useMemo(() => {
     const m = new Map<string, Map<number, SchedRow>>();
     for (const s of schedules) {
-      const di = days.findIndex((d) => isSameDay(d, new Date(s.scheduleDate)));
+      const sd = parseLocalDate(s.scheduleDate as unknown as string);
+      const di = days.findIndex((d) => sameDate(d, sd));
       if (di < 0) continue;
       if (!m.has(s.shiftId)) m.set(s.shiftId, new Map());
       m.get(s.shiftId)!.set(di, s);
