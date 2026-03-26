@@ -200,6 +200,32 @@ export async function raiseTicketAction(
   return { ok: true };
 }
 
+const deleteTaskSchema = z.object({
+  taskId: z.string().min(1),
+});
+
+export async function deleteTaskAction(
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = deleteTaskSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid input" };
+
+  const { taskId } = parsed.data;
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
+  if (!task) return { ok: false, error: "Task not found" };
+
+  const auth = await guardAction(P.tasks.manage, task.warehouseId);
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  await prisma.$transaction([
+    prisma.taskLog.deleteMany({ where: { taskId } }),
+    prisma.task.delete({ where: { id: taskId } }),
+  ]);
+
+  revalidatePath("/tasks");
+  return { ok: true };
+}
+
 const assignTaskSchema = z.object({
   taskId: z.string().min(1),
   assigneeType: z.enum(["HUMAN", "ROBOT"]).nullable(),

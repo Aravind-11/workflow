@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   addTaskLogAction,
   assignTaskAction,
+  deleteTaskAction,
   raiseTicketAction,
   updateTaskStatusAction,
   updateTaskZoneAction,
@@ -39,6 +40,7 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
   const [ticketReason, setTicketReason] = useState<string>("BLOCKED");
   const [ticketDetails, setTicketDetails] = useState("");
   const [showTicketForm, setShowTicketForm] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
   function act(fn: () => Promise<{ ok: boolean; error?: string }>) {
@@ -293,6 +295,57 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose 
                   variant="secondary"
                   size="sm"
                   onClick={() => setShowTicketForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Delete task */}
+        <section>
+          {!confirmDelete ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full border-red-300 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete task
+            </Button>
+          ) : (
+            <div className="space-y-2 rounded-lg border border-red-200 bg-red-50/50 p-3 dark:border-red-500/20 dark:bg-red-500/5">
+              <p className="text-xs font-medium text-red-800 dark:text-red-300">
+                Delete this task and all its logs? This cannot be undone.
+              </p>
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="bg-red-600 text-white hover:bg-red-700"
+                  disabled={isPending}
+                  onClick={() => {
+                    startTransition(async () => {
+                      const r = await deleteTaskAction({ taskId: task.id });
+                      if (r.ok) {
+                        onClose();
+                        router.refresh();
+                      } else {
+                        setMsg(r.error ?? "Delete failed");
+                        setConfirmDelete(false);
+                      }
+                    });
+                  }}
+                >
+                  Yes, delete
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setConfirmDelete(false)}
                 >
                   Cancel
                 </Button>
