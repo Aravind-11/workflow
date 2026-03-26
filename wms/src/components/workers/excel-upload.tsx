@@ -14,8 +14,10 @@ type Props = {
 };
 
 const EXPECTED_COLUMNS = {
-  workers: "firstName, lastName, employeeCode, email (optional), certifications (optional)",
-  schedules: "employeeCode, shift, date (YYYY-MM-DD), confirmation (optional)",
+  workers:
+    "LOCSS format: FullName, EmpID, JobTitle — or simple: firstName, lastName, employeeCode",
+  schedules:
+    "LOCSS format: FullName, EmpID, Day, Hours, TaskDesc — or simple: employeeCode, shift, date",
 } as const;
 
 export function ExcelUpload({ warehouseId, type }: Props) {
