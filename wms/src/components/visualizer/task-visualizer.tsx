@@ -8,6 +8,7 @@ import { ZoneDetailSidebar } from "./zone-detail-sidebar";
 import { saveFloorPlanAction } from "@/features/floor-plan/actions";
 import { Button } from "@/components/ui/button";
 import type {
+  FloorArrow,
   FloorPlanData,
   FloorZone,
   TaskLogEntry,
@@ -32,6 +33,7 @@ export function TaskVisualizer({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [zones, setZones] = useState<FloorZone[]>(floorPlan?.zones ?? []);
+  const [arrows, setArrows] = useState<FloorArrow[]>(floorPlan?.arrows ?? []);
   const [imageData, setImageData] = useState<string | null>(
     floorPlan?.imageData ?? null,
   );
@@ -52,6 +54,14 @@ export function TaskVisualizer({
   const handleZonesChange = useCallback(
     (newZones: FloorZone[]) => {
       setZones(newZones);
+      setDirty(true);
+    },
+    [],
+  );
+
+  const handleArrowsChange = useCallback(
+    (newArrows: FloorArrow[]) => {
+      setArrows(newArrows);
       setDirty(true);
     },
     [],
@@ -97,6 +107,7 @@ export function TaskVisualizer({
         warehouseId,
         imageData,
         zones,
+        arrows,
       });
       if (r.ok) {
         setDirty(false);
@@ -154,10 +165,12 @@ export function TaskVisualizer({
           <FloorPlanCanvas
             imageData={imageData}
             zones={zones}
+            arrows={arrows}
             tasks={tasks}
             selectedTaskId={selectedTaskId}
             selectedZoneName={selectedZoneName}
             onZonesChange={handleZonesChange}
+            onArrowsChange={handleArrowsChange}
             onTaskClick={handleTaskClick}
             onZoneClick={handleZoneClick}
             onImageUpload={handleImageUpload}

@@ -1,17 +1,19 @@
 import { TaskStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
-import type { FloorPlanData, FloorZone, TaskLogEntry, TaskOnMap } from "./types";
+import type { FloorArrow, FloorPlanData, FloorZone, TaskLogEntry, TaskOnMap } from "./types";
 
 export async function getFloorPlan(
   warehouseId: string,
 ): Promise<FloorPlanData | null> {
   const plan = await prisma.floorPlan.findUnique({ where: { warehouseId } });
   if (!plan) return null;
+  const raw = plan as Record<string, unknown>;
   return {
     id: plan.id,
     warehouseId: plan.warehouseId,
     imageData: plan.imageData,
     zones: (plan.zones as FloorZone[]) ?? [],
+    arrows: (raw.arrows as FloorArrow[]) ?? [],
   };
 }
 
