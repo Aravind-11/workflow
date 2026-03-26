@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { WorkerStatus } from "@prisma/client";
+import { ExcelUpload } from "@/components/workers/excel-upload";
 import { listWarehouseOptions, listWorkers } from "@/features/workers/service";
 import { pickString } from "@/lib/utils";
 
@@ -74,6 +75,10 @@ export default async function WorkersDirectoryPage({
           Apply
         </button>
       </form>
+
+      {warehouseId && (
+        <ExcelUpload warehouseId={warehouseId} type="workers" />
+      )}
 
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
         <table className="w-full text-sm">

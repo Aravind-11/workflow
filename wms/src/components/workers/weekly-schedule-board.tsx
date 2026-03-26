@@ -240,6 +240,10 @@ export function WeeklyScheduleBoard({
               : "";
             setMsg(`Assigned ${r.data?.created ?? 0} row(s).${w}`);
             setAssignOpen(false);
+            const qs = new URLSearchParams(window.location.search);
+            qs.set("warehouseId", warehouseId);
+            qs.set("week", weekStartIso);
+            router.push(`/workers/schedules?${qs.toString()}`);
             router.refresh();
           }
         }}
