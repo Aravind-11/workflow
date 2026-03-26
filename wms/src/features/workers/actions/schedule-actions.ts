@@ -76,10 +76,22 @@ export async function assignSchedulesAction(
       continue;
     }
 
+    const existingSameShift = await prisma.schedule.findUnique({
+      where: {
+        workerProfileId_scheduleDate_shiftId: {
+          workerProfileId,
+          scheduleDate: day,
+          shiftId,
+        },
+      },
+      select: { id: true },
+    });
+
     const conflicts = await findConflictingSchedules(
       workerProfileId,
       plannedStart,
       plannedEnd,
+      existingSameShift ? [existingSameShift.id] : [],
     );
     if (conflicts.length) {
       errors.push(
