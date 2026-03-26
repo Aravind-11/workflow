@@ -30,11 +30,6 @@ export type TaskOnMap = {
   createdAt: string;
 };
 
-export type ZoneWorkforce = {
-  workerCount: number;
-  percentage: number;
-};
-
 export type TaskLogEntry = {
   id: string;
   action: string;
