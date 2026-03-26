@@ -28,7 +28,7 @@ export async function createTaskAction(input: unknown) {
   const auth = await guardAction(P.tasks.manage, d.warehouseId);
   if (!auth.ok) return { ok: false as const, error: auth.error };
 
-  await prisma.task.create({
+  const task = await prisma.task.create({
     data: {
       warehouseId: d.warehouseId,
       title: d.title,
@@ -40,5 +40,5 @@ export async function createTaskAction(input: unknown) {
   });
   revalidatePath("/tasks");
   revalidatePath("/");
-  return { ok: true as const };
+  return { ok: true as const, data: { id: task.id } };
 }

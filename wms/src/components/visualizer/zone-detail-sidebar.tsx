@@ -1,17 +1,20 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { TaskType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   assignTaskAction,
   updateTaskStatusAction,
   updateTaskZoneAction,
 } from "@/features/floor-plan/actions";
+import { createTaskAction } from "@/features/tasks/actions";
 import type { FloorZone, TaskLogEntry, TaskOnMap } from "@/features/floor-plan/types";
 
 type Props = {
   zone: FloorZone;
+  warehouseId: string;
   tasks: TaskOnMap[];
   allTasks: TaskOnMap[];
   taskLogs: Record<string, TaskLogEntry[]>;
@@ -22,12 +25,18 @@ type Props = {
 };
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+const TASK_TYPES: TaskType[] = [
+  "RECEIPT", "PUTAWAY", "PICK", "PACK", "SHIPMENT", "RETURN", "CYCLE_COUNT", "MAINTENANCE",
+];
 
 const selectCls =
   "w-full rounded-md border border-slate-200 px-2 py-1 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
+const inputCls =
+  "w-full rounded-md border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
 
 export function ZoneDetailSidebar({
   zone,
+  warehouseId,
   tasks,
   allTasks,
   taskLogs,
@@ -37,6 +46,10 @@ export function ZoneDetailSidebar({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newType, setNewType] = useState<TaskType>("PUTAWAY");
+  const [newPriority, setNewPriority] = useState(3);
 
   const openCount = tasks.filter((t) => t.status === "OPEN").length;
   const inProgressCount = tasks.filter((t) => t.status === "IN_PROGRESS").length;
@@ -118,11 +131,98 @@ export function ZoneDetailSidebar({
         </select>
       </div>
 
+      {/* Create new task */}
+      <div className="border-b border-slate-200 p-3 dark:border-navy-border">
+        {!showCreate ? (
+          <Button
+            type="button"
+            size="sm"
+            className="w-full"
+            onClick={() => setShowCreate(true)}
+          >
+            + Create task in this zone
+          </Button>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+              New task in {zone.name}
+            </p>
+            <input
+              className={inputCls}
+              placeholder="Task title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                className={selectCls}
+                value={newType}
+                onChange={(e) => setNewType(e.target.value as TaskType)}
+              >
+                {TASK_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={selectCls}
+                value={newPriority}
+                onChange={(e) => setNewPriority(Number(e.target.value))}
+              >
+                {[1, 2, 3, 4, 5].map((p) => (
+                  <option key={p} value={p}>
+                    Priority {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                size="sm"
+                disabled={!newTitle.trim() || isPending}
+                onClick={() => {
+                  const title = newTitle.trim();
+                  setNewTitle("");
+                  setShowCreate(false);
+                  startTransition(async () => {
+                    const r = await createTaskAction({
+                      warehouseId,
+                      title,
+                      taskType: newType,
+                      priority: newPriority,
+                    });
+                    if (r.ok && r.data?.id) {
+                      await updateTaskZoneAction({
+                        taskId: r.data.id,
+                        zoneName: zone.name,
+                      });
+                    }
+                    router.refresh();
+                  });
+                }}
+              >
+                Create
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowCreate(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Task list */}
       <div className="flex-1 overflow-y-auto">
         {tasks.length === 0 ? (
           <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
-            No tasks in this zone yet. Use the dropdown above to add tasks.
+            No tasks in this zone yet. Add existing tasks above or create a new one.
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-navy-border">

@@ -17,6 +17,7 @@ type Props = {
   logs: TaskLogEntry[];
   zones: FloorZone[];
   workers: { id: string; name: string }[];
+  onBack?: () => void;
   onClose: () => void;
 };
 
@@ -31,7 +32,7 @@ const TICKET_REASONS = [
 const inputCls =
   "w-full rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
 
-export function TaskDetailSidebar({ task, logs, zones, workers, onClose }: Props) {
+export function TaskDetailSidebar({ task, logs, zones, workers, onBack, onClose }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [note, setNote] = useState("");
@@ -52,6 +53,15 @@ export function TaskDetailSidebar({ task, logs, zones, workers, onClose }: Props
   return (
     <div className="flex h-full flex-col overflow-y-auto border-l border-slate-200 bg-white dark:border-navy-border dark:bg-navy-surface">
       {/* Header */}
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex w-full items-center gap-1 border-b border-slate-200 px-4 py-2 text-xs font-medium text-blue-600 hover:bg-slate-50 dark:border-navy-border dark:text-blue-400 dark:hover:bg-white/5"
+        >
+          ← Back to zone
+        </button>
+      )}
       <div className="flex items-start justify-between border-b border-slate-200 p-4 dark:border-navy-border">
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-gray-100">
