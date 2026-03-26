@@ -68,13 +68,15 @@ export function WeeklyScheduleBoard({
     : Array.from(new Map(schedules.map((s) => [s.shift.id, s.shift])).values());
 
   const cellMap = useMemo(() => {
-    const m = new Map<string, Map<number, SchedRow>>();
+    const m = new Map<string, Map<number, SchedRow[]>>();
     for (const s of schedules) {
       const sd = parseLocalDate(s.scheduleDate as unknown as string);
       const di = days.findIndex((d) => sameDate(d, sd));
       if (di < 0) continue;
       if (!m.has(s.shiftId)) m.set(s.shiftId, new Map());
-      m.get(s.shiftId)!.set(di, s);
+      const dayMap = m.get(s.shiftId)!;
+      if (!dayMap.has(di)) dayMap.set(di, []);
+      dayMap.get(di)!.push(s);
     }
     return m;
   }, [schedules, days]);
@@ -171,40 +173,47 @@ export function WeeklyScheduleBoard({
                     </div>
                   </td>
                   {days.map((d, di) => {
-                    const s = cellMap.get(sh.id)?.get(di);
+                    const entries = cellMap.get(sh.id)?.get(di);
                     return (
                       <td key={di} className="border-l px-1 py-1 align-top">
-                        {s ? (
-                          <div className="rounded-md border border-gray-200 bg-gray-50 p-1.5">
-                            <div className="font-medium text-gray-900">
-                              {s.workerProfile.firstName[0]}. {s.workerProfile.lastName}
-                            </div>
-                            <div className="text-[10px] text-gray-500">
-                              {s.location?.locationCode ?? "Any zone"}
-                            </div>
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              <span
-                                className={
-                                  s.confirmationStatus === ScheduleConfirmation.CONFIRMED
-                                    ? "rounded bg-green-100 px-1 text-[10px] text-green-800"
-                                    : "rounded bg-amber-100 px-1 text-[10px] text-amber-800"
-                                }
+                        {entries && entries.length > 0 ? (
+                          <div className="space-y-1">
+                            {entries.map((s) => (
+                              <div
+                                key={s.id}
+                                className="rounded-md border border-gray-200 bg-gray-50 p-1.5 dark:border-navy-border dark:bg-navy"
                               >
-                                {s.confirmationStatus === ScheduleConfirmation.CONFIRMED
-                                  ? "Confirmed"
-                                  : "Tentative"}
-                              </span>
-                              <button
-                                type="button"
-                                className="text-[10px] text-blue-700 underline"
-                                onClick={() => quickConfirm(s)}
-                              >
-                                Toggle
-                              </button>
-                            </div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">
+                                  {s.workerProfile.firstName[0]}. {s.workerProfile.lastName}
+                                </div>
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  {s.location?.locationCode ?? "Any zone"}
+                                </div>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  <span
+                                    className={
+                                      s.confirmationStatus === ScheduleConfirmation.CONFIRMED
+                                        ? "rounded bg-green-100 px-1 text-[10px] text-green-800 dark:bg-green-500/15 dark:text-green-300"
+                                        : "rounded bg-amber-100 px-1 text-[10px] text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+                                    }
+                                  >
+                                    {s.confirmationStatus === ScheduleConfirmation.CONFIRMED
+                                      ? "Confirmed"
+                                      : "Tentative"}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="text-[10px] text-blue-700 underline dark:text-blue-400"
+                                    onClick={() => quickConfirm(s)}
+                                  >
+                                    Toggle
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-gray-300 dark:text-gray-600">—</span>
                         )}
                       </td>
                     );
