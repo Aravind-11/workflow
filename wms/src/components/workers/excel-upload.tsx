@@ -14,7 +14,7 @@ type Props = {
 };
 
 const EXPECTED_COLUMNS = {
-  workers: "firstName, lastName, employeeCode, email (optional), role (optional), certifications (optional)",
+  workers: "firstName, lastName, employeeCode, email (optional), certifications (optional)",
   schedules: "employeeCode, shift, date (YYYY-MM-DD), confirmation (optional)",
 } as const;
 

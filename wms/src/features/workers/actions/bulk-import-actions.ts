@@ -8,15 +8,6 @@ import type { ActionResult } from "@/lib/types";
 import { prisma } from "@/server/db/prisma";
 import { revalidateWorkers } from "./shared";
 
-type WorkerRow = {
-  firstName: string;
-  lastName: string;
-  employeeCode: string;
-  email?: string;
-  roleName?: string;
-  certifications?: string;
-};
-
 export async function bulkImportWorkersAction(
   formData: FormData,
 ): Promise<ActionResult<{ created: number; skipped: number; errors: string[] }>> {
@@ -49,7 +40,6 @@ export async function bulkImportWorkersAction(
     const lastName = str(raw["lastName"] ?? raw["last_name"] ?? raw["Last Name"]);
     const employeeCode = str(raw["employeeCode"] ?? raw["employee_code"] ?? raw["Employee Code"] ?? raw["Code"]);
     const email = str(raw["email"] ?? raw["Email"]) || undefined;
-    const roleName = str(raw["roleName"] ?? raw["role"] ?? raw["Role"]) || undefined;
     const certsRaw = str(raw["certifications"] ?? raw["Certifications"]);
     const certifications = certsRaw
       ? certsRaw.split(",").map((c) => c.trim()).filter(Boolean)
@@ -82,7 +72,6 @@ export async function bulkImportWorkersAction(
         lastName,
         employeeCode,
         email,
-        roleName,
         status: WorkerStatus.ACTIVE,
         certifications,
       },
@@ -93,13 +82,6 @@ export async function bulkImportWorkersAction(
   revalidateWorkers();
   return { ok: true, data: { created, skipped, errors } };
 }
-
-type ScheduleRow = {
-  employeeCode: string;
-  shiftName: string;
-  date: string;
-  confirmation?: string;
-};
 
 export async function bulkImportSchedulesAction(
   formData: FormData,
