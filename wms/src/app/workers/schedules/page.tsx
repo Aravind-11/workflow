@@ -1,4 +1,4 @@
-import { format, startOfWeek } from "date-fns";
+import { endOfWeek, format, startOfWeek } from "date-fns";
 import { WeeklyScheduleBoard } from "@/components/workers/weekly-schedule-board";
 import {
   listLocationsForWarehouse,
@@ -29,6 +29,11 @@ export default async function SchedulesPage({
       </p>
     );
   }
+
+  const ws = startOfWeek(weekStart, { weekStartsOn: 1 });
+  const we = endOfWeek(weekStart, { weekStartsOn: 1 });
+  const weekStartStr = format(ws, "yyyy-MM-dd");
+  const weekEndStr = format(we, "yyyy-MM-dd");
 
   const [weekData, shifts, workers, locations] = await Promise.all([
     listSchedulesForWeek({ warehouseId, weekStart }),
@@ -64,7 +69,7 @@ export default async function SchedulesPage({
           <input
             type="date"
             name="week"
-            defaultValue={format(weekStart, "yyyy-MM-dd")}
+            defaultValue={weekStartStr}
             className="mt-1 block rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-200"
           />
         </label>
@@ -78,8 +83,8 @@ export default async function SchedulesPage({
 
       <WeeklyScheduleBoard
         warehouseId={warehouseId}
-        weekStartIso={serialized.weekData.weekStart}
-        weekEndIso={serialized.weekData.weekEnd}
+        weekStartIso={weekStartStr}
+        weekEndIso={weekEndStr}
         schedules={serialized.weekData.schedules}
         shifts={serialized.shifts}
         workers={serialized.workers}
