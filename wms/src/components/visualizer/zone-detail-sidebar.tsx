@@ -6,6 +6,7 @@ import { TaskType } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import {
   assignTaskAction,
+  deleteTaskAction,
   updateTaskStatusAction,
   updateTaskZoneAction,
 } from "@/features/floor-plan/actions";
@@ -384,14 +385,28 @@ export function ZoneDetailSidebar({
                     </div>
                   )}
 
-                  {/* View full details link */}
-                  <button
-                    type="button"
-                    className="text-[10px] font-medium text-blue-600 hover:underline dark:text-blue-400"
-                    onClick={() => onTaskSelect(task.id)}
-                  >
-                    View full details →
-                  </button>
+                  {/* Actions */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      className="text-[10px] font-medium text-blue-600 hover:underline dark:text-blue-400"
+                      onClick={() => onTaskSelect(task.id)}
+                    >
+                      View full details →
+                    </button>
+                    <button
+                      type="button"
+                      className="text-[10px] font-medium text-red-500 hover:underline dark:text-red-400"
+                      disabled={isPending}
+                      onClick={() => {
+                        if (confirm("Delete this task? This cannot be undone.")) {
+                          act(() => deleteTaskAction({ taskId: task.id }));
+                        }
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               );
             })}
