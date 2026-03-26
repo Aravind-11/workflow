@@ -21,7 +21,6 @@ type Props = {
   zones: FloorZone[];
   tasks: TaskOnMap[];
   selectedTaskId: string | null;
-  viewMode: "all" | "task";
   onZonesChange: (zones: FloorZone[]) => void;
   onTaskClick: (taskId: string) => void;
   onImageUpload: (base64: string) => void;
@@ -32,7 +31,6 @@ export function FloorPlanCanvas({
   zones,
   tasks,
   selectedTaskId,
-  viewMode,
   onZonesChange,
   onTaskClick,
   onImageUpload,
@@ -52,10 +50,7 @@ export function FloorPlanCanvas({
   const [editingZone, setEditingZone] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const visibleTasks =
-    viewMode === "task" && selectedTaskId
-      ? tasks.filter((t) => t.id === selectedTaskId)
-      : tasks;
+  const visibleTasks = tasks;
 
   useEffect(() => {
     if (!imageData) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FloorPlanCanvas } from "./floor-plan-canvas";
 import { TaskDetailSidebar } from "./task-detail-sidebar";
@@ -21,6 +21,9 @@ type Props = {
   workers: { id: string; name: string }[];
 };
 
+const selectCls =
+  "rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
+
 export function TaskVisualizer({
   warehouseId,
   floorPlan,
@@ -35,11 +38,29 @@ export function TaskVisualizer({
     floorPlan?.imageData ?? null,
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"all" | "task">("all");
+  const [viewMode, setViewMode] = useState<"all" | "filtered">("all");
+  const [filterZone, setFilterZone] = useState<string>("");
+  const [filterType, setFilterType] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
   const [dirty, setDirty] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
+
+  const taskTypes = useMemo(
+    () => Array.from(new Set(tasks.map((t) => t.taskType))).sort(),
+    [tasks],
+  );
+
+  const filteredTasks = useMemo(() => {
+    if (viewMode === "all") return tasks;
+    return tasks.filter((t) => {
+      if (filterZone && (t.zoneName ?? "") !== filterZone) return false;
+      if (filterType && t.taskType !== filterType) return false;
+      if (filterStatus && t.status !== filterStatus) return false;
+      return true;
+    });
+  }, [tasks, viewMode, filterZone, filterType, filterStatus]);
 
   const handleZonesChange = useCallback(
     (newZones: FloorZone[]) => {
@@ -94,34 +115,55 @@ export function TaskVisualizer({
             <button
               type="button"
               className={`px-3 py-1.5 font-medium transition ${
-                viewMode === "task"
+                viewMode === "filtered"
                   ? "bg-blue-600 text-white"
                   : "text-slate-600 hover:bg-slate-50 dark:text-gray-400 dark:hover:bg-white/5"
               } rounded-r-lg`}
-              onClick={() => {
-                setViewMode("task");
-                if (!selectedTaskId && tasks.length > 0) {
-                  setSelectedTaskId(tasks[0].id);
-                }
-              }}
+              onClick={() => setViewMode("filtered")}
             >
-              Single task
+              Filter
             </button>
           </div>
 
-          {viewMode === "task" && (
-            <select
-              className="rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200"
-              value={selectedTaskId ?? ""}
-              onChange={(e) => setSelectedTaskId(e.target.value || null)}
-            >
-              <option value="">Select task…</option>
-              {tasks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  [{t.taskType.replace(/_/g, " ")}] {t.title}
-                </option>
-              ))}
-            </select>
+          {viewMode === "filtered" && (
+            <>
+              <select
+                className={selectCls}
+                value={filterZone}
+                onChange={(e) => setFilterZone(e.target.value)}
+              >
+                <option value="">All zones</option>
+                {zones.map((z) => (
+                  <option key={z.id} value={z.name}>
+                    {z.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={selectCls}
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="">All types</option>
+                {taskTypes.map((t) => (
+                  <option key={t} value={t}>
+                    {t.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={selectCls}
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">All statuses</option>
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In progress</option>
+              </select>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {filteredTasks.length}/{tasks.length} shown
+              </span>
+            </>
           )}
 
           <div className="ml-auto flex items-center gap-2">
@@ -154,9 +196,8 @@ export function TaskVisualizer({
           <FloorPlanCanvas
             imageData={imageData}
             zones={zones}
-            tasks={tasks}
+            tasks={filteredTasks}
             selectedTaskId={selectedTaskId}
-            viewMode={viewMode}
             onZonesChange={handleZonesChange}
             onTaskClick={setSelectedTaskId}
             onImageUpload={handleImageUpload}
