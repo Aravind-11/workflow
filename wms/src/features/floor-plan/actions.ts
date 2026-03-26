@@ -7,6 +7,7 @@ import { P } from "@/lib/auth/permissions";
 import { requireAuth } from "@/lib/auth/session";
 import { prisma } from "@/server/db/prisma";
 import type { ActionResult } from "@/lib/types";
+import type { RouteTemplate, TaskOnMap } from "./types";
 
 const zoneSchema = z.object({
   id: z.string(),
@@ -288,4 +289,168 @@ export async function assignTaskAction(
 
   revalidatePath("/tasks");
   return { ok: true };
+}
+
+// --- Route template CRUD ---
+
+const createRouteSchema = z.object({
+  warehouseId: z.string().min(1),
+  name: z.string().min(1).max(100),
+  zoneSequence: z.array(z.string().min(1)).min(2),
+});
+
+export async function createRouteTemplateAction(
+  input: unknown,
+): Promise<ActionResult<{ id: string }>> {
+  const parsed = createRouteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid route template" };
+
+  const { warehouseId, name, zoneSequence } = parsed.data;
+  const auth = await guardAction(P.tasks.manage, warehouseId);
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  const t = await prisma.routeTemplate.create({
+    data: { warehouseId, name, zoneSequence },
+  });
+
+  revalidatePath("/tasks");
+  return { ok: true, data: { id: t.id } };
+}
+
+const deleteRouteSchema = z.object({
+  id: z.string().min(1),
+});
+
+export async function deleteRouteTemplateAction(
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = deleteRouteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid input" };
+
+  const rt = await prisma.routeTemplate.findUnique({
+    where: { id: parsed.data.id },
+  });
+  if (!rt) return { ok: false, error: "Route template not found" };
+
+  const auth = await guardAction(P.tasks.manage, rt.warehouseId);
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  await prisma.$transaction([
+    prisma.task.updateMany({
+      where: { routeTemplateId: rt.id },
+      data: { routeTemplateId: null },
+    }),
+    prisma.routeTemplate.delete({ where: { id: rt.id } }),
+  ]);
+
+  revalidatePath("/tasks");
+  return { ok: true };
+}
+
+const assignRouteSchema = z.object({
+  taskId: z.string().min(1),
+  routeTemplateId: z.string().nullable(),
+});
+
+export async function assignRouteToTaskAction(
+  input: unknown,
+): Promise<ActionResult> {
+  const parsed = assignRouteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid input" };
+
+  const { taskId, routeTemplateId } = parsed.data;
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
+  if (!task) return { ok: false, error: "Task not found" };
+
+  const auth = await guardAction(P.tasks.manage, task.warehouseId);
+  if (!auth.ok) return { ok: false, error: auth.error };
+
+  const ctx = await requireAuth();
+
+  let routeName = "None";
+  if (routeTemplateId) {
+    const rt = await prisma.routeTemplate.findUnique({
+      where: { id: routeTemplateId },
+      select: { name: true },
+    });
+    routeName = rt?.name ?? "Unknown";
+  }
+
+  await prisma.$transaction([
+    prisma.task.update({
+      where: { id: taskId },
+      data: { routeTemplateId },
+    }),
+    prisma.taskLog.create({
+      data: {
+        taskId,
+        userId: ctx.userId,
+        action: "NOTE",
+        message: routeTemplateId
+          ? `Route assigned: ${routeName}`
+          : "Route removed",
+      },
+    }),
+  ]);
+
+  revalidatePath("/tasks");
+  return { ok: true };
+}
+
+// --- Polling action (lightweight, no revalidation) ---
+
+export async function pollTasksAction(
+  warehouseId: string,
+): Promise<TaskOnMap[]> {
+  const tasks = await prisma.task.findMany({
+    where: { warehouseId },
+    include: {
+      workerProfile: { select: { firstName: true, lastName: true } },
+      location: { select: { locationCode: true, zone: true } },
+      routeTemplate: { select: { zoneSequence: true } },
+      logs: {
+        where: { action: "TICKET" },
+        take: 1,
+        orderBy: { createdAt: "desc" },
+        select: { id: true },
+      },
+    },
+    orderBy: [{ priority: "asc" }, { createdAt: "desc" }],
+  });
+
+  return tasks.map((t) => ({
+    id: t.id,
+    title: t.title,
+    taskType: t.taskType,
+    status: t.status,
+    priority: t.priority,
+    assigneeType: t.assigneeType,
+    assigneeName: t.workerProfile
+      ? `${t.workerProfile.firstName} ${t.workerProfile.lastName}`
+      : null,
+    workerProfileId: t.workerProfileId,
+    zoneName: t.zoneId ?? t.location?.zone ?? null,
+    locationCode: t.location?.locationCode ?? null,
+    dueDate: t.dueDate?.toISOString() ?? null,
+    createdAt: t.createdAt.toISOString(),
+    routeTemplateId: t.routeTemplateId,
+    expectedRoute: t.routeTemplate
+      ? (t.routeTemplate.zoneSequence as string[])
+      : null,
+    hasTicket: t.logs.length > 0,
+  }));
+}
+
+export async function pollRouteTemplatesAction(
+  warehouseId: string,
+): Promise<RouteTemplate[]> {
+  const templates = await prisma.routeTemplate.findMany({
+    where: { warehouseId },
+    orderBy: { name: "asc" },
+  });
+  return templates.map((t) => ({
+    id: t.id,
+    name: t.name,
+    zoneSequence: t.zoneSequence as string[],
+  }));
 }
