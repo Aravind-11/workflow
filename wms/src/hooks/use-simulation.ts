@@ -126,7 +126,7 @@ export function useSimulation(
         setSeeding(false);
         return;
       }
-      addLog(`Created ${r.data.taskIds.length} tasks + Demo Flow route`);
+      addLog(`Created ${r.data?.taskIds.length ?? 0} tasks + Demo Flow route`);
     }
 
     setSeeding(false);
