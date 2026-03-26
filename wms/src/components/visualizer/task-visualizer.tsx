@@ -166,6 +166,7 @@ export function TaskVisualizer({
             <ZoneDetailSidebar
               zone={selectedZone}
               tasks={zoneTasks}
+              allTasks={tasks}
               taskLogs={taskLogs}
               workers={workers}
               zones={zones}

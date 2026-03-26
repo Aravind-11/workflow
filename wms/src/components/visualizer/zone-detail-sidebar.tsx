@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   assignTaskAction,
   updateTaskStatusAction,
+  updateTaskZoneAction,
 } from "@/features/floor-plan/actions";
 import type { FloorZone, TaskLogEntry, TaskOnMap } from "@/features/floor-plan/types";
 
 type Props = {
   zone: FloorZone;
   tasks: TaskOnMap[];
+  allTasks: TaskOnMap[];
   taskLogs: Record<string, TaskLogEntry[]>;
   workers: { id: string; name: string }[];
   zones: FloorZone[];
@@ -27,6 +29,7 @@ const selectCls =
 export function ZoneDetailSidebar({
   zone,
   tasks,
+  allTasks,
   taskLogs,
   workers,
   onTaskSelect,
@@ -37,6 +40,7 @@ export function ZoneDetailSidebar({
 
   const openCount = tasks.filter((t) => t.status === "OPEN").length;
   const inProgressCount = tasks.filter((t) => t.status === "IN_PROGRESS").length;
+  const unzonedTasks = allTasks.filter((t) => !t.zoneName || t.zoneName !== zone.name);
 
   function act(fn: () => Promise<{ ok: boolean; error?: string }>) {
     startTransition(async () => {
@@ -85,11 +89,40 @@ export function ZoneDetailSidebar({
         </button>
       </div>
 
+      {/* Add task to zone */}
+      <div className="border-b border-slate-200 p-3 dark:border-navy-border">
+        <label className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+          Add task to this zone
+        </label>
+        <select
+          className={selectCls + " mt-1"}
+          disabled={isPending || unzonedTasks.length === 0}
+          defaultValue=""
+          onChange={(e) => {
+            const taskId = e.target.value;
+            if (taskId) {
+              act(() => updateTaskZoneAction({ taskId, zoneName: zone.name }));
+            }
+            e.target.value = "";
+          }}
+        >
+          <option value="">
+            {unzonedTasks.length === 0 ? "No available tasks" : "Select a task…"}
+          </option>
+          {unzonedTasks.map((t) => (
+            <option key={t.id} value={t.id}>
+              [{t.taskType.replace(/_/g, " ")}] {t.title}
+              {t.zoneName ? ` (in ${t.zoneName})` : ""}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Task list */}
       <div className="flex-1 overflow-y-auto">
         {tasks.length === 0 ? (
           <div className="p-4 text-center text-xs text-slate-400 dark:text-slate-500">
-            No tasks assigned to this zone yet.
+            No tasks in this zone yet. Use the dropdown above to add tasks.
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-navy-border">
