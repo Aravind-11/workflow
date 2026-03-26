@@ -222,8 +222,14 @@ export function FloorPlanCanvas({
   }, [draw]);
 
   function getCanvasPos(e: ReactMouseEvent<HTMLCanvasElement>): { x: number; y: number } {
-    const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
   }
 
   function handleMouseDown(e: ReactMouseEvent<HTMLCanvasElement>) {
