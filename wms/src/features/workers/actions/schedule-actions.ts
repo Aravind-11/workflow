@@ -4,7 +4,6 @@ import {
   ScheduleConfirmation,
   ScheduleStatus,
 } from "@prisma/client";
-import { startOfDay } from "date-fns";
 import {
   assignSchedulesSchema,
   updateScheduleSchema,
@@ -55,7 +54,8 @@ export async function assignSchedulesAction(
     }
   }
 
-  const day = startOfDay(new Date(scheduleDateRaw));
+  const [yr, mo, dy] = scheduleDateRaw.split("-").map(Number);
+  const day = new Date(Date.UTC(yr, mo - 1, dy));
   const { plannedStart, plannedEnd } = plannedWindowFromShift(
     day,
     shift.startTime,

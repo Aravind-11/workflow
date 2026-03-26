@@ -1,4 +1,5 @@
 import { endOfWeek, format, startOfWeek } from "date-fns";
+import { ExcelUpload } from "@/components/workers/excel-upload";
 import { WeeklyScheduleBoard } from "@/components/workers/weekly-schedule-board";
 import {
   listLocationsForWarehouse,
@@ -80,6 +81,8 @@ export default async function SchedulesPage({
           Apply
         </button>
       </form>
+
+      <ExcelUpload warehouseId={warehouseId} type="schedules" />
 
       <WeeklyScheduleBoard
         warehouseId={warehouseId}
