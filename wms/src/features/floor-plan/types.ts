@@ -8,11 +8,19 @@ export type FloorZone = {
   color: string;
 };
 
+export type FloorArrow = {
+  id: string;
+  fromZoneId: string;
+  toZoneId: string;
+  label?: string;
+};
+
 export type FloorPlanData = {
   id: string;
   warehouseId: string;
   imageData: string | null;
   zones: FloorZone[];
+  arrows: FloorArrow[];
 };
 
 export type TaskOnMap = {

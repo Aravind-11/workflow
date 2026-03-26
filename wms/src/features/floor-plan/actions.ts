@@ -18,10 +18,18 @@ const zoneSchema = z.object({
   color: z.string(),
 });
 
+const arrowSchema = z.object({
+  id: z.string(),
+  fromZoneId: z.string(),
+  toZoneId: z.string(),
+  label: z.string().optional(),
+});
+
 const saveFloorPlanSchema = z.object({
   warehouseId: z.string().min(1),
   imageData: z.string().nullable(),
   zones: z.array(zoneSchema),
+  arrows: z.array(arrowSchema).optional().default([]),
 });
 
 export async function saveFloorPlanAction(
@@ -30,14 +38,14 @@ export async function saveFloorPlanAction(
   const parsed = saveFloorPlanSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "Invalid floor plan data" };
 
-  const { warehouseId, imageData, zones } = parsed.data;
+  const { warehouseId, imageData, zones, arrows } = parsed.data;
   const auth = await guardAction(P.tasks.manage, warehouseId);
   if (!auth.ok) return { ok: false, error: auth.error };
 
   const plan = await prisma.floorPlan.upsert({
     where: { warehouseId },
-    create: { warehouseId, imageData, zones },
-    update: { imageData, zones, updatedAt: new Date() },
+    create: { warehouseId, imageData, zones, arrows },
+    update: { imageData, zones, arrows, updatedAt: new Date() },
   });
 
   revalidatePath("/tasks");
