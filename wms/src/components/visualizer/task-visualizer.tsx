@@ -9,7 +9,6 @@ import { RouteTemplateEditor } from "./route-template-editor";
 import { WrongZoneAlerts } from "./wrong-zone-alerts";
 import { saveFloorPlanAction } from "@/features/floor-plan/actions";
 import { useTaskPoller } from "@/hooks/use-task-poller";
-import { useSimulation } from "@/hooks/use-simulation";
 import { Button } from "@/components/ui/button";
 import type {
   FloorArrow,
@@ -77,9 +76,6 @@ export function TaskVisualizer({
 
   // Use routes from initial load (refreshed via router.refresh)
   const routes = initialRoutes;
-
-  // Simulation
-  const sim = useSimulation(warehouseId, zones, liveTasks, routes);
 
   // Status filtered tasks
   const filteredTasks = useMemo(() => {
@@ -279,33 +275,6 @@ export function TaskVisualizer({
             </span>
 
             <div className="ml-auto flex items-center gap-2">
-              {/* Simulation controls */}
-              {sim.simulating ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:text-red-400"
-                  onClick={sim.stop}
-                >
-                  Stop simulation
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/30 dark:text-emerald-400"
-                  disabled={sim.seeding}
-                  onClick={() => {
-                    setStatusFilters(new Set(["OPEN", "IN_PROGRESS", "COMPLETED", "CANCELLED"]));
-                    sim.start();
-                  }}
-                >
-                  {sim.seeding ? "Seeding…" : "Simulate"}
-                </Button>
-              )}
-
               {saveMsg && (
                 <span
                   className={`text-xs font-medium ${
@@ -329,28 +298,6 @@ export function TaskVisualizer({
               )}
             </div>
           </div>
-
-          {/* Simulation log */}
-          {sim.log.length > 0 && (
-            <div className="flex max-h-20 flex-col gap-0.5 overflow-y-auto border-b border-slate-200 bg-slate-50 px-4 py-1.5 dark:border-navy-border dark:bg-navy">
-              {sim.log.map((entry) => (
-                <p
-                  key={entry.ts + entry.msg}
-                  className={`text-[10px] ${
-                    entry.msg.startsWith("WRONG ZONE")
-                      ? "font-medium text-red-600 dark:text-red-400"
-                      : entry.msg.startsWith("TICKET")
-                        ? "font-medium text-amber-600 dark:text-amber-400"
-                        : entry.msg.startsWith("DONE")
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-slate-500 dark:text-slate-400"
-                  }`}
-                >
-                  {new Date(entry.ts).toLocaleTimeString()} — {entry.msg}
-                </p>
-              ))}
-            </div>
-          )}
 
           {/* Canvas */}
           <div className="flex-1 overflow-auto p-4">
