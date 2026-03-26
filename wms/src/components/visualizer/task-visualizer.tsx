@@ -12,6 +12,7 @@ import type {
   FloorZone,
   TaskLogEntry,
   TaskOnMap,
+  ZoneWorkforce,
 } from "@/features/floor-plan/types";
 
 type Props = {
@@ -48,6 +49,26 @@ export function TaskVisualizer({
     if (!selectedZoneName) return [];
     return tasks.filter((t) => t.zoneName === selectedZoneName);
   }, [tasks, selectedZoneName]);
+
+  const zoneWorkforce = useMemo(() => {
+    const totalWorkers = workers.length;
+    const map: Record<string, ZoneWorkforce> = {};
+    for (const z of zones) {
+      const zTasks = tasks.filter((t) => t.zoneName === z.name);
+      const uniqueWorkers = new Set(
+        zTasks
+          .filter((t) => t.assigneeType === "HUMAN" && t.workerProfileId)
+          .map((t) => t.workerProfileId!),
+      );
+      map[z.name] = {
+        workerCount: uniqueWorkers.size,
+        percentage: totalWorkers > 0
+          ? Math.round((uniqueWorkers.size / totalWorkers) * 100)
+          : 0,
+      };
+    }
+    return map;
+  }, [tasks, zones, workers]);
 
   const handleZonesChange = useCallback(
     (newZones: FloorZone[]) => {
@@ -157,6 +178,7 @@ export function TaskVisualizer({
             tasks={tasks}
             selectedTaskId={selectedTaskId}
             selectedZoneName={selectedZoneName}
+            zoneWorkforce={zoneWorkforce}
             onZonesChange={handleZonesChange}
             onTaskClick={handleTaskClick}
             onZoneClick={handleZoneClick}
@@ -186,6 +208,8 @@ export function TaskVisualizer({
               taskLogs={taskLogs}
               workers={workers}
               zones={zones}
+              workforce={zoneWorkforce[selectedZone.name]}
+              totalWorkers={workers.length}
               onTaskSelect={handleTaskClick}
               onClose={handleCloseSidebar}
             />

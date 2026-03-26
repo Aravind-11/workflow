@@ -10,7 +10,7 @@ import {
   updateTaskZoneAction,
 } from "@/features/floor-plan/actions";
 import { createTaskAction } from "@/features/tasks/actions";
-import type { FloorZone, TaskLogEntry, TaskOnMap } from "@/features/floor-plan/types";
+import type { FloorZone, TaskLogEntry, TaskOnMap, ZoneWorkforce } from "@/features/floor-plan/types";
 
 type Props = {
   zone: FloorZone;
@@ -20,6 +20,8 @@ type Props = {
   taskLogs: Record<string, TaskLogEntry[]>;
   workers: { id: string; name: string }[];
   zones: FloorZone[];
+  workforce?: ZoneWorkforce;
+  totalWorkers: number;
   onTaskSelect: (taskId: string) => void;
   onClose: () => void;
 };
@@ -41,6 +43,8 @@ export function ZoneDetailSidebar({
   allTasks,
   taskLogs,
   workers,
+  workforce,
+  totalWorkers,
   onTaskSelect,
   onClose,
 }: Props) {
@@ -77,7 +81,7 @@ export function ZoneDetailSidebar({
               {zone.name}
             </h3>
           </div>
-          <div className="mt-1.5 flex gap-2">
+          <div className="mt-1.5 flex flex-wrap gap-2">
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-white/10 dark:text-gray-300">
               {tasks.length} task{tasks.length !== 1 ? "s" : ""}
             </span>
@@ -92,6 +96,26 @@ export function ZoneDetailSidebar({
               </span>
             )}
           </div>
+
+          {/* Workforce allocation */}
+          {workforce && (
+            <div className="mt-2 rounded-lg border border-slate-100 bg-slate-50 p-2 dark:border-navy-border dark:bg-navy">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="font-medium text-slate-600 dark:text-slate-400">
+                  Workforce
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-gray-200">
+                  {workforce.workerCount} / {totalWorkers} workers · {workforce.percentage}%
+                </span>
+              </div>
+              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+                <div
+                  className="h-full rounded-full bg-blue-500 transition-all"
+                  style={{ width: `${Math.min(workforce.percentage, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
         <button
           type="button"

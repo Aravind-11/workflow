@@ -23,10 +23,16 @@ export type TaskOnMap = {
   priority: number;
   assigneeType: string | null;
   assigneeName: string | null;
+  workerProfileId: string | null;
   zoneName: string | null;
   locationCode: string | null;
   dueDate: string | null;
   createdAt: string;
+};
+
+export type ZoneWorkforce = {
+  workerCount: number;
+  percentage: number;
 };
 
 export type TaskLogEntry = {
