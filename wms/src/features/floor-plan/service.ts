@@ -40,6 +40,7 @@ export async function getTasksForMap(
     assigneeName: t.workerProfile
       ? `${t.workerProfile.firstName} ${t.workerProfile.lastName}`
       : null,
+    workerProfileId: t.workerProfileId,
     zoneName: t.zoneId ?? t.location?.zone ?? null,
     locationCode: t.location?.locationCode ?? null,
     dueDate: t.dueDate?.toISOString() ?? null,

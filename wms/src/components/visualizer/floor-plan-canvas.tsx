@@ -7,7 +7,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from "react";
-import type { FloorZone, TaskOnMap } from "@/features/floor-plan/types";
+import type { FloorZone, TaskOnMap, ZoneWorkforce } from "@/features/floor-plan/types";
 
 const ZONE_COLORS = [
   "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
@@ -22,6 +22,7 @@ type Props = {
   tasks: TaskOnMap[];
   selectedTaskId: string | null;
   selectedZoneName: string | null;
+  zoneWorkforce: Record<string, ZoneWorkforce>;
   onZonesChange: (zones: FloorZone[]) => void;
   onTaskClick: (taskId: string) => void;
   onZoneClick: (zoneName: string) => void;
@@ -34,6 +35,7 @@ export function FloorPlanCanvas({
   tasks,
   selectedTaskId,
   selectedZoneName,
+  zoneWorkforce,
   onZonesChange,
   onTaskClick,
   onZoneClick,
@@ -129,6 +131,31 @@ export function FloorPlanCanvas({
       ctx.fillStyle = isSelected ? "#ffffff" : zone.color;
       ctx.font = "bold 13px system-ui, sans-serif";
       ctx.fillText(zone.name, zone.x + 6, zone.y + 18);
+
+      const wf = zoneWorkforce[zone.name];
+      if (wf) {
+        ctx.font = "bold 13px system-ui, sans-serif";
+        const nameWidth = ctx.measureText(zone.name).width;
+
+        const pillText = `${wf.workerCount}w · ${wf.percentage}%`;
+        ctx.font = "bold 10px system-ui, sans-serif";
+        const pillW = ctx.measureText(pillText).width + 10;
+        const pillH = 16;
+        const pillX = zone.x + 6 + nameWidth + 8;
+        const pillY = zone.y + 6;
+
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = isSelected ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.5)";
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px system-ui, sans-serif";
+        ctx.fillText(pillText, pillX + 5, pillY + 12);
+      }
     }
 
     if (drawing && mode === "draw") {
@@ -215,7 +242,7 @@ export function FloorPlanCanvas({
         ctx.textBaseline = "alphabetic";
       });
     }
-  }, [zones, drawing, mode, visibleTasks, selectedTaskId, selectedZoneName, editingZone, canvasSize]);
+  }, [zones, drawing, mode, visibleTasks, selectedTaskId, selectedZoneName, editingZone, canvasSize, zoneWorkforce]);
 
   useEffect(() => {
     draw();
@@ -387,29 +414,37 @@ export function FloorPlanCanvas({
 
       {zones.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {zones.map((z) => (
-            <div
-              key={z.id}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-navy-border"
-            >
-              <span
-                className="inline-block h-3 w-3 rounded"
-                style={{ backgroundColor: z.color }}
-              />
-              <span className="font-medium text-slate-700 dark:text-gray-300">{z.name}</span>
-              <span className="text-slate-400 dark:text-slate-500">
-                ({visibleTasks.filter((t) => t.zoneName === z.name).length})
-              </span>
-              <button
-                type="button"
-                onClick={() => deleteZone(z.id)}
-                className="ml-1 text-slate-400 hover:text-red-500 dark:text-slate-500"
-                title="Delete zone"
+          {zones.map((z) => {
+            const wf = zoneWorkforce[z.name];
+            return (
+              <div
+                key={z.id}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-2 py-1 text-xs dark:border-navy-border"
               >
-                ×
-              </button>
-            </div>
-          ))}
+                <span
+                  className="inline-block h-3 w-3 rounded"
+                  style={{ backgroundColor: z.color }}
+                />
+                <span className="font-medium text-slate-700 dark:text-gray-300">{z.name}</span>
+                <span className="text-slate-400 dark:text-slate-500">
+                  ({visibleTasks.filter((t) => t.zoneName === z.name).length})
+                </span>
+                {wf && (
+                  <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                    {wf.workerCount}w · {wf.percentage}%
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => deleteZone(z.id)}
+                  className="ml-1 text-slate-400 hover:text-red-500 dark:text-slate-500"
+                  title="Delete zone"
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
