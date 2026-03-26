@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { FloorPlanCanvas } from "./floor-plan-canvas";
 import { TaskDetailSidebar } from "./task-detail-sidebar";
+import { ZoneDetailSidebar } from "./zone-detail-sidebar";
 import { saveFloorPlanAction } from "@/features/floor-plan/actions";
 import { Button } from "@/components/ui/button";
 import type {
@@ -21,9 +22,6 @@ type Props = {
   workers: { id: string; name: string }[];
 };
 
-const selectCls =
-  "rounded-lg border border-slate-200 px-2 py-1.5 text-xs dark:border-navy-border dark:bg-navy dark:text-gray-200";
-
 export function TaskVisualizer({
   warehouseId,
   floorPlan,
@@ -38,29 +36,17 @@ export function TaskVisualizer({
     floorPlan?.imageData ?? null,
   );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"all" | "filtered">("all");
-  const [filterZone, setFilterZone] = useState<string>("");
-  const [filterType, setFilterType] = useState<string>("");
-  const [filterStatus, setFilterStatus] = useState<string>("");
+  const [selectedZoneName, setSelectedZoneName] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
+  const selectedZone = zones.find((z) => z.name === selectedZoneName) ?? null;
 
-  const taskTypes = useMemo(
-    () => Array.from(new Set(tasks.map((t) => t.taskType))).sort(),
-    [tasks],
-  );
-
-  const filteredTasks = useMemo(() => {
-    if (viewMode === "all") return tasks;
-    return tasks.filter((t) => {
-      if (filterZone && (t.zoneName ?? "") !== filterZone) return false;
-      if (filterType && t.taskType !== filterType) return false;
-      if (filterStatus && t.status !== filterStatus) return false;
-      return true;
-    });
-  }, [tasks, viewMode, filterZone, filterType, filterStatus]);
+  const zoneTasks = useMemo(() => {
+    if (!selectedZoneName) return [];
+    return tasks.filter((t) => t.zoneName === selectedZoneName);
+  }, [tasks, selectedZoneName]);
 
   const handleZonesChange = useCallback(
     (newZones: FloorZone[]) => {
@@ -74,6 +60,21 @@ export function TaskVisualizer({
     setImageData(base64);
     setDirty(true);
   }, []);
+
+  function handleZoneClick(zoneName: string) {
+    setSelectedTaskId(null);
+    setSelectedZoneName(zoneName);
+  }
+
+  function handleTaskClick(taskId: string) {
+    setSelectedZoneName(null);
+    setSelectedTaskId(taskId);
+  }
+
+  function handleCloseSidebar() {
+    setSelectedTaskId(null);
+    setSelectedZoneName(null);
+  }
 
   function saveFloorPlan() {
     setSaveMsg(null);
@@ -94,77 +95,20 @@ export function TaskVisualizer({
     });
   }
 
+  const sidebarOpen = !!selectedTask || !!selectedZone;
+
   return (
     <div className="flex h-[calc(100vh-200px)] min-h-[500px] gap-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
       {/* Main area */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 px-4 py-2 dark:border-navy-border">
-          <div className="flex rounded-lg border border-slate-200 text-xs dark:border-navy-border">
-            <button
-              type="button"
-              className={`px-3 py-1.5 font-medium transition ${
-                viewMode === "all"
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-600 hover:bg-slate-50 dark:text-gray-400 dark:hover:bg-white/5"
-              } rounded-l-lg`}
-              onClick={() => setViewMode("all")}
-            >
-              All tasks
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1.5 font-medium transition ${
-                viewMode === "filtered"
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-600 hover:bg-slate-50 dark:text-gray-400 dark:hover:bg-white/5"
-              } rounded-r-lg`}
-              onClick={() => setViewMode("filtered")}
-            >
-              Filter
-            </button>
-          </div>
-
-          {viewMode === "filtered" && (
-            <>
-              <select
-                className={selectCls}
-                value={filterZone}
-                onChange={(e) => setFilterZone(e.target.value)}
-              >
-                <option value="">All zones</option>
-                {zones.map((z) => (
-                  <option key={z.id} value={z.name}>
-                    {z.name}
-                  </option>
-                ))}
-              </select>
-              <select
-                className={selectCls}
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-              >
-                <option value="">All types</option>
-                {taskTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {t.replace(/_/g, " ")}
-                  </option>
-                ))}
-              </select>
-              <select
-                className={selectCls}
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">All statuses</option>
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In progress</option>
-              </select>
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {filteredTasks.length}/{tasks.length} shown
-              </span>
-            </>
-          )}
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            {tasks.length} task{tasks.length !== 1 ? "s" : ""} · {zones.length} zone{zones.length !== 1 ? "s" : ""}
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500">
+            Click a zone to manage · Click a task dot for details
+          </span>
 
           <div className="ml-auto flex items-center gap-2">
             {saveMsg && (
@@ -196,25 +140,39 @@ export function TaskVisualizer({
           <FloorPlanCanvas
             imageData={imageData}
             zones={zones}
-            tasks={filteredTasks}
+            tasks={tasks}
             selectedTaskId={selectedTaskId}
+            selectedZoneName={selectedZoneName}
             onZonesChange={handleZonesChange}
-            onTaskClick={setSelectedTaskId}
+            onTaskClick={handleTaskClick}
+            onZoneClick={handleZoneClick}
             onImageUpload={handleImageUpload}
           />
         </div>
       </div>
 
       {/* Sidebar */}
-      {selectedTask && (
+      {sidebarOpen && (
         <div className="w-80 shrink-0 lg:w-96">
-          <TaskDetailSidebar
-            task={selectedTask}
-            logs={taskLogs[selectedTask.id] ?? []}
-            zones={zones}
-            workers={workers}
-            onClose={() => setSelectedTaskId(null)}
-          />
+          {selectedTask ? (
+            <TaskDetailSidebar
+              task={selectedTask}
+              logs={taskLogs[selectedTask.id] ?? []}
+              zones={zones}
+              workers={workers}
+              onClose={handleCloseSidebar}
+            />
+          ) : selectedZone ? (
+            <ZoneDetailSidebar
+              zone={selectedZone}
+              tasks={zoneTasks}
+              taskLogs={taskLogs}
+              workers={workers}
+              zones={zones}
+              onTaskSelect={handleTaskClick}
+              onClose={handleCloseSidebar}
+            />
+          ) : null}
         </div>
       )}
     </div>

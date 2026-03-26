@@ -21,8 +21,10 @@ type Props = {
   zones: FloorZone[];
   tasks: TaskOnMap[];
   selectedTaskId: string | null;
+  selectedZoneName: string | null;
   onZonesChange: (zones: FloorZone[]) => void;
   onTaskClick: (taskId: string) => void;
+  onZoneClick: (zoneName: string) => void;
   onImageUpload: (base64: string) => void;
 };
 
@@ -31,8 +33,10 @@ export function FloorPlanCanvas({
   zones,
   tasks,
   selectedTaskId,
+  selectedZoneName,
   onZonesChange,
   onTaskClick,
+  onZoneClick,
   onImageUpload,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,19 +107,26 @@ export function FloorPlanCanvas({
 
     for (const zone of zones) {
       const isEditing = editingZone === zone.id;
+      const isSelected = selectedZoneName === zone.name;
       ctx.save();
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha = isSelected ? 0.3 : 0.18;
       ctx.fillStyle = zone.color;
       ctx.fillRect(zone.x, zone.y, zone.width, zone.height);
       ctx.restore();
 
-      ctx.strokeStyle = zone.color;
-      ctx.lineWidth = isEditing ? 3 : 2;
+      ctx.strokeStyle = isSelected ? "#ffffff" : zone.color;
+      ctx.lineWidth = isSelected ? 3 : isEditing ? 3 : 2;
       ctx.setLineDash(isEditing ? [6, 4] : []);
       ctx.strokeRect(zone.x, zone.y, zone.width, zone.height);
       ctx.setLineDash([]);
 
-      ctx.fillStyle = zone.color;
+      if (isSelected) {
+        ctx.strokeStyle = zone.color;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(zone.x - 2, zone.y - 2, zone.width + 4, zone.height + 4);
+      }
+
+      ctx.fillStyle = isSelected ? "#ffffff" : zone.color;
       ctx.font = "bold 13px system-ui, sans-serif";
       ctx.fillText(zone.name, zone.x + 6, zone.y + 18);
     }
@@ -204,7 +215,7 @@ export function FloorPlanCanvas({
         ctx.textBaseline = "alphabetic";
       });
     }
-  }, [zones, drawing, mode, visibleTasks, selectedTaskId, editingZone, canvasSize]);
+  }, [zones, drawing, mode, visibleTasks, selectedTaskId, selectedZoneName, editingZone, canvasSize]);
 
   useEffect(() => {
     draw();
@@ -224,6 +235,11 @@ export function FloorPlanCanvas({
       const clickedTask = findTaskAt(pos.x, pos.y);
       if (clickedTask) {
         onTaskClick(clickedTask.id);
+        return;
+      }
+      const clickedZone = findZoneAt(pos.x, pos.y);
+      if (clickedZone) {
+        onZoneClick(clickedZone.name);
       }
     }
   }
@@ -275,6 +291,16 @@ export function FloorPlanCanvas({
       const tx = ux + 78 + i * 28;
       const ty = uy + 8;
       if (Math.hypot(x - tx, y - ty) <= 12) return unzoned[i];
+    }
+    return undefined;
+  }
+
+  function findZoneAt(x: number, y: number): FloorZone | undefined {
+    for (let i = zones.length - 1; i >= 0; i--) {
+      const z = zones[i];
+      if (x >= z.x && x <= z.x + z.width && y >= z.y && y <= z.y + z.height) {
+        return z;
+      }
     }
     return undefined;
   }
