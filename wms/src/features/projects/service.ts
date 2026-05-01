@@ -4,7 +4,9 @@ export async function listProjects(warehouseId?: string) {
   return prisma.project.findMany({
     where: warehouseId ? { warehouseId } : undefined,
     include: {
-      warehouse: { select: { code: true, name: true } },
+      // `id` is included so the directory can deep-link straight into the
+      // warehouse-scoped Workflow Designer for each project row.
+      warehouse: { select: { id: true, code: true, name: true } },
       _count: { select: { workflows: true, trackingItems: true } },
     },
     orderBy: { createdAt: "desc" },

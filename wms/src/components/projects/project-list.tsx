@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Workflow } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/button";
 import { createProjectAction } from "@/features/projects/actions";
@@ -14,7 +15,7 @@ interface ProjectRow {
   name: string;
   customerName: string;
   status: string;
-  warehouse: { code: string; name: string };
+  warehouse: { id: string; code: string; name: string };
   _count: { workflows: number; trackingItems: number };
 }
 
@@ -33,6 +34,7 @@ export function ProjectListClient({
   projects: ProjectRow[];
   warehouses: WarehouseOption[];
 }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +43,11 @@ export function ProjectListClient({
     e.preventDefault();
     setError(null);
     const fd = new FormData(e.currentTarget);
+    const warehouseId = fd.get("warehouseId") as string;
+    const goToWorkflow = fd.get("createWorkflow") === "on";
     startTransition(async () => {
       const result = await createProjectAction({
-        warehouseId: fd.get("warehouseId") as string,
+        warehouseId,
         code: (fd.get("code") as string).trim(),
         name: (fd.get("name") as string).trim(),
         customerName: (fd.get("customerName") as string).trim(),
@@ -52,8 +56,17 @@ export function ProjectListClient({
       });
       if (!result.ok) {
         setError(result.error);
-      } else {
-        setShowForm(false);
+        return;
+      }
+      setShowForm(false);
+      // Drop the user straight into the Workflow Designer scoped to the new
+      // project so they can wire up stages immediately. The designer creates
+      // the WorkflowTemplate row on first save.
+      const newId = result.data?.id;
+      if (goToWorkflow && newId) {
+        router.push(
+          `/warehouses/${warehouseId}/workflow?projectId=${newId}`,
+        );
       }
     });
   };
@@ -131,18 +144,29 @@ export function ProjectListClient({
                   {error}
                 </p>
               )}
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" size="sm" disabled={isPending}>
-                  {isPending ? "Creating…" : "Create project"}
-                </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <label className="inline-flex select-none items-center gap-2 text-[12.5px] text-slate-600 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    name="createWorkflow"
+                    defaultChecked
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-white/20 dark:bg-white/[0.04] dark:text-white"
+                  />
+                  Open Workflow Designer after saving
+                </label>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" size="sm" disabled={isPending}>
+                    {isPending ? "Creating…" : "Create project"}
+                  </Button>
+                </div>
               </div>
             </div>
           </motion.form>
@@ -201,8 +225,19 @@ export function ProjectListClient({
                   <Td className="font-mono text-[12px] uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">
                     {p.warehouse.code}
                   </Td>
-                  <Td className="text-right font-mono text-[13px] tabular-nums text-slate-700 dark:text-gray-200">
-                    {p._count.workflows}
+                  <Td className="text-right">
+                    <Link
+                      href={`/warehouses/${p.warehouse.id}/workflow?projectId=${p.id}`}
+                      className="group/wf inline-flex items-center justify-end gap-1.5 font-mono text-[12px] tabular-nums text-slate-700 transition-colors hover:text-slate-950 dark:text-gray-200 dark:hover:text-gray-50"
+                      title={
+                        p._count.workflows > 0
+                          ? "Open workflow designer"
+                          : "Create a workflow for this project"
+                      }
+                    >
+                      <span className="tabular-nums">{p._count.workflows}</span>
+                      <Workflow className="h-3 w-3 opacity-0 transition-opacity duration-150 group-hover/wf:opacity-70" />
+                    </Link>
                   </Td>
                   <Td className="text-right font-mono text-[13px] tabular-nums text-slate-700 dark:text-gray-200">
                     {p._count.trackingItems}
