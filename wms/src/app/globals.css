@@ -3,8 +3,364 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-navy: #0B1220;
-  --color-navy-surface: #0F172A;
-  --color-navy-border: #1E293B;
-  --color-navy-hover: #162032;
+  --color-navy: #07090F;
+  --color-navy-surface: #0C1018;
+  --color-navy-border: #1A2030;
+  --color-navy-hover: #11161F;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ─── Global typography / chrome tweaks ─────────────────────────────── */
+
+html {
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  /* Programmatic anchor jumps glide instead of teleport. Native wheel
+     scrolling is unaffected (browsers ignore this for user-driven scrolls). */
+  scroll-behavior: smooth;
+  /* Anchor targets land with breathing room below the topbar. */
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-variant-ligatures: common-ligatures contextual;
+  letter-spacing: -0.005em;
+  /* Barely-perceptible vignette on dark mode so content feels seated. */
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59, 130, 246, 0.035), transparent 70%);
+}
+
+:is(.dark) body {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(96, 165, 250, 0.06), transparent 70%);
+}
+
+/* Tabular / mono numerals everywhere we use .font-mono */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Softer, colored focus ring — reads as an accent rather than a hard line */
+*:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgb(255 255 255 / 1),
+    0 0 0 4px rgb(251 191 36 / 0.45);
+  border-radius: 4px;
+}
+:is(.dark) *:focus-visible {
+  box-shadow:
+    0 0 0 2px rgb(12 16 24 / 1),
+    0 0 0 4px rgb(251 191 36 / 0.5);
+}
+
+/* ─── Surface utilities ──────────────────────────────────────────────
+   Reusable card treatment used across the app. Combines a very soft
+   translucent hairline with a subtle shadow so cards feel "seated"
+   rather than outlined. Looks clean on both light and dark modes.
+*/
+
+.surface {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.06),
+    0 1px 2px rgb(15 23 42 / 0.04);
+}
+:is(.dark) .surface {
+  background: rgb(12 16 24 / 0.7);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.05),
+    0 1px 2px rgb(0 0 0 / 0.3);
+}
+
+.surface-elevated {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.06),
+    0 4px 14px -4px rgb(15 23 42 / 0.08),
+    0 1px 2px rgb(15 23 42 / 0.04);
+}
+:is(.dark) .surface-elevated {
+  background: rgb(12 16 24 / 0.78);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    0 8px 24px -8px rgb(0 0 0 / 0.6),
+    0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* Divider that reads as a subtle shadow line rather than a hard border */
+.hairline {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgb(15 23 42 / 0.08), transparent);
+}
+:is(.dark) .hairline {
+  background: linear-gradient(to right, transparent, rgb(255 255 255 / 0.08), transparent);
+}
+
+/* ─── Global softening of common border patterns ────────────────────
+   Most pages were written before the surface system existed and use
+   the combo `border-gray-200 / border-slate-200 / border-navy-border`
+   for panels. Rather than edit 36 files, we tighten these colors here
+   so every page picks up the premium feel "for free". We keep the
+   original Tailwind tokens intact (so bg-gray-200, text-gray-200,
+   etc. stay correct) — we only override the *border* usage.
+*/
+[class*="border-gray-200"],
+[class*="border-slate-200"],
+[class*="border-gray-100"],
+[class*="border-slate-100"] {
+  border-color: rgb(15 23 42 / 0.08);
+}
+
+[class*="border-gray-300"],
+[class*="border-slate-300"] {
+  border-color: rgb(15 23 42 / 0.12);
+}
+
+:is(.dark) [class*="border-gray-200"],
+:is(.dark) [class*="border-slate-200"],
+:is(.dark) [class*="border-gray-100"],
+:is(.dark) [class*="border-slate-100"],
+:is(.dark) [class*="border-navy-border"],
+:is(.dark) [class*="border-white/10"],
+:is(.dark) [class*="border-white/5"] {
+  border-color: rgb(255 255 255 / 0.07);
+}
+
+:is(.dark) [class*="border-gray-300"],
+:is(.dark) [class*="border-slate-300"],
+:is(.dark) [class*="border-white/15"],
+:is(.dark) [class*="border-white/20"] {
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+/* Upgrade rounded "panel" cards across the app. Any element that is
+   rounded + bordered + on a light/dark surface background picks up
+   the premium soft-shadow treatment. */
+:where(.rounded-xl, .rounded-2xl, .rounded-lg):where(
+  .border,
+  .border-gray-200,
+  .border-slate-200,
+  .border-gray-100,
+  .border-slate-100,
+  [class*="border-gray-2"],
+  [class*="border-slate-2"]
+):where(.bg-white, [class*="bg-white"]) {
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.03),
+    0 2px 6px -2px rgb(15 23 42 / 0.04);
+}
+
+:is(.dark) :where(.rounded-xl, .rounded-2xl, .rounded-lg):where(
+  .border,
+  [class*="border-navy-border"],
+  [class*="border-white/10"],
+  [class*="border-white/15"]
+):where([class*="bg-navy-surface"], [class*="dark:bg-navy-surface"]) {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 4px 12px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Smoother dashed borders */
+[class*="border-dashed"][class*="border-gray-"],
+[class*="border-dashed"][class*="border-slate-"] {
+  border-color: rgb(15 23 42 / 0.1);
+}
+:is(.dark) [class*="border-dashed"][class*="border-gray-"],
+:is(.dark) [class*="border-dashed"][class*="border-slate-"] {
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+/* Divide utilities are used as row separators in tables / lists — soften */
+[class*="divide-gray-100"] > :not([hidden]) ~ :not([hidden]),
+[class*="divide-gray-200"] > :not([hidden]) ~ :not([hidden]),
+[class*="divide-slate-100"] > :not([hidden]) ~ :not([hidden]),
+[class*="divide-slate-200"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(15 23 42 / 0.06);
+}
+:is(.dark) [class*="divide-navy-border"] > :not([hidden]) ~ :not([hidden]),
+:is(.dark) [class*="divide-white/5"] > :not([hidden]) ~ :not([hidden]),
+:is(.dark) [class*="divide-white/10"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(255 255 255 / 0.06);
+}
+
+/* Subtle lift on hover for bordered panels (non-interactive safe: only
+   applies when the class list actually includes a hover transition) */
+a:where(.rounded-xl, .rounded-2xl, .rounded-lg):where([class*="border-"]):where([class*="bg-white"], [class*="bg-navy-surface"]) {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+a:where(.rounded-xl, .rounded-2xl, .rounded-lg):where([class*="border-"]):where([class*="bg-white"], [class*="bg-navy-surface"]):hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.1),
+    0 10px 30px -10px rgb(15 23 42 / 0.15);
+}
+:is(.dark) a:where(.rounded-xl, .rounded-2xl, .rounded-lg):where([class*="border-"]):where([class*="bg-white"], [class*="bg-navy-surface"]):hover {
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 14px 36px -12px rgb(0 0 0 / 0.55);
+}
+
+/* Button recipes */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding: 0 0.875rem;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.9),
+    0 1px 2px rgb(15 23 42 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-0.5px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+.btn-primary:disabled {
+  filter: grayscale(0.3) brightness(1.4);
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+:is(.dark) .btn-primary {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  color: #0f172a;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(0 0 0 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.4);
+}
+
+/* Subtle native selection */
+::selection {
+  background: rgba(245, 158, 11, 0.25);
+  color: inherit;
+}
+
+/* Scrollbar polish for dark mode (webkit) */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Shared input style for workflow config panel */
+.input-base {
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #1f2937;
+  outline: none;
+}
+
+.input-base:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+:is(.dark) .input-base {
+  border-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #e5e7eb;
+}
+
+/* ─── Workflow Designer Handle Styles ─────────────────────────────── */
+
+.wf-handle {
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  border: 2px solid white !important;
+  cursor: crosshair !important;
+  z-index: 10 !important;
+  /* Use transform for hover so center point stays fixed — prevents edge drift */
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+
+:is(.dark) .wf-handle {
+  border-color: #1f2937 !important;
+}
+
+/* Larger invisible hit area so you can grab it easily */
+.wf-handle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  z-index: -1;
+}
+
+/* Scale on hover — center stays in place so the edge doesn't jump */
+.wf-handle:hover {
+  transform: scale(1.4) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+  border-color: #3b82f6 !important;
+}
+
+/* Valid connection target glow */
+.react-flow__handle-valid .wf-handle {
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35) !important;
+  border-color: #22c55e !important;
+}
+
+/* Edge hover — make edges clickable/deletable */
+.react-flow__edge {
+  cursor: pointer;
+}
+
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke-width: 4 !important;
+  filter: brightness(1.2);
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 4 !important;
+  stroke-dasharray: none !important;
+}
+
+/* Connection line while dragging */
+.react-flow__connection-path {
+  stroke-width: 3 !important;
+  stroke-dasharray: 8 4 !important;
 }

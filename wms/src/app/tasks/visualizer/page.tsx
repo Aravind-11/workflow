@@ -7,6 +7,7 @@ import {
 } from "@/features/floor-plan/service";
 import { listWarehousesForSelect } from "@/features/logistics/service";
 import { listWorkersForWarehouse } from "@/features/workers/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { pickString } from "@/lib/utils";
 
 export default async function VisualizerPage({
@@ -15,8 +16,15 @@ export default async function VisualizerPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const warehouses = await listWarehousesForSelect();
-  const warehouseId = pickString(params.warehouseId) ?? warehouses[0]?.id;
+  // Operator mode locks the warehouse to the selected one (URL is ignored).
+  const [warehouses, scope] = await Promise.all([
+    listWarehousesForSelect(),
+    resolveWarehouseScope(pickString(params.warehouseId)),
+  ]);
+  const warehouseId =
+    scope.id
+    ?? warehouses.find((w) => w.code === "LACO-MAIL")?.id
+    ?? warehouses[0]?.id;
 
   if (!warehouseId) {
     return (

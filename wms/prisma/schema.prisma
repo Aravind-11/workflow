@@ -193,6 +193,7 @@ model User {
   updatedAt             DateTime               @updatedAt
   inventoryTransactions InventoryTransaction[]
   attachments           Attachment[]
+  notifications         Notification[]
 }
 
 model Role {
@@ -253,7 +254,12 @@ model Warehouse {
   floorPlan        FloorPlan?
   routeTemplates   RouteTemplate[]
   dockAppointments DockAppointment[]
-  auditLogs        AuditLog[]
+  auditLogs           AuditLog[]
+  workflowTemplates   WorkflowTemplate[]
+  projects            Project[]
+  trackingItems       TrackingItem[]
+  queueUploads        QueueUpload[]
+  salesOrders         SalesOrder[]
   createdAt        DateTime                     @default(now())
   updatedAt        DateTime                     @updatedAt
 
@@ -272,12 +278,13 @@ model WarehouseLocationHierarchy {
   isActive       Boolean                @default(true)
   inventory      InventoryBalance[]
   transactions   InventoryTransaction[]
-  receiptLines   ReceiptLine[]
-  pickListLines  PickListLine[]
-  workerTasks    Task[]
-  schedules      Schedule[]
-  returnRestocks ReturnLine[]           @relation("ReturnRestockLocation")
-  warehouse      Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  receiptLines    ReceiptLine[]
+  pickListLines   PickListLine[]
+  workerTasks     Task[]
+  schedules       Schedule[]
+  returnRestocks  ReturnLine[]           @relation("ReturnRestockLocation")
+  trackingEvents  TrackingEvent[]
+  warehouse       Warehouse              @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
 
@@ -305,6 +312,7 @@ model WorkerProfile {
   tasks          Task[]
   pickLists      PickList[]
   packLists      PackList[]
+  trackingEvents TrackingEvent[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -394,9 +402,10 @@ model InventoryItem {
   shipmentLines ShipmentLine[]
   pickListLines PickListLine[]
   packListLines PackListLine[]
-  returnLines   ReturnLine[]
-  createdAt     DateTime               @default(now())
-  updatedAt     DateTime               @updatedAt
+  returnLines      ReturnLine[]
+  salesOrderLines  SalesOrderLine[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
 }
 
 model InventoryBalance {
@@ -494,6 +503,7 @@ model Receipt {
   purchaseOrder   PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
   delivery        Delivery?      @relation(fields: [deliveryId], references: [id], onDelete: SetNull)
   lines           ReceiptLine[]
+  trackingEvents  TrackingEvent[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -581,6 +591,7 @@ model Shipment {
   pickLists         PickList[]
   packLists         PackList[]
   returns           ReturnRMA[]
+  trackingEvents    TrackingEvent[]
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
 
@@ -618,6 +629,7 @@ model PickList {
   shipment         Shipment?      @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
   assignedWorker   WorkerProfile? @relation(fields: [assignedWorkerId], references: [id], onDelete: SetNull)
   lines            PickListLine[]
+  trackingEvents   TrackingEvent[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -654,6 +666,7 @@ model PackList {
   shipment         Shipment       @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
   assignedWorker   WorkerProfile? @relation(fields: [assignedWorkerId], references: [id], onDelete: SetNull)
   lines            PackListLine[]
+  trackingEvents   TrackingEvent[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
@@ -750,15 +763,18 @@ model Task {
   completedAt     DateTime?
   relatedEntity   String?
   relatedEntityId String?
-  zoneId            String?
-  routeTemplateId   String?                     @db.ObjectId
-  warehouse         Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  workerProfile     WorkerProfile?              @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
-  location          WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
-  routeTemplate     RouteTemplate?              @relation(fields: [routeTemplateId], references: [id], onDelete: SetNull)
-  logs              TaskLog[]
-  createdAt         DateTime                    @default(now())
-  updatedAt         DateTime                    @updatedAt
+  zoneId              String?
+  routeTemplateId     String?                     @db.ObjectId
+  workflowStageId     String?
+  workflowStageType   String?
+  warehouse           Warehouse                   @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  workerProfile       WorkerProfile?              @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  location            WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  routeTemplate       RouteTemplate?              @relation(fields: [routeTemplateId], references: [id], onDelete: SetNull)
+  logs                TaskLog[]
+  trackingEvents      TrackingEvent[]
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
 
   @@index([status])
   @@index([warehouseId, status])
@@ -831,4 +847,301 @@ model Attachment {
   user        User     @relation(fields: [uploadedBy], references: [id])
 
   @@index([entityType, entityId])
+}
+
+model QueueUpload {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId String       @db.ObjectId
+  projectId   String?      @db.ObjectId
+  filename    String
+  stages      String[]
+  uploadedAt  DateTime     @default(now())
+  warehouse   Warehouse    @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  entries     QueueEntry[]
+
+  @@index([warehouseId])
+}
+
+model QueueEntry {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  uploadId    String      @db.ObjectId
+  warehouseId String      @db.ObjectId
+  upload      QueueUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  pallet      String
+  boxName     String
+  batch       String
+  queue       String
+  operator    String
+  timestamp   DateTime
+  barcode     String?
+
+  @@index([uploadId])
+  @@index([uploadId, queue])
+  @@index([warehouseId, queue])
+}
+
+model WorkflowTemplate {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId String    @db.ObjectId
+  projectId   String?   @db.ObjectId
+  name        String
+  version     Int       @default(1)
+  isActive    Boolean   @default(false)
+  stages      Json
+  edges       Json
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([warehouseId])
+  @@index([projectId])
+  @@index([warehouseId, projectId, isActive])
+}
+
+model Project {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId   String    @db.ObjectId
+  warehouse     Warehouse @relation(fields: [warehouseId], references: [id])
+  code          String
+  name          String
+  customerName  String
+  contactEmail  String?
+  contactPhone  String?
+  status        String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  workflows     WorkflowTemplate[]
+  trackingItems TrackingItem[]
+  queueUploads  QueueUpload[]
+
+  @@unique([warehouseId, code])
+  @@index([warehouseId])
+}
+
+model TrackingItem {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  barcode           String    @unique
+  projectId         String?   @db.ObjectId
+  project           Project?  @relation(fields: [projectId], references: [id])
+  warehouseId       String    @db.ObjectId
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id])
+  skuCode           String
+  description       String?
+  customerName      String?
+  providerName      String?
+  containerType     String?
+  containerBarcode  String?
+  manifestJson      Json?
+  status            String    @default("ACTIVE")
+  replacedByBarcode String?
+  createdAt         DateTime  @default(now())
+
+  events            TrackingEvent[]
+
+  @@index([warehouseId])
+  @@index([projectId])
+  @@index([containerBarcode])
+  @@index([warehouseId, projectId])
+  @@index([warehouseId, createdAt])
+}
+
+model TrackingEvent {
+  id              String                      @id @default(auto()) @map("_id") @db.ObjectId
+  trackingItemId  String                      @db.ObjectId
+  trackingItem    TrackingItem                @relation(fields: [trackingItemId], references: [id], onDelete: Cascade)
+  parentEventId   String?                     @db.ObjectId
+  stageType       String
+  stageLabel      String
+  barcode         String                      @unique
+
+  receiptId       String?                     @db.ObjectId
+  pickListId      String?                     @db.ObjectId
+  packListId      String?                     @db.ObjectId
+  shipmentId      String?                     @db.ObjectId
+  taskId          String?                     @db.ObjectId
+  workerProfileId String?                     @db.ObjectId
+  locationId      String?                     @db.ObjectId
+
+  receipt         Receipt?                    @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  pickList        PickList?                   @relation(fields: [pickListId], references: [id], onDelete: SetNull)
+  packList        PackList?                   @relation(fields: [packListId], references: [id], onDelete: SetNull)
+  shipment        Shipment?                   @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  task            Task?                       @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  workerProfile   WorkerProfile?              @relation(fields: [workerProfileId], references: [id], onDelete: SetNull)
+  location        WarehouseLocationHierarchy? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  handledBy       String?
+  locationCode    String?
+  warehouseZone   String?
+  notes           String?
+  timestamp       DateTime                    @default(now())
+
+  @@index([trackingItemId])
+  @@index([trackingItemId, timestamp])
+  @@index([parentEventId])
+  @@index([receiptId])
+  @@index([shipmentId])
+  @@index([taskId])
+}
+
+// ─── Workflow Blueprint Library ───────────────────────────────────────────────
+
+model WorkflowBlueprint {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  category    String?
+  stages      Json
+  edges       Json
+  version     Int      @default(1)
+  isPublished Boolean  @default(false)
+  createdBy   String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, category])
+}
+
+// ─── Notifications & Approvals ────────────────────────────────────────────────
+
+model Notification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  warehouseId String?  @db.ObjectId
+  type        String
+  title       String
+  body        String?
+  link        String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model ApprovalRequest {
+  id          String         @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId String         @db.ObjectId
+  stageType   String
+  stageLabel  String
+  entityType  String
+  entityId    String
+  requestedBy String?        @db.ObjectId
+  status      ApprovalStatus @default(PENDING)
+  reviewedBy  String?        @db.ObjectId
+  reviewNote  String?
+  createdAt   DateTime       @default(now())
+  resolvedAt  DateTime?
+
+  @@index([warehouseId, status])
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// ─── Sales Orders ─────────────────────────────────────────────────────────────
+
+model SalesOrder {
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  orderNumber       String           @unique
+  warehouseId       String           @db.ObjectId
+  warehouse         Warehouse        @relation(fields: [warehouseId], references: [id])
+  projectId         String?          @db.ObjectId
+  customerName      String
+  status            OrderStatus      @default(PENDING)
+  priority          Int              @default(5)
+  requestedShipDate DateTime?
+  lines             SalesOrderLine[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([warehouseId, status])
+}
+
+model SalesOrderLine {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  orderId         String        @db.ObjectId
+  order           SalesOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  inventoryItemId String        @db.ObjectId
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  qtyOrdered      Int
+  qtyShipped      Int           @default(0)
+}
+
+enum OrderStatus {
+  PENDING
+  ALLOCATED
+  PICKING
+  PACKED
+  SHIPPED
+  CANCELLED
+}
+
+// ─── Transfer Orders ──────────────────────────────────────────────────────────
+
+model TransferOrder {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  transferNumber  String         @unique
+  fromWarehouseId String         @db.ObjectId
+  toWarehouseId   String         @db.ObjectId
+  status          TransferStatus @default(DRAFT)
+  lines           TransferLine[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([fromWarehouseId, status])
+  @@index([toWarehouseId, status])
+}
+
+model TransferLine {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  transferId      String        @db.ObjectId
+  transfer        TransferOrder @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  inventoryItemId String        @db.ObjectId
+  qty             Int
+  trackingItemId  String?       @db.ObjectId
+}
+
+enum TransferStatus {
+  DRAFT
+  APPROVED
+  IN_TRANSIT
+  RECEIVED
+  CANCELLED
+}
+
+// ─── API Keys ─────────────────────────────────────────────────────────────────
+
+model ApiKey {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  warehouseId String?   @db.ObjectId
+  permissions String[]
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// ─── Webhook Endpoints ────────────────────────────────────────────────────────
+
+model WebhookEndpoint {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  warehouseId String   @db.ObjectId
+  url         String
+  secret      String
+  events      String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([warehouseId, isActive])
 }

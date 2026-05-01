@@ -1,11 +1,57 @@
 import { DeliveryDirection, PurchaseOrderStatus, WorkerStatus } from "@prisma/client";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { prisma } from "@/server/db/prisma";
+import { getViewMode } from "@/lib/auth/view-mode";
+import { getSelectedWarehouseId } from "@/lib/warehouse-context";
 
+/**
+ * Warehouse picker options.
+ *
+ * In OPERATOR mode the user is locked to a single warehouse (chosen on
+ * /start/operator), so showing the full directory in any warehouse picker
+ * is wrong on two axes: it breaks the scoping illusion, and it offers
+ * destinations the user can't actually navigate to. Returns just their
+ * active warehouse in that case.
+ *
+ * In ADMIN mode (or when no view mode is set, e.g. for legacy code paths)
+ * we return everything as before.
+ */
 export async function listWarehousesForSelect() {
+  const [mode, selectedId] = await Promise.all([
+    getViewMode(),
+    getSelectedWarehouseId(),
+  ]);
+  if (mode === "operator" && selectedId) {
+    return prisma.warehouse.findMany({
+      where: { id: selectedId },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
+    });
+  }
   return prisma.warehouse.findMany({
     select: { id: true, code: true, name: true },
     orderBy: { code: "asc" },
+  });
+}
+
+/**
+ * LACO mailroom batch-creation rows are loaded as `Task` records with
+ * taskType=RECEIPT and title "Batch <name> for <boxId>". Surface them
+ * for the Batches panel on /receiving.
+ */
+export async function listBatchTasks(warehouseId: string, take = 600) {
+  return prisma.task.findMany({
+    where: {
+      warehouseId,
+      taskType: "RECEIPT",
+      title: { startsWith: "Batch " },
+    },
+    orderBy: { completedAt: "desc" },
+    take,
+    include: {
+      workerProfile: { select: { firstName: true, lastName: true } },
+      location: { select: { locationCode: true } },
+    },
   });
 }
 
@@ -13,12 +59,16 @@ export async function listReceipts(warehouseId?: string) {
   return prisma.receipt.findMany({
     where: warehouseId ? { warehouseId } : undefined,
     orderBy: { receivedAt: "desc" },
-    take: 100,
+    take: 600,
     include: {
       warehouse: { select: { code: true, name: true } },
       purchaseOrder: { select: { poNumber: true, supplierName: true, status: true } },
-      delivery: { select: { deliveryNumber: true, status: true } },
-      lines: { include: { inventoryItem: { select: { skuCode: true, name: true } } } },
+      delivery: { select: { deliveryNumber: true, status: true, carrier: true } },
+      lines: {
+        include: {
+          inventoryItem: { select: { skuCode: true, name: true, barcode: true } },
+        },
+      },
     },
   });
 }
@@ -64,7 +114,7 @@ export async function listShipments(warehouseId?: string) {
   return prisma.shipment.findMany({
     where: warehouseId ? { warehouseId } : undefined,
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: 600,
     include: {
       warehouse: { select: { code: true } },
       shipmentLines: { include: { inventoryItem: { select: { skuCode: true } } } },
@@ -101,12 +151,14 @@ export async function listPickLists(warehouseId?: string) {
   return prisma.pickList.findMany({
     where: warehouseId ? { warehouseId } : undefined,
     orderBy: { scheduledDate: "desc" },
-    take: 100,
+    take: 600,
     include: {
       warehouse: { select: { code: true } },
-      shipment: { select: { shipmentNumber: true, status: true } },
+      shipment: { select: { shipmentNumber: true, status: true, salesOrderRef: true } },
       assignedWorker: { select: { firstName: true, lastName: true, employeeCode: true } },
-      lines: { include: { inventoryItem: { select: { skuCode: true, name: true } } } },
+      lines: {
+        include: { inventoryItem: { select: { skuCode: true, name: true } } },
+      },
     },
   });
 }
@@ -127,10 +179,10 @@ export async function listPackLists(warehouseId?: string) {
   return prisma.packList.findMany({
     where: warehouseId ? { warehouseId } : undefined,
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: 600,
     include: {
       warehouse: { select: { code: true } },
-      shipment: { select: { shipmentNumber: true, status: true, carrier: true } },
+      shipment: { select: { shipmentNumber: true, status: true, carrier: true, salesOrderRef: true } },
       assignedWorker: { select: { firstName: true, lastName: true } },
       lines: { include: { inventoryItem: { select: { skuCode: true } } } },
     },
@@ -142,7 +194,7 @@ export async function getPackList(id: string) {
     where: { id },
     include: {
       warehouse: true,
-      shipment: true,
+      shipment: { include: { shipmentLines: true } },
       assignedWorker: true,
       lines: { include: { inventoryItem: true } },
     },

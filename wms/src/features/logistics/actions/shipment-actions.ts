@@ -7,6 +7,8 @@ import { guardAction } from "@/lib/auth/action-guard";
 import { P } from "@/lib/auth/permissions";
 import type { ActionResult } from "@/lib/types";
 import { revalidateLogisticsPages, nextDoc } from "./shared";
+import { checkWorkflowTransition } from "@/lib/workflow/guard";
+import { addTrackingEvent } from "@/features/tracking/actions";
 
 export async function createShipmentAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createShipmentSchema.safeParse(input);
@@ -90,6 +92,10 @@ export async function markShippedAction(shipmentId: string): Promise<ActionResul
   if (!s) return { ok: false, error: "Not found" };
   const auth = await guardAction(P.shipping.manage, s.warehouseId);
   if (!auth.ok) return { ok: false, error: auth.error };
+
+  const wfCheck = await checkWorkflowTransition(s.warehouseId, "pack", "ship");
+  if (!wfCheck.allowed) return { ok: false, error: wfCheck.error ?? "Workflow transition not allowed" };
+
   await prisma.shipment.update({
     where: { id: shipmentId },
     data: {
@@ -97,6 +103,27 @@ export async function markShippedAction(shipmentId: string): Promise<ActionResul
       shippedAt: new Date(),
     },
   });
+
+  const trackingItems = await prisma.trackingItem.findMany({
+    where: { warehouseId: s.warehouseId },
+    include: { events: { orderBy: { timestamp: "desc" }, take: 1 } },
+  });
+  for (const ti of trackingItems) {
+    const lastEvent = ti.events[0];
+    try {
+      await addTrackingEvent({
+        trackingItemId: ti.id,
+        warehouseId: s.warehouseId,
+        parentEventId: lastEvent?.id,
+        stageType: "ship",
+        stageLabel: "Shipped",
+        itemBarcode: ti.barcode,
+        notes: s.trackingNumber ? `Tracking: ${s.trackingNumber}` : undefined,
+        shipmentId: s.id,
+      });
+    } catch { /* non-critical */ }
+  }
+
   revalidateLogisticsPages();
   return { ok: true };
 }

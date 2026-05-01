@@ -2,12 +2,20 @@ import Link from "next/link";
 import { TaskStatus } from "@prisma/client";
 import { TaskCreateForm } from "@/components/tasks/task-create-form";
 import { listWarehousesForSelect } from "@/features/logistics/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { prisma } from "@/server/db/prisma";
 
 export default async function TasksPage() {
+  // Scope the open-tasks list to the user's effective warehouse. Operator
+  // mode locks this to their single warehouse; admin mode keeps the
+  // cross-warehouse view.
+  const scope = await resolveWarehouseScope();
   const warehouses = await listWarehousesForSelect();
   const tasks = await prisma.task.findMany({
-    where: { status: { in: [TaskStatus.OPEN, TaskStatus.IN_PROGRESS] } },
+    where: {
+      status: { in: [TaskStatus.OPEN, TaskStatus.IN_PROGRESS] },
+      ...(scope.locked && scope.id ? { warehouseId: scope.id } : {}),
+    },
     orderBy: [{ priority: "asc" }, { dueDate: "asc" }, { createdAt: "desc" }],
     take: 80,
     include: {
@@ -21,7 +29,9 @@ export default async function TasksPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-gray-100">Tasks</h1>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Open work queue across warehouses.{" "}
+          {scope.locked
+            ? "Open work queue for this warehouse."
+            : "Open work queue across warehouses."}{" "}
           <Link href="/" className="font-medium text-blue-700 hover:underline dark:text-blue-400">
             Back to dashboard
           </Link>

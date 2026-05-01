@@ -114,7 +114,7 @@ export function WeeklyScheduleBoard({
   return (
     <div className="space-y-4">
       {msg ? (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
           {msg}
         </p>
       ) : null}
@@ -124,7 +124,7 @@ export function WeeklyScheduleBoard({
           <Button type="button" variant="outline" size="sm" onClick={prevWeek}>
             ← Prev
           </Button>
-          <span className="text-sm font-medium text-gray-800">
+          <span className="text-sm font-medium text-gray-800 dark:text-slate-200">
             {format(weekStart, "MMM d")} – {format(weekEnd, "MMM d, yyyy")}
           </span>
           <Button type="button" variant="outline" size="sm" onClick={nextWeek}>
@@ -141,17 +141,22 @@ export function WeeklyScheduleBoard({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-navy-border dark:bg-navy-surface">
         <table className="w-full min-w-[720px] border-collapse text-xs">
           <thead>
-            <tr className="bg-gray-50 text-left text-gray-600">
-              <th className="sticky left-0 z-10 min-w-[140px] border-b border-r bg-gray-50 px-2 py-2">
+            <tr className="bg-gray-50 text-left text-gray-600 dark:bg-white/[0.03] dark:text-slate-400">
+              <th className="sticky left-0 z-10 min-w-[140px] border-b border-r border-gray-200 bg-gray-50 px-2 py-2 dark:border-navy-border dark:bg-white/[0.03]">
                 Shift
               </th>
               {days.map((d) => (
-                <th key={d.toISOString()} className="border-b px-1 py-2 text-center font-medium">
+                <th
+                  key={d.toISOString()}
+                  className="border-b border-gray-200 px-1 py-2 text-center font-medium dark:border-navy-border"
+                >
                   <div>{format(d, "EEE")}</div>
-                  <div className="text-[10px] text-gray-400">{format(d, "M/d")}</div>
+                  <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                    {format(d, "M/d")}
+                  </div>
                 </th>
               ))}
             </tr>
@@ -159,23 +164,29 @@ export function WeeklyScheduleBoard({
           <tbody>
             {shiftRows.length === 0 ? (
               <tr>
-                <td colSpan={1 + days.length} className="px-4 py-8 text-center text-gray-500">
+                <td
+                  colSpan={1 + days.length}
+                  className="px-4 py-8 text-center text-gray-500 dark:text-slate-400"
+                >
                   No shift templates for this warehouse. Create one to start scheduling.
                 </td>
               </tr>
             ) : (
               shiftRows.map((sh) => (
-                <tr key={sh.id} className="border-t">
-                  <td className="sticky left-0 z-10 border-r bg-white px-2 py-2 align-top text-gray-800">
+                <tr key={sh.id} className="border-t border-gray-200 dark:border-navy-border">
+                  <td className="sticky left-0 z-10 border-r border-gray-200 bg-white px-2 py-2 align-top text-gray-800 dark:border-navy-border dark:bg-navy-surface dark:text-slate-200">
                     <div className="font-medium">{sh.name}</div>
-                    <div className="text-[10px] text-gray-500">
+                    <div className="text-[10px] text-gray-500 dark:text-slate-400">
                       {sh.startTime}–{sh.endTime}
                     </div>
                   </td>
                   {days.map((d, di) => {
                     const entries = cellMap.get(sh.id)?.get(di);
                     return (
-                      <td key={di} className="border-l px-1 py-1 align-top">
+                      <td
+                        key={di}
+                        className="border-l border-gray-200 px-1 py-1 align-top dark:border-navy-border"
+                      >
                         {entries && entries.length > 0 ? (
                           <div className="space-y-1">
                             {entries.map((s) => (
@@ -213,7 +224,7 @@ export function WeeklyScheduleBoard({
                             ))}
                           </div>
                         ) : (
-                          <span className="text-gray-300 dark:text-gray-600">—</span>
+                          <span className="text-gray-300 dark:text-slate-600">—</span>
                         )}
                       </td>
                     );

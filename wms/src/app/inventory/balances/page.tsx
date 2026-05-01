@@ -2,13 +2,13 @@ import Link from "next/link";
 import { InventoryBalanceStatus } from "@prisma/client";
 import { BalanceRowActions } from "@/features/inventory/components/balance-row-actions";
 import { InventoryEmptyState } from "@/features/inventory/components/empty-state";
-import { ReceiveInventoryToolbar } from "@/features/inventory/components/receive-inventory-toolbar";
+import { ExcelImportButton } from "@/components/logistics/excel-import-button";
 import {
   getInventoryFilterOptions,
   getInventoryFormOptions,
   listInventoryBalances,
-  listInventoryItems,
 } from "@/features/inventory/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 
 function spVal(v: string | string[] | undefined) {
   return typeof v === "string" ? v : undefined;
@@ -21,7 +21,10 @@ export default async function InventoryBalancesPage({
 }) {
   const sp = await searchParams;
   const search = spVal(sp.search);
-  const warehouseId = spVal(sp.warehouseId);
+  // Operator mode pins the warehouse filter regardless of the URL
+  // (preventing ?warehouseId=other-site from leaking another site's stock).
+  const scope = await resolveWarehouseScope(spVal(sp.warehouseId));
+  const warehouseId = scope.locked ? scope.id ?? undefined : scope.requestedId ?? undefined;
   const category = spVal(sp.category);
   const statusRaw = spVal(sp.status);
   const lowStockOnly = spVal(sp.lowStock) === "1";
@@ -31,24 +34,21 @@ export default async function InventoryBalancesPage({
       ? (statusRaw as InventoryBalanceStatus)
       : undefined;
 
-  const [rows, filterOptions, formOptions, catalogItems] = await Promise.all([
-    listInventoryBalances({
-      search,
-      warehouseId,
-      category,
-      status,
-      lowStockOnly,
-    }),
+  const [filterOptions, formOptions] = await Promise.all([
     getInventoryFilterOptions(),
     getInventoryFormOptions(),
-    listInventoryItems(undefined, undefined),
   ]);
 
-  const itemOptions = catalogItems.map((i) => ({
-    id: i.id,
-    skuCode: i.skuCode,
-    name: i.name,
-  }));
+  // Use first available warehouse as fallback so the import always has a warehouseId
+  const resolvedWarehouseId = warehouseId ?? filterOptions.warehouses[0]?.id ?? "";
+
+  const rows = await listInventoryBalances({
+    search,
+    warehouseId,
+    category,
+    status,
+    lowStockOnly,
+  });
 
   return (
     <div className="space-y-6">
@@ -57,11 +57,12 @@ export default async function InventoryBalancesPage({
         <p className="text-sm text-gray-500 dark:text-gray-400">On-hand by warehouse and bin with lot and batch traceability.</p>
       </div>
 
-      <ReceiveInventoryToolbar
-        warehouses={formOptions.warehouses}
-        locationsByWarehouse={formOptions.locationsByWarehouse}
-        items={itemOptions}
-      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Import a CSV or Excel file to receive stock. Lot, batch, and expiry are auto-detected.
+        </p>
+        <ExcelImportButton warehouseId={resolvedWarehouseId} mode="inventory-stock" label="Receive stock" />
+      </div>
 
       <form
         method="get"

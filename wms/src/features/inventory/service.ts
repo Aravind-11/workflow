@@ -4,6 +4,8 @@ import {
   WarehouseStatus,
 } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
+import { getViewMode } from "@/lib/auth/view-mode";
+import { getSelectedWarehouseId } from "@/lib/warehouse-context";
 
 export type BalanceListFilters = {
   search?: string;
@@ -13,10 +15,24 @@ export type BalanceListFilters = {
   lowStockOnly?: boolean;
 };
 
+/**
+ * Filter dropdown options for /inventory/* screens. Operator mode collapses
+ * the warehouse list to the user's active site so the picker can't surface
+ * sites the operator has no business filtering by.
+ */
 export async function getInventoryFilterOptions() {
+  const [mode, selectedId] = await Promise.all([
+    getViewMode(),
+    getSelectedWarehouseId(),
+  ]);
+  const warehouseFilter =
+    mode === "operator" && selectedId
+      ? { id: selectedId }
+      : { status: WarehouseStatus.ACTIVE };
+
   const [warehouses, categories] = await Promise.all([
     prisma.warehouse.findMany({
-      where: { status: WarehouseStatus.ACTIVE },
+      where: warehouseFilter,
       select: { id: true, code: true, name: true },
       orderBy: { name: "asc" },
     }),

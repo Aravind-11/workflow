@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const tabs = [
   { href: "/tasks", label: "Queue" },
   { href: "/tasks/visualizer", label: "Visualizer" },
+  { href: "/tasks/visualizer-3d", label: "3D Visualizer" },
 ];
 
 export function TaskSubNav() {

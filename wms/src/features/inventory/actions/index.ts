@@ -4,3 +4,4 @@ export { receiveStockAction } from "./receive-stock";
 export { moveStockAction } from "./move-stock";
 export { adjustStockAction } from "./adjust-stock";
 export { upsertInventoryItemAction } from "./upsert-sku";
+export { excelImportSkusAction, excelImportStockAction } from "./excel-import-inventory";

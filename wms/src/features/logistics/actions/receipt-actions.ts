@@ -7,6 +7,8 @@ import { guardAction } from "@/lib/auth/action-guard";
 import { P } from "@/lib/auth/permissions";
 import type { ActionResult } from "@/lib/types";
 import { revalidateLogisticsPages, nextDoc } from "./shared";
+import { checkWorkflowTransition } from "@/lib/workflow/guard";
+import { createTrackingItemWithReceiveEvent } from "@/features/tracking/actions";
 
 export async function createReceiptAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createReceiptSchema.safeParse(input);
@@ -145,6 +147,9 @@ export async function postReceiptAction(receiptId: string): Promise<ActionResult
   const auth = await guardAction(P.receiving.manage, receipt.warehouseId);
   if (!auth.ok) return { ok: false, error: auth.error };
 
+  const wfCheck = await checkWorkflowTransition(receipt.warehouseId, "receive", "pick");
+  if (!wfCheck.allowed) return { ok: false, error: wfCheck.error ?? "Workflow transition not allowed" };
+
   try {
     await prisma.$transaction(async (tx) => {
       for (const line of receipt.lines) {
@@ -184,6 +189,29 @@ export async function postReceiptAction(receiptId: string): Promise<ActionResult
         data: { status: ReceiptStatus.POSTED },
       });
     });
+
+    const wh = await prisma.warehouse.findUnique({ where: { id: receipt.warehouseId } });
+    if (wh) {
+      for (const line of receipt.lines) {
+        const item = await prisma.inventoryItem.findUnique({ where: { id: line.inventoryItemId } });
+        if (item) {
+          try {
+            await createTrackingItemWithReceiveEvent({
+              warehouseId: receipt.warehouseId,
+              warehouseCode: wh.code,
+              skuCode: item.skuCode,
+              description: item.name,
+              locationCode: line.locationId ?? undefined,
+              receiptId: receipt.id,
+              locationId: line.locationId ?? undefined,
+            });
+          } catch {
+            // non-critical — don't fail the receipt post
+          }
+        }
+      }
+    }
+
     revalidateLogisticsPages();
     return { ok: true };
   } catch (e) {

@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { getWarehouseDetail } from "@/features/warehouses/service";
+import { GitBranchPlus } from "lucide-react";
+import { prisma } from "@/server/db/prisma";
+import { WarehouseProjectsSection } from "@/components/projects/warehouse-projects-section";
 
 function formatDateTime(value?: string | null) {
   if (!value) return "-";
@@ -43,6 +46,30 @@ export default async function WarehouseDetailPage({
 
   const { warehouse } = detail;
 
+  const projects = await prisma.project.findMany({
+    where: { warehouseId: id },
+    include: {
+      workflows: {
+        select: { id: true, name: true, isActive: true, version: true },
+        orderBy: { updatedAt: "desc" },
+      },
+      _count: { select: { trackingItems: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const serializedProjects = projects.map((p) => ({
+    id: p.id,
+    code: p.code,
+    name: p.name,
+    customerName: p.customerName,
+    contactEmail: p.contactEmail,
+    contactPhone: p.contactPhone,
+    status: p.status,
+    workflows: p.workflows,
+    trackingCount: p._count.trackingItems,
+  }));
+
   return (
     <div className="space-y-5 p-6">
       <header className="rounded-xl border border-gray-200 bg-white p-5 dark:border-navy-border dark:bg-navy-surface">
@@ -54,11 +81,26 @@ export default async function WarehouseDetailPage({
               {warehouse.city}, {warehouse.state}, {warehouse.country} {warehouse.zip}
             </p>
           </div>
-          <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800 dark:bg-green-500/15 dark:text-green-400">
-            {warehouse.status}
-          </span>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/warehouses/${id}/workflow`}
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-navy-border dark:bg-navy-surface dark:text-gray-300 dark:hover:bg-navy-hover"
+            >
+              <GitBranchPlus className="h-3.5 w-3.5" />
+              Warehouse Workflow
+            </Link>
+            <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800 dark:bg-green-500/15 dark:text-green-400">
+              {warehouse.status}
+            </span>
+          </div>
         </div>
       </header>
+
+      <WarehouseProjectsSection
+        warehouseId={id}
+        warehouseCode={warehouse.code}
+        projects={serializedProjects}
+      />
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Section title="Overview">

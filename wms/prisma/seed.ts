@@ -33,11 +33,18 @@ import { addDays, addHours, startOfDay } from "date-fns";
 const prisma = new PrismaClient();
 
 const warehouses = [
-  { code: "PHX-01", name: "Phoenix Distribution Center", state: "AZ", city: "Phoenix", region: "Southwest", zip: "85001", timezone: "America/Phoenix" },
-  { code: "LAX-01", name: "Los Angeles Hub", state: "CA", city: "Los Angeles", region: "West", zip: "90001", timezone: "America/Los_Angeles" },
-  { code: "DAL-01", name: "Dallas Fulfillment Center", state: "TX", city: "Dallas", region: "South Central", zip: "75201", timezone: "America/Chicago" },
-  { code: "CHI-01", name: "Chicago Midwest DC", state: "IL", city: "Chicago", region: "Midwest", zip: "60601", timezone: "America/Chicago" },
-  { code: "ATL-01", name: "Atlanta Southeast Hub", state: "GA", city: "Atlanta", region: "Southeast", zip: "30301", timezone: "America/New_York" },
+  // ─── United States ───────────────────────────────────────────────
+  { code: "PHX-01", name: "Phoenix Distribution Center", country: "US", state: "AZ", city: "Phoenix", region: "Southwest", zip: "85001", timezone: "America/Phoenix" },
+  { code: "LAX-01", name: "Los Angeles Hub", country: "US", state: "CA", city: "Los Angeles", region: "West", zip: "90001", timezone: "America/Los_Angeles" },
+  { code: "DAL-01", name: "Dallas Fulfillment Center", country: "US", state: "TX", city: "Dallas", region: "South Central", zip: "75201", timezone: "America/Chicago" },
+  { code: "CHI-01", name: "Chicago Midwest DC", country: "US", state: "IL", city: "Chicago", region: "Midwest", zip: "60601", timezone: "America/Chicago" },
+  { code: "ATL-01", name: "Atlanta Southeast Hub", country: "US", state: "GA", city: "Atlanta", region: "Southeast", zip: "30301", timezone: "America/New_York" },
+  // ─── International (EU + APAC) ──────────────────────────────────
+  { code: "LDN-01", name: "London DC", country: "GB", state: "ENG", city: "London", region: "Europe", zip: "EC1A 1BB", timezone: "Europe/London" },
+  { code: "FRA-01", name: "Frankfurt Hub", country: "DE", state: "HE", city: "Frankfurt", region: "Europe", zip: "60311", timezone: "Europe/Berlin" },
+  { code: "MUM-01", name: "Mumbai Fulfillment", country: "IN", state: "MH", city: "Mumbai", region: "South Asia", zip: "400001", timezone: "Asia/Kolkata" },
+  { code: "BLR-01", name: "Bangalore DC", country: "IN", state: "KA", city: "Bangalore", region: "South Asia", zip: "560001", timezone: "Asia/Kolkata" },
+  { code: "SGP-01", name: "Singapore Gateway", country: "SG", state: "SG", city: "Singapore", region: "Southeast Asia", zip: "018956", timezone: "Asia/Singapore" },
 ];
 
 const skuCategories = ["Consumables", "Equipment", "Packaging", "Raw", "Finished"];
@@ -130,7 +137,7 @@ async function main() {
       data: {
         code: wh.code,
         name: wh.name,
-        country: "US",
+        country: wh.country,
         state: wh.state,
         city: wh.city,
         region: wh.region,

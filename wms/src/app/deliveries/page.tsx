@@ -5,6 +5,7 @@ import {
   listDockAppointments,
   listWarehousesForSelect,
 } from "@/features/logistics/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { pickString, serialize } from "@/lib/utils";
 
 export default async function DeliveriesPage({
@@ -13,8 +14,14 @@ export default async function DeliveriesPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const warehouses = await listWarehousesForSelect();
-  const warehouseId = pickString(params.warehouseId) ?? warehouses[0]?.id;
+  const [warehouses, scope] = await Promise.all([
+    listWarehousesForSelect(),
+    resolveWarehouseScope(pickString(params.warehouseId)),
+  ]);
+  const warehouseId =
+    scope.id
+    ?? warehouses.find((w) => w.code === "LACO-MAIL")?.id
+    ?? warehouses[0]?.id;
   const weekRaw = pickString(params.week);
   if (!warehouseId) {
     return <p className="text-sm text-amber-800">No warehouses configured.</p>;

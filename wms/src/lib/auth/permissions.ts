@@ -13,7 +13,16 @@ export const P = {
   workers: { manage: "workers:manage" },
   tasks: { manage: "tasks:manage" },
   warehouses: { view: "warehouses:view" },
-  admin: { users: "admin:users" },
+  workflow: { manage: "workflow:manage" },
+  workflows: { manage: "workflows:manage" },
+  projects: { manage: "projects:manage", view: "projects:view" },
+  tracking: { manage: "tracking:manage", view: "tracking:view" },
+  orders: { manage: "orders:manage", view: "orders:view" },
+  purchaseOrders: { manage: "purchase-orders:manage" },
+  approvals: { manage: "approvals:manage" },
+  analytics: { view: "analytics:view" },
+  transfers: { manage: "transfers:manage" },
+  admin: { users: "admin:users", audit: "admin:audit", settings: "admin:settings" },
 } as const;
 
 /** All permission strings (for admin role). */
@@ -30,7 +39,21 @@ export const ALL_PERMISSIONS: string[] = [
   P.workers.manage,
   P.tasks.manage,
   P.warehouses.view,
+  P.workflow.manage,
+  P.workflows.manage,
+  P.projects.manage,
+  P.projects.view,
+  P.tracking.manage,
+  P.tracking.view,
+  P.orders.manage,
+  P.orders.view,
+  P.purchaseOrders.manage,
+  P.approvals.manage,
+  P.analytics.view,
+  P.transfers.manage,
   P.admin.users,
+  P.admin.audit,
+  P.admin.settings,
 ];
 
 /**
@@ -65,6 +88,12 @@ export const ROLE_PERMISSIONS: Record<AppRoleName, readonly string[]> = {
     P.workers.manage,
     P.tasks.manage,
     P.warehouses.view,
+    P.workflow.manage,
+    P.workflows.manage,
+    P.projects.manage,
+    P.projects.view,
+    P.tracking.manage,
+    P.tracking.view,
   ],
   supervisor: [
     P.dashboard.view,
@@ -78,10 +107,14 @@ export const ROLE_PERMISSIONS: Record<AppRoleName, readonly string[]> = {
     P.workers.manage,
     P.tasks.manage,
     P.warehouses.view,
+    P.workflow.manage,
+    P.projects.view,
+    P.tracking.manage,
+    P.tracking.view,
   ],
-  picker: [P.dashboard.view, P.inventory.view, P.picking.manage, P.warehouses.view],
-  packer: [P.dashboard.view, P.inventory.view, P.packing.manage, P.warehouses.view],
-  receiver: [P.dashboard.view, P.inventory.view, P.receiving.manage, P.warehouses.view],
+  picker: [P.dashboard.view, P.inventory.view, P.picking.manage, P.warehouses.view, P.workflow.manage],
+  packer: [P.dashboard.view, P.inventory.view, P.packing.manage, P.warehouses.view, P.workflow.manage],
+  receiver: [P.dashboard.view, P.inventory.view, P.receiving.manage, P.warehouses.view, P.workflow.manage],
   dispatcher: [
     P.dashboard.view,
     P.inventory.view,
@@ -89,6 +122,7 @@ export const ROLE_PERMISSIONS: Record<AppRoleName, readonly string[]> = {
     P.deliveries.manage,
     P.returns.manage,
     P.warehouses.view,
+    P.workflow.manage,
   ],
   /** Read-mostly default: full nav + pages; tighten per-action rules in routes if needed. */
   viewer: [
@@ -99,6 +133,9 @@ export const ROLE_PERMISSIONS: Record<AppRoleName, readonly string[]> = {
     P.receiving.manage,
     P.workers.manage,
     P.tasks.manage,
+    P.workflow.manage,
+    P.projects.view,
+    P.tracking.view,
   ],
 };
 

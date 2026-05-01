@@ -1,10 +1,16 @@
 import { prisma } from "@/server/db/prisma";
 import { WarehouseStatus } from "@prisma/client";
 import { InventoryEmptyState } from "@/features/inventory/components/empty-state";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 
 export default async function InventoryLocationsPage() {
+  // Operator mode: only this user's warehouse contributes locations.
+  const scope = await resolveWarehouseScope();
   const warehouses = await prisma.warehouse.findMany({
-    where: { status: WarehouseStatus.ACTIVE },
+    where:
+      scope.locked && scope.id
+        ? { id: scope.id }
+        : { status: WarehouseStatus.ACTIVE },
     select: { id: true, code: true, name: true },
     orderBy: { code: "asc" },
   });

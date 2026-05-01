@@ -1,4 +1,5 @@
 import { ReceivingHub } from "@/components/logistics/receiving-hub";
+import { ExcelImportButton } from "@/components/logistics/excel-import-button";
 import {
   listInboundDeliveries,
   listInventoryItemsLite,
@@ -7,6 +8,7 @@ import {
   listReceipts,
   listWarehousesForSelect,
 } from "@/features/logistics/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { pickString, serialize } from "@/lib/utils";
 
 export default async function ReceivingPage({
@@ -15,8 +17,16 @@ export default async function ReceivingPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const warehouses = await listWarehousesForSelect();
-  const warehouseId = pickString(params.warehouseId) ?? warehouses[0]?.id;
+  // Resolve scope first — operator mode ignores ?warehouseId= and the
+  // page is locked to the user's active site.
+  const [warehouses, scope] = await Promise.all([
+    listWarehousesForSelect(),
+    resolveWarehouseScope(pickString(params.warehouseId)),
+  ]);
+  const warehouseId =
+    scope.id
+    ?? warehouses.find((w) => w.code === "LACO-MAIL")?.id
+    ?? warehouses[0]?.id;
 
   if (!warehouseId) {
     return (
@@ -35,14 +45,19 @@ export default async function ReceivingPage({
   ]);
 
   return (
-    <ReceivingHub
-      warehouses={warehouses}
-      initialWarehouseId={warehouseId}
-      receipts={serialize(receipts)}
-      purchaseOrders={serialize(purchaseOrders)}
-      deliveries={serialize(deliveries)}
-      inventoryItems={serialize(inventoryItems)}
-      locations={serialize(locations)}
-    />
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <ExcelImportButton warehouseId={warehouseId} mode="receiving" />
+      </div>
+      <ReceivingHub
+        warehouses={warehouses}
+        initialWarehouseId={warehouseId}
+        receipts={serialize(receipts)}
+        purchaseOrders={serialize(purchaseOrders)}
+        deliveries={serialize(deliveries)}
+        inventoryItems={serialize(inventoryItems)}
+        locations={serialize(locations)}
+      />
+    </div>
   );
 }

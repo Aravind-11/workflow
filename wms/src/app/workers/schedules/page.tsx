@@ -1,4 +1,11 @@
 import { endOfWeek, format, startOfWeek } from "date-fns";
+import {
+  FilterBar,
+  FilterField,
+  PageHeader,
+  filterControlClass,
+} from "@/components/dashboard/page-header";
+import { PageFade } from "@/components/dashboard/scroll-motion";
 import { ExcelUpload } from "@/components/workers/excel-upload";
 import { WeeklyScheduleBoard } from "@/components/workers/weekly-schedule-board";
 import {
@@ -8,6 +15,7 @@ import {
   listWarehouseOptions,
   listWorkersForWarehouse,
 } from "@/features/workers/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { pickString, serialize } from "@/lib/utils";
 
 export default async function SchedulesPage({
@@ -17,7 +25,9 @@ export default async function SchedulesPage({
 }) {
   const params = await searchParams;
   const warehouses = await listWarehouseOptions();
-  const warehouseId = pickString(params.warehouseId) ?? warehouses[0]?.id;
+  // Operator mode pins the warehouse — URL ?warehouseId= can't override it.
+  const scope = await resolveWarehouseScope(pickString(params.warehouseId));
+  const warehouseId = scope.id ?? warehouses[0]?.id;
   const weekRaw = pickString(params.week);
   const weekStart = weekRaw
     ? startOfWeek(new Date(weekRaw), { weekStartsOn: 1 })
@@ -25,9 +35,19 @@ export default async function SchedulesPage({
 
   if (!warehouseId) {
     return (
-      <p className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-        No warehouses found. Seed the database to use scheduling.
-      </p>
+      <div className="space-y-8 pb-12">
+        <PageHeader
+          title="Weekly schedules"
+          subtitle="Lay out shifts and coverage by location, day, and worker."
+        />
+        <div className="flex items-center gap-3 border-y border-amber-200/60 px-4 py-4 text-[13px] text-amber-900 dark:border-amber-500/20 dark:text-amber-300">
+          <span
+            aria-hidden
+            className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500 shadow-[0_0_0_3px_rgb(251_191_36_/_0.18)]"
+          />
+          No warehouses found. Seed the database to use scheduling.
+        </div>
+      </div>
     );
   }
 
@@ -46,17 +66,18 @@ export default async function SchedulesPage({
   const serialized = serialize({ weekData, shifts, workers, locations });
 
   return (
-    <div className="space-y-4">
-      <form
-        className="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface"
-        method="get"
-      >
-        <label className="text-sm">
-          <span className="text-gray-600 dark:text-gray-400">Warehouse</span>
+    <div className="space-y-8 pb-12">
+      <PageHeader
+        title="Weekly schedules"
+        subtitle={`Week of ${format(ws, "MMM d, yyyy")} — drag shifts to assign coverage by location and day.`}
+      />
+
+      <FilterBar>
+        <FilterField label="Warehouse">
           <select
             name="warehouseId"
             defaultValue={warehouseId}
-            className="mt-1 block w-64 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-200"
+            className={`${filterControlClass} w-64`}
           >
             {warehouses.map((warehouse) => (
               <option key={warehouse.id} value={warehouse.id}>
@@ -64,35 +85,36 @@ export default async function SchedulesPage({
               </option>
             ))}
           </select>
-        </label>
-        <label className="text-sm">
-          <span className="text-gray-600 dark:text-gray-400">Week starting</span>
+        </FilterField>
+        <FilterField label="Week starting">
           <input
             type="date"
             name="week"
             defaultValue={weekStartStr}
-            className="mt-1 block rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-navy-border dark:bg-navy-surface dark:text-gray-200"
+            className={`${filterControlClass} w-44`}
           />
-        </label>
+        </FilterField>
         <button
           type="submit"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+          className="ml-auto inline-flex h-9 items-center rounded-md bg-slate-900 px-4 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-white transition-transform duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900"
         >
           Apply
         </button>
-      </form>
+      </FilterBar>
 
       <ExcelUpload warehouseId={warehouseId} type="schedules" />
 
-      <WeeklyScheduleBoard
-        warehouseId={warehouseId}
-        weekStartIso={weekStartStr}
-        weekEndIso={weekEndStr}
-        schedules={serialized.weekData.schedules}
-        shifts={serialized.shifts}
-        workers={serialized.workers}
-        locations={serialized.locations}
-      />
+      <PageFade delay={0.18}>
+        <WeeklyScheduleBoard
+          warehouseId={warehouseId}
+          weekStartIso={weekStartStr}
+          weekEndIso={weekEndStr}
+          schedules={serialized.weekData.schedules}
+          shifts={serialized.shifts}
+          workers={serialized.workers}
+          locations={serialized.locations}
+        />
+      </PageFade>
     </div>
   );
 }

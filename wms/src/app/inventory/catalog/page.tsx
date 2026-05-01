@@ -1,6 +1,7 @@
 import { CatalogEditButton } from "@/features/inventory/components/catalog-edit-button";
 import { InventoryEmptyState } from "@/features/inventory/components/empty-state";
 import { CatalogToolbar } from "@/features/inventory/components/catalog-toolbar";
+import { ExcelImportButton } from "@/components/logistics/excel-import-button";
 import { getInventoryFilterOptions, listInventoryItems } from "@/features/inventory/service";
 
 function spVal(v: string | string[] | undefined) {
@@ -30,7 +31,10 @@ export default async function InventoryCatalogPage({
             Master item data: UOM, tracking flags, and reorder points for low-stock signals.
           </p>
         </div>
-        <CatalogToolbar />
+        <div className="flex items-center gap-2">
+          <ExcelImportButton mode="inventory-skus" />
+          <CatalogToolbar />
+        </div>
       </div>
 
       <form

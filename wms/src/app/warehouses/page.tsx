@@ -3,6 +3,8 @@ import DirectoryFilters from "@/features/warehouses/components/directory-filters
 import { warehouseFilterSchema } from "@/features/warehouses/schemas";
 import { listWarehouses } from "@/features/warehouses/service";
 import { statusBadge } from "@/lib/utils";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { PageFade } from "@/components/dashboard/scroll-motion";
 
 function formatTime(time: string) {
   return `${time} local`;
@@ -26,13 +28,12 @@ export default async function WarehousesPage({
   const data = await listWarehouses(parsed);
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Warehouse Directory</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Browse facilities by geography and operational profile.
-        </p>
-      </div>
+    <div className="space-y-8 pb-12">
+      <PageHeader
+        eyebrow="Network · Directory"
+        title="Warehouse directory"
+        subtitle="Browse facilities by geography and operational profile."
+      />
 
       <DirectoryFilters
         facets={data.facets}
@@ -46,56 +47,97 @@ export default async function WarehousesPage({
         }}
       />
 
-      <WarehouseResults warehouses={data.warehouses} view={view} />
+      <div className="flex items-baseline justify-between">
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          {data.warehouses.length} result{data.warehouses.length === 1 ? "" : "s"}
+        </p>
+      </div>
+
+      <PageFade delay={0.18}>
+        <WarehouseResults warehouses={data.warehouses} view={view} />
+      </PageFade>
     </div>
   );
 }
 
-function WarehouseResults({ warehouses, view }: { warehouses: Awaited<ReturnType<typeof listWarehouses>>["warehouses"]; view: string }) {
+function WarehouseResults({
+  warehouses,
+  view,
+}: {
+  warehouses: Awaited<ReturnType<typeof listWarehouses>>["warehouses"];
+  view: string;
+}) {
   if (warehouses.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center text-gray-500 dark:border-navy-border dark:bg-navy-surface dark:text-gray-400">
-        No warehouses match the selected filters.
+      <div className="flex flex-col items-center justify-center border-y border-slate-200/60 px-6 py-20 text-center dark:border-white/[0.06]">
+        <p className="font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
+          No matches
+        </p>
+        <p className="mt-2 text-[13px] text-slate-600 dark:text-slate-400">
+          No warehouses match the selected filters.
+        </p>
       </div>
     );
   }
 
   if (view === "list") {
     return (
-      <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-navy-border dark:bg-navy-surface">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-navy dark:text-gray-400">
+      <div className="-mx-4 overflow-x-auto px-4">
+        <table className="min-w-full border-separate border-spacing-0">
+          <thead className="sticky top-0 z-[1] bg-white/80 backdrop-blur dark:bg-navy/80">
             <tr>
-              <th className="px-4 py-3">Warehouse</th>
-              <th className="px-4 py-3">Location</th>
-              <th className="px-4 py-3">Hours</th>
-              <th className="px-4 py-3">Capacity</th>
-              <th className="px-4 py-3">Status</th>
+              <Th className="text-left">Warehouse</Th>
+              <Th className="text-left">Location</Th>
+              <Th className="text-left">Hours</Th>
+              <Th className="text-right">Capacity</Th>
+              <Th className="text-left">Status</Th>
+              <Th className="w-10" />
             </tr>
           </thead>
           <tbody>
-            {warehouses.map((warehouse) => (
-              <tr key={warehouse.id} className="border-t border-gray-100 hover:bg-gray-50 dark:border-navy-border dark:hover:bg-white/5">
-                <td className="px-4 py-3">
-                  <Link href={`/warehouses/${warehouse.id}`} className="font-medium text-blue-700 hover:underline dark:text-blue-400">
-                    {warehouse.name}
+            {warehouses.map((w) => (
+              <tr
+                key={w.id}
+                className="group transition-colors duration-200 hover:bg-slate-50/60 dark:hover:bg-white/[0.02]"
+              >
+                <Td>
+                  <Link
+                    href={`/warehouses/${w.id}`}
+                    className="block min-w-0"
+                  >
+                    <span className="block text-[14px] font-semibold tracking-tight text-slate-900 transition-colors group-hover:text-slate-950 dark:text-gray-100 dark:group-hover:text-gray-50">
+                      {w.name}
+                    </span>
+                    <span className="mt-0.5 block font-mono text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                      {w.code}
+                    </span>
                   </Link>
-                  <p className="font-mono text-xs text-gray-500 dark:text-gray-400">{warehouse.code}</p>
-                </td>
-                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  {warehouse.city}, {warehouse.state}, {warehouse.country}
-                </td>
-                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  {formatTime(warehouse.openTime)} - {formatTime(warehouse.closeTime)}
-                </td>
-                <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                  {warehouse.capacitySqft ? `${warehouse.capacitySqft.toLocaleString()} sq ft` : "-"}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge(warehouse.status)}`}>
-                    {warehouse.status}
+                </Td>
+                <Td className="text-[13px] text-slate-700 dark:text-slate-300">
+                  {w.city}, {w.state}, {w.country}
+                </Td>
+                <Td className="font-mono text-[12.5px] tabular-nums text-slate-700 dark:text-slate-300">
+                  {formatTime(w.openTime)} – {formatTime(w.closeTime)}
+                </Td>
+                <Td className="text-right font-mono text-[12.5px] tabular-nums text-slate-700 dark:text-slate-300">
+                  {w.capacitySqft ? `${w.capacitySqft.toLocaleString()} sq ft` : "—"}
+                </Td>
+                <Td>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadge(w.status)}`}
+                  >
+                    {w.status}
                   </span>
-                </td>
+                </Td>
+                <Td className="text-right">
+                  <Link
+                    href={`/warehouses/${w.id}`}
+                    aria-label={`Open ${w.name}`}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900 group-hover:translate-x-0.5 dark:text-slate-500 dark:hover:bg-white/[0.06] dark:hover:text-gray-100"
+                  >
+                    →
+                  </Link>
+                </Td>
               </tr>
             ))}
           </tbody>
@@ -105,55 +147,100 @@ function WarehouseResults({ warehouses, view }: { warehouses: Awaited<ReturnType
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3">
-      {warehouses.map((warehouse) => (
+    <div className="grid grid-cols-1 gap-x-8 gap-y-0 border-t border-slate-200/60 md:grid-cols-2 2xl:grid-cols-3 dark:border-white/[0.06]">
+      {warehouses.map((w) => (
         <Link
-          key={warehouse.id}
-          href={`/warehouses/${warehouse.id}`}
-          className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow dark:border-navy-border dark:bg-navy-surface dark:hover:border-blue-500/30"
+          key={w.id}
+          href={`/warehouses/${w.id}`}
+          className="group relative block border-b border-slate-200/40 py-5 transition-colors duration-200 hover:bg-slate-50/40 dark:border-white/[0.04] dark:hover:bg-white/[0.02]"
         >
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{warehouse.name}</h2>
-              <p className="font-mono text-xs text-gray-500 dark:text-gray-400">{warehouse.code}</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] text-slate-500 transition-colors group-hover:text-slate-900 dark:text-slate-400 dark:group-hover:text-gray-100">
+                {w.code}
+              </p>
+              <h2 className="mt-1.5 text-[15.5px] font-semibold tracking-tight text-slate-900 dark:text-gray-100">
+                {w.name}
+              </h2>
+              <p className="mt-1 text-[12.5px] text-slate-500 dark:text-slate-400">
+                {w.city}, {w.state}, {w.country}
+              </p>
             </div>
-            <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge(warehouse.status)}`}>
-              {warehouse.status}
+            <span
+              className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusBadge(w.status)}`}
+            >
+              {w.status}
             </span>
           </div>
 
-          <dl className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-            <div>
-              <dt className="inline font-medium text-gray-800 dark:text-gray-200">Location: </dt>
-              <dd className="inline">
-                {warehouse.city}, {warehouse.state}, {warehouse.country}
-              </dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-gray-800 dark:text-gray-200">Timezone: </dt>
-              <dd className="inline">{warehouse.timezone}</dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-gray-800 dark:text-gray-200">Hours: </dt>
-              <dd className="inline">
-                {warehouse.openTime} - {warehouse.closeTime}
-              </dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-gray-800 dark:text-gray-200">Capacity: </dt>
-              <dd className="inline">
-                {warehouse.capacitySqft ? `${warehouse.capacitySqft.toLocaleString()} sq ft` : "Not set"}
-              </dd>
-            </div>
-            <div>
-              <dt className="inline font-medium text-gray-800 dark:text-gray-200">Utilization: </dt>
-              <dd className="inline">
-                {warehouse.utilizationPercent != null ? `${warehouse.utilizationPercent}%` : "Unavailable"}
-              </dd>
-            </div>
+          <dl className="mt-4 grid grid-cols-3 gap-4">
+            <Cell label="Hours" value={`${w.openTime}–${w.closeTime}`} />
+            <Cell
+              label="Capacity"
+              value={
+                w.capacitySqft ? `${w.capacitySqft.toLocaleString()} sq ft` : "—"
+              }
+            />
+            <Cell
+              label="Util"
+              value={w.utilizationPercent != null ? `${w.utilizationPercent}%` : "—"}
+            />
           </dl>
+
+          <span
+            aria-hidden
+            className="absolute right-0 top-5 inline-flex translate-x-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 dark:text-slate-600"
+          >
+            →
+          </span>
         </Link>
       ))}
     </div>
+  );
+}
+
+function Cell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-mono text-[9.5px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
+        {label}
+      </dt>
+      <dd className="mt-0.5 font-mono text-[12px] tabular-nums text-slate-700 dark:text-slate-300">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function Th({
+  children,
+  className = "",
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <th
+      scope="col"
+      className={`border-b border-slate-200/60 px-3 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500 dark:border-white/[0.06] dark:text-slate-400 ${className}`}
+    >
+      {children}
+    </th>
+  );
+}
+
+function Td({
+  children,
+  className = "",
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <td
+      className={`border-b border-slate-200/40 px-3 py-3 align-middle dark:border-white/[0.04] ${className}`}
+    >
+      {children}
+    </td>
   );
 }

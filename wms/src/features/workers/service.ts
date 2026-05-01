@@ -2,6 +2,8 @@ import { Prisma, TimeOffStatus, WorkerStatus } from "@prisma/client";
 import { endOfWeek, format, startOfDay, startOfWeek } from "date-fns";
 import { prisma } from "@/server/db/prisma";
 import { intervalsOverlap } from "./time";
+import { getViewMode } from "@/lib/auth/view-mode";
+import { getSelectedWarehouseId } from "@/lib/warehouse-context";
 
 export type WorkerDirectoryFilters = {
   search?: string;
@@ -136,7 +138,23 @@ export async function getWorkerDetail(workerId: string) {
   };
 }
 
+/**
+ * Warehouse picker options for workers screens. In operator mode the user
+ * is locked to a single warehouse, so the picker collapses to that one
+ * row — keeps the UI honest and prevents URL-spoof leaks.
+ */
 export async function listWarehouseOptions() {
+  const [mode, selectedId] = await Promise.all([
+    getViewMode(),
+    getSelectedWarehouseId(),
+  ]);
+  if (mode === "operator" && selectedId) {
+    return prisma.warehouse.findMany({
+      where: { id: selectedId },
+      select: { id: true, code: true, name: true, timezone: true },
+      orderBy: { code: "asc" },
+    });
+  }
   return prisma.warehouse.findMany({
     select: { id: true, code: true, name: true, timezone: true },
     orderBy: { code: "asc" },

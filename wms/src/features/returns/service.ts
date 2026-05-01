@@ -1,5 +1,7 @@
 import { ReturnStatus } from "@prisma/client";
 import { prisma } from "@/server/db/prisma";
+import { getViewMode } from "@/lib/auth/view-mode";
+import { getSelectedWarehouseId } from "@/lib/warehouse-context";
 
 export async function listReturnQueue(filters: {
   warehouseId?: string;
@@ -63,7 +65,22 @@ export async function listReturnAuditEntries(returnRmaId: string) {
   });
 }
 
+/**
+ * Warehouse picker options for returns screens. Operator mode collapses
+ * the list to the user's active warehouse to match the rest of the app.
+ */
 export async function listWarehousesSelect() {
+  const [mode, selectedId] = await Promise.all([
+    getViewMode(),
+    getSelectedWarehouseId(),
+  ]);
+  if (mode === "operator" && selectedId) {
+    return prisma.warehouse.findMany({
+      where: { id: selectedId },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
+    });
+  }
   return prisma.warehouse.findMany({
     select: { id: true, code: true, name: true },
     orderBy: { code: "asc" },

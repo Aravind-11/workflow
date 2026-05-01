@@ -11,7 +11,7 @@ const tabs = [
 export function WorkerSubNav() {
   const path = usePathname();
   return (
-    <div className="mb-6 flex flex-wrap gap-2 border-b border-gray-200 pb-3 dark:border-navy-border">
+    <div className="flex gap-6">
       {tabs.map((tab) => {
         const active =
           tab.href === "/workers"
@@ -22,8 +22,10 @@ export function WorkerSubNav() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-              active ? "bg-blue-50 text-blue-800 dark:bg-blue-500/15 dark:text-blue-400" : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5"
+            className={`pt-1 font-mono text-[10.5px] font-medium uppercase tracking-[0.2em] transition-colors duration-200 ${
+              active
+                ? "text-slate-900 dark:text-gray-50"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-gray-100"
             }`}
           >
             {tab.label}

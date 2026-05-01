@@ -8,8 +8,12 @@ export type ReceiptRow = {
   notes: string | null;
   warehouse: { code: string; name: string };
   purchaseOrder: { poNumber: string } | null;
-  delivery: { deliveryNumber: string; status: string } | null;
-  lines: { id: string; receivedQty: number; inventoryItem: { skuCode: string } }[];
+  delivery: { deliveryNumber: string; status: string; carrier?: string | null } | null;
+  lines: {
+    id: string;
+    receivedQty: number;
+    inventoryItem: { skuCode: string; barcode?: string | null };
+  }[];
 };
 
 export type PO = {

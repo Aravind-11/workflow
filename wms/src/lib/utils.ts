@@ -11,7 +11,7 @@ export function pickString(v: string | string[] | undefined): string | undefined
   return v;
 }
 
-type Serialized<T> = T extends Date
+export type Serialized<T> = T extends Date
   ? string
   : T extends Array<infer U>
     ? Serialized<U>[]
@@ -26,9 +26,11 @@ export function serialize<T>(value: T): Serialized<T> {
 
 /** Tailwind class string for an entity status badge. */
 export function statusBadge(status: string) {
-  if (status === "ACTIVE") return "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300";
-  if (status === "MAINTENANCE") return "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300";
-  return "bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-gray-300";
+  if (status === "ACTIVE")
+    return "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/25";
+  if (status === "MAINTENANCE")
+    return "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/25";
+  return "bg-slate-100/80 text-slate-600 ring-1 ring-inset ring-slate-900/10 dark:bg-white/[0.04] dark:text-slate-300 dark:ring-white/10";
 }
 
 export function fmtWhen(iso: string) {

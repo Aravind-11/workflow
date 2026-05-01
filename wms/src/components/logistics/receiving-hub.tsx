@@ -21,6 +21,36 @@ import { AddReceiptLineModal } from "./add-receipt-line-modal";
 import type { ReceiptLineForm } from "./add-receipt-line-modal";
 import { DetailDrawer } from "./detail-drawer";
 import { NewReceiptModal } from "./new-receipt-modal";
+import { ReceivingOverview } from "./receiving-overview";
+
+// Manifest data is encoded into a few well-known places by the LACO loader:
+//   - InventoryItem.skuCode  → "MAIL-{boxId}"   (fallback for box id)
+//   - InventoryItem.barcode  → tracking number  (fallback for tracking)
+//   - Delivery.carrier       → courier
+//   - Receipt.notes          → "Box X · Operator Y · USPS Z"  (only source for operator)
+function deriveManifest(r: ReceiptRow): {
+  boxId: string | null;
+  operator: string | null;
+  courier: string | null;
+  tracking: string | null;
+} {
+  const sku = r.lines[0]?.inventoryItem.skuCode ?? "";
+  const barcode = r.lines[0]?.inventoryItem.barcode ?? null;
+  const courier = r.delivery?.carrier ?? null;
+  const notes = r.notes ?? "";
+
+  const boxFromSku = sku.startsWith("MAIL-") ? sku.slice(5) : null;
+  const boxFromNotes = /Box\s+([^\s·]+)/i.exec(notes)?.[1] ?? null;
+  const operator = /(?:Operator|op)\s+([^·]+?)\s*(?:·|$)/i.exec(notes)?.[1]?.trim() ?? null;
+  const trackingFromNotes = /(?:USPS|UPS|FedEx|DHL)\s+(\S+)/i.exec(notes)?.[1] ?? null;
+
+  return {
+    boxId: boxFromSku ?? boxFromNotes,
+    operator,
+    courier,
+    tracking: barcode ?? trackingFromNotes,
+  };
+}
 
 export function ReceivingHub({
   warehouses,
@@ -102,8 +132,12 @@ export function ReceivingHub({
         <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">{msg}</p>
       ) : null}
 
-      <section className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-4 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-        <h2 className="text-sm font-semibold text-emerald-900 dark:text-emerald-200">Inbound flow</h2>
+      <ReceivingOverview receipts={receipts} />
+
+      <details className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 dark:border-emerald-500/20 dark:bg-emerald-500/10">
+        <summary className="cursor-pointer text-xs font-medium text-emerald-900 hover:underline dark:text-emerald-200">
+          Inbound flow — what each status means
+        </summary>
         <p className="mt-1 text-sm text-emerald-800 dark:text-emerald-300">
           Delivery / PO → <strong>Receive</strong> → <strong>Inspect</strong> (condition &amp; line status) →{" "}
           <strong>Putaway</strong> → Post to inventory.
@@ -113,7 +147,7 @@ export function ReceivingHub({
           <li>Add lines with qty, lot, condition; move line status through inspection / putaway.</li>
           <li>Post receipt to update PO received quantities.</li>
         </ol>
-      </section>
+      </details>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <form className="flex flex-wrap items-end gap-2" method="get">
@@ -146,6 +180,10 @@ export function ReceivingHub({
             <tr>
               <th className="px-4 py-3">Receipt #</th>
               <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Box</th>
+              <th className="px-4 py-3">Operator</th>
+              <th className="px-4 py-3">Courier</th>
+              <th className="px-4 py-3">Tracking</th>
               <th className="px-4 py-3">PO / Delivery</th>
               <th className="px-4 py-3">Lines</th>
               <th className="px-4 py-3">Received</th>
@@ -153,45 +191,69 @@ export function ReceivingHub({
             </tr>
           </thead>
           <tbody>
-            {receipts.map((r) => (
-              <tr key={r.id} className="border-t border-gray-100 dark:border-navy-border">
-                <td className="px-4 py-3 font-mono text-xs font-medium">{r.receiptNumber}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                      r.status === ReceiptStatus.POSTED
-                        ? "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300"
-                        : r.status === ReceiptStatus.DRAFT
-                          ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
-                          : "bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-gray-300"
-                    }`}
-                  >
-                    {r.status.replace("_", " ")}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-xs">
-                  {r.purchaseOrder ? <div>PO {r.purchaseOrder.poNumber}</div> : null}
-                  {r.delivery ? <div>DLV {r.delivery.deliveryNumber}</div> : null}
-                  {!r.purchaseOrder && !r.delivery ? "—" : null}
-                </td>
-                <td className="px-4 py-3">{r.lines.length}</td>
-                <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                  {new Date(r.receivedAt).toLocaleString()}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
-                    onClick={() => openDrawer(r.id)}
-                  >
-                    Open
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {receipts.map((r) => {
+              const m = deriveManifest(r);
+              return (
+                <tr key={r.id} className="border-t border-gray-100 dark:border-navy-border">
+                  <td className="px-4 py-3 font-mono text-xs font-medium">{r.receiptNumber}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        r.status === ReceiptStatus.POSTED
+                          ? "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300"
+                          : r.status === ReceiptStatus.DRAFT
+                            ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+                            : "bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-gray-300"
+                      }`}
+                    >
+                      {r.status.replace("_", " ")}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs">
+                    {m.boxId ?? <span className="text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {m.operator ?? <span className="text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {m.courier ? (
+                      <span className="rounded-md bg-blue-100 px-1.5 py-0.5 text-[11px] font-medium text-blue-800 dark:bg-blue-500/15 dark:text-blue-300">
+                        {m.courier}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-[11px] text-gray-700 dark:text-gray-300">
+                    {m.tracking ?? <span className="text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    {r.purchaseOrder ? <div>PO {r.purchaseOrder.poNumber}</div> : null}
+                    {r.delivery ? <div>DLV {r.delivery.deliveryNumber}</div> : null}
+                    {!r.purchaseOrder && !r.delivery ? "—" : null}
+                  </td>
+                  <td className="px-4 py-3">{r.lines.length}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                    {new Date(r.receivedAt).toLocaleString("en-US", {
+                      year: "numeric", month: "short", day: "numeric",
+                      hour: "2-digit", minute: "2-digit",
+                    })}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      type="button"
+                      className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                      onClick={() => openDrawer(r.id)}
+                    >
+                      Open
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
             {receipts.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={10} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                   No receipts for this warehouse.
                 </td>
               </tr>

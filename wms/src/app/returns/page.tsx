@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ReturnStatus } from "@prisma/client";
 import { CreateRmaModal } from "@/components/returns/create-rma-modal";
 import { listRecentShipmentsForRma, listReturnQueue, listWarehousesSelect } from "@/features/returns/service";
+import { resolveWarehouseScope } from "@/lib/warehouse-context";
 import { pickString, serialize } from "@/lib/utils";
 
 export default async function ReturnsQueuePage({
@@ -10,7 +11,9 @@ export default async function ReturnsQueuePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const warehouseId = pickString(params.warehouseId);
+  // Operator mode pins the warehouse filter; admin mode allows blank=all.
+  const scope = await resolveWarehouseScope(pickString(params.warehouseId));
+  const warehouseId = scope.locked ? scope.id ?? undefined : scope.requestedId ?? undefined;
   const statusRaw = pickString(params.status);
   const search = pickString(params.search);
   const status =

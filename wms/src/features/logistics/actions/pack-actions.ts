@@ -7,6 +7,7 @@ import { guardAction } from "@/lib/auth/action-guard";
 import { P } from "@/lib/auth/permissions";
 import type { ActionResult } from "@/lib/types";
 import { revalidateLogisticsPages, nextDoc } from "./shared";
+import { addTrackingEvent } from "@/features/tracking/actions";
 
 export async function createPackListAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createPackListSchema.safeParse(input);
@@ -87,6 +88,28 @@ export async function completePackListAction(packListId: string): Promise<Action
       data: { status: ShipmentStatus.PACKED },
     }),
   ]);
+
+  const trackingItems = await prisma.trackingItem.findMany({
+    where: { warehouseId: pack.warehouseId },
+    include: { events: { orderBy: { timestamp: "desc" }, take: 1 } },
+  });
+  for (const ti of trackingItems) {
+    const lastEvent = ti.events[0];
+    try {
+      await addTrackingEvent({
+        trackingItemId: ti.id,
+        warehouseId: pack.warehouseId,
+        parentEventId: lastEvent?.id,
+        stageType: "pack",
+        stageLabel: "Packed",
+        itemBarcode: ti.barcode,
+        packListId: pack.id,
+        shipmentId: pack.shipmentId,
+        workerProfileId: pack.assignedWorkerId ?? undefined,
+      });
+    } catch { /* non-critical */ }
+  }
+
   revalidateLogisticsPages();
   return { ok: true };
 }

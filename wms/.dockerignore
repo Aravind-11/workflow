@@ -1,21 +1,38 @@
+# --- Local build / runtime artifacts ---
 node_modules
 .next
 out
 build
+dist
 coverage
-.npm-cache
-node-compile-cache
-.vercel
-.git
-.gitignore
-.DS_Store
-*.log
-*.tsbuildinfo
+
+# --- Env / secrets (NEVER bake these in) ---
 .env
 .env.*
 !.env.example
-!.env.local.example
+
+# --- Editor / OS junk ---
+.DS_Store
+.vscode
+.idea
+*.swp
+*.log
+npm-debug.log*
+
+# --- Git / CI ---
+.git
+.gitignore
+.github
+.gitattributes
+
+# --- Tooling caches ---
+.eslintcache
+.turbo
+.cache
+
+# --- Local docker / scripts you don't need in the image ---
 Dockerfile
 .dockerignore
-README.md
-docker-compose.yml
+docker-compose*.yml
+DEPLOY.md
+README*.md

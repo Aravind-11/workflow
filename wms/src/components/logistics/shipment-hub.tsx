@@ -18,6 +18,8 @@ type Row = {
   serviceLevel: string | null;
   trackingNumber: string | null;
   plannedShipAt: string | null;
+  shippedAt?: string | null;
+  salesOrderRef?: string | null;
   warehouse: { code: string };
   shipmentLines: { id: string; quantity: number; inventoryItem: { skuCode: string } }[];
   pickLists: { id: string; pickListNumber: string; status: string }[];
@@ -101,6 +103,23 @@ export function ShipmentHub({
         </p>
       </section>
 
+      {(() => {
+        const total = shipments.length;
+        const shipped = shipments.filter((s) => s.status === ShipmentStatus.SHIPPED).length;
+        let totalPages = 0;
+        for (const s of shipments) {
+          const m = /([\d,]+)\s+pages/.exec(s.serviceLevel ?? "");
+          if (m) totalPages += parseInt(m[1].replace(/,/g, ""), 10) || 0;
+        }
+        return (
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <SummaryCard label="Total exports" value={total.toLocaleString()} tint="blue" />
+            <SummaryCard label="Shipped" value={shipped.toLocaleString()} tint="green" />
+            <SummaryCard label="Pages exported" value={totalPages.toLocaleString()} tint="indigo" />
+          </section>
+        );
+      })()}
+
       <div className="flex flex-wrap items-end justify-between gap-3">
         <form className="flex flex-wrap items-end gap-2" method="get">
           <label className="text-sm">
@@ -131,41 +150,60 @@ export function ShipmentHub({
           <thead className="bg-gray-50 text-left text-gray-600 dark:bg-navy dark:text-gray-400">
             <tr>
               <th className="px-4 py-3">Shipment</th>
+              <th className="px-4 py-3">Export ID</th>
+              <th className="px-4 py-3">Batch</th>
+              <th className="px-4 py-3">Box</th>
+              <th className="px-4 py-3">Pages</th>
+              <th className="px-4 py-3">Carrier</th>
               <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Carrier / service</th>
-              <th className="px-4 py-3">Tracking</th>
-              <th className="px-4 py-3">Pick / Pack</th>
+              <th className="px-4 py-3">Shipped</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
-            {shipments.map((s) => (
-              <tr key={s.id} className="border-t border-gray-100 dark:border-navy-border">
-                <td className="px-4 py-3 font-mono text-xs font-medium">{s.shipmentNumber}</td>
-                <td className="px-4 py-3">
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-white/10 dark:text-gray-300">{s.status}</span>
-                </td>
-                <td className="px-4 py-3 text-xs">
-                  {s.carrier}
-                  {s.serviceLevel ? <div className="text-gray-500 dark:text-gray-400">{s.serviceLevel}</div> : null}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs">{s.trackingNumber ?? "—"}</td>
-                <td className="px-4 py-3 text-xs">
-                  {s.pickLists[0]?.pickListNumber ?? "—"} / {s.packLists[0]?.packListNumber ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/shipping/${s.id}`}
-                    className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
-                  >
-                    Open
-                  </Link>
-                </td>
-              </tr>
-            ))}
+            {shipments.map((s) => {
+              const sku = s.shipmentLines[0]?.inventoryItem.skuCode ?? "";
+              const boxId = sku.startsWith("MAIL-") ? sku.slice(5) : sku || "—";
+              const ref = s.salesOrderRef ?? "";
+              const batch = ref.startsWith("LACO-") ? ref.slice(5) : ref || null;
+              const pagesMatch = /([\d,]+)\s+pages/.exec(s.serviceLevel ?? "");
+              const pages = pagesMatch ? pagesMatch[1] : null;
+              return (
+                <tr key={s.id} className="border-t border-gray-100 dark:border-navy-border">
+                  <td className="px-4 py-3 font-mono text-xs font-medium">{s.shipmentNumber}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{s.trackingNumber ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{batch ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{boxId}</td>
+                  <td className="px-4 py-3 text-xs font-semibold tabular-nums">
+                    {pages ?? <span className="font-normal text-gray-400">—</span>}
+                  </td>
+                  <td className="px-4 py-3 text-xs">
+                    <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[11px] font-medium text-blue-800 dark:bg-blue-500/15 dark:text-blue-300">
+                      {s.carrier}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs dark:bg-white/10 dark:text-gray-300">{s.status}</span>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                    {s.shippedAt ? new Date(s.shippedAt).toLocaleString("en-US", {
+                      month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                    }) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <Link
+                      href={`/shipping/${s.id}`}
+                      className="text-sm font-medium text-blue-700 hover:underline dark:text-blue-400"
+                    >
+                      Open
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
             {shipments.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={9} className="px-4 py-10 text-center text-gray-500 dark:text-gray-400">
                   No shipments.
                 </td>
               </tr>
@@ -268,6 +306,28 @@ export function ShipmentHub({
           </div>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  tint,
+}: {
+  label: string;
+  value: string;
+  tint: "blue" | "green" | "indigo";
+}) {
+  const tintClasses: Record<typeof tint, string> = {
+    blue: "border-blue-200 bg-blue-50/70 text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-200",
+    green: "border-green-200 bg-green-50/70 text-green-900 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-200",
+    indigo: "border-indigo-200 bg-indigo-50/70 text-indigo-900 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-200",
+  };
+  return (
+    <div className={`rounded-xl border p-3 ${tintClasses[tint]}`}>
+      <p className="text-xs font-medium uppercase tracking-wide opacity-80">{label}</p>
+      <p className="mt-1 text-2xl font-semibold">{value}</p>
     </div>
   );
 }

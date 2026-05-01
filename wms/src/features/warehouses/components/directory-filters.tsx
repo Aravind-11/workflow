@@ -36,12 +36,14 @@ function SelectField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="space-y-1">
-      <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{label}</span>
+    <label className="space-y-1.5">
+      <span className="block font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-navy-border dark:bg-navy dark:text-gray-200"
+        className="h-9 w-full rounded-md border border-slate-200/70 bg-white px-3 text-[13px] text-slate-800 outline-none transition-colors duration-150 hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200/60 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:hover:border-white/[0.16] dark:focus:border-white/[0.24] dark:focus:ring-white/[0.06]"
       >
         <option value="">All</option>
         {options.map((option) => (
@@ -76,10 +78,12 @@ export default function DirectoryFilters({ facets, initialValues }: Props) {
   const applySearch = () => updateParam("search", searchText.trim() || undefined);
 
   return (
-    <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-navy-border dark:bg-navy-surface">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="min-w-[220px] flex-1 space-y-1">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</span>
+    <div className="space-y-4 border-y border-slate-200/60 py-4 dark:border-white/[0.06]">
+      <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
+        <label className="min-w-[220px] flex-1 space-y-1.5">
+          <span className="block font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            Search
+          </span>
           <div className="flex gap-2">
             <input
               value={searchText}
@@ -88,7 +92,7 @@ export default function DirectoryFilters({ facets, initialValues }: Props) {
                 if (event.key === "Enter") applySearch();
               }}
               placeholder="Warehouse name or code"
-              className="h-10 w-full rounded-md border border-gray-300 px-3 text-sm dark:border-navy-border dark:bg-navy dark:text-gray-200 dark:placeholder-gray-500"
+              className="h-9 w-full rounded-md border border-slate-200/70 bg-white px-3 text-[13px] text-slate-800 outline-none transition-colors duration-150 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:ring-2 focus:ring-slate-200/60 dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-gray-100 dark:placeholder:text-slate-500 dark:hover:border-white/[0.16] dark:focus:border-white/[0.24] dark:focus:ring-white/[0.06]"
             />
             <Button variant="secondary" onClick={applySearch}>
               Apply
@@ -96,27 +100,35 @@ export default function DirectoryFilters({ facets, initialValues }: Props) {
           </div>
         </label>
 
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant={currentView === "grid" ? "default" : "outline"}
-            size="sm"
+        <div className="ml-auto inline-flex border border-slate-200/70 dark:border-white/[0.08]">
+          <button
+            type="button"
             onClick={() => updateParam("view", "grid")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] transition-colors duration-150 ${
+              currentView === "grid"
+                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-gray-100"
+            }`}
           >
-            <Grid3X3 className="h-4 w-4" />
+            <Grid3X3 className="h-3.5 w-3.5" />
             Grid
-          </Button>
-          <Button
-            variant={currentView === "list" ? "default" : "outline"}
-            size="sm"
+          </button>
+          <button
+            type="button"
             onClick={() => updateParam("view", "list")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 font-mono text-[10.5px] font-medium uppercase tracking-[0.18em] transition-colors duration-150 ${
+              currentView === "list"
+                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-gray-100"
+            }`}
           >
-            <List className="h-4 w-4" />
+            <List className="h-3.5 w-3.5" />
             List
-          </Button>
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-x-5 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
         <SelectField label="Country" value={initialValues.country} options={facets.countries} onChange={(value) => updateParam("country", value || undefined)} />
         <SelectField label="State" value={initialValues.state} options={facets.states} onChange={(value) => updateParam("state", value || undefined)} />
         <SelectField label="Region" value={initialValues.region} options={facets.regions} onChange={(value) => updateParam("region", value || undefined)} />

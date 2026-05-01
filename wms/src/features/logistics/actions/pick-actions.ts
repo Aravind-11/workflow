@@ -7,6 +7,8 @@ import { guardAction } from "@/lib/auth/action-guard";
 import { P } from "@/lib/auth/permissions";
 import type { ActionResult } from "@/lib/types";
 import { revalidateLogisticsPages, nextDoc } from "./shared";
+import { checkWorkflowTransition } from "@/lib/workflow/guard";
+import { addTrackingEvent } from "@/features/tracking/actions";
 
 export async function createPickListAction(input: unknown): Promise<ActionResult<{ id: string }>> {
   const parsed = createPickListSchema.safeParse(input);
@@ -86,6 +88,10 @@ export async function completePickListAction(pickListId: string): Promise<Action
   if (!auth.ok) return { ok: false, error: auth.error };
   const allPicked = pl.lines.every((l) => l.pickedQty >= l.requestedQty);
   if (!allPicked) return { ok: false, error: "Pick all quantities first" };
+
+  const wfCheck = await checkWorkflowTransition(pl.warehouseId, "pick", "pack");
+  if (!wfCheck.allowed) return { ok: false, error: wfCheck.error ?? "Workflow transition not allowed" };
+
   await prisma.$transaction([
     prisma.pickList.update({
       where: { id: pickListId },
@@ -96,6 +102,39 @@ export async function completePickListAction(pickListId: string): Promise<Action
       data: { status: ShipmentStatus.PICKED },
     }),
   ]);
+
+  for (const line of pl.lines) {
+    const trackingItems = await prisma.trackingItem.findMany({
+      where: { warehouseId: pl.warehouseId, skuCode: line.inventoryItemId },
+    });
+    const targets = trackingItems.length > 0
+      ? trackingItems
+      : await prisma.trackingItem.findMany({
+          where: { warehouseId: pl.warehouseId },
+          include: { events: { orderBy: { timestamp: "desc" }, take: 1 } },
+          take: 1,
+        });
+    for (const ti of targets) {
+      const lastEvent = await prisma.trackingEvent.findFirst({
+        where: { trackingItemId: ti.id },
+        orderBy: { timestamp: "desc" },
+      });
+      try {
+        await addTrackingEvent({
+          trackingItemId: ti.id,
+          warehouseId: pl.warehouseId,
+          parentEventId: lastEvent?.id,
+          stageType: "pick",
+          stageLabel: "Picked",
+          itemBarcode: ti.barcode,
+          pickListId: pl.id,
+          shipmentId: pl.shipmentId ?? undefined,
+          workerProfileId: pl.assignedWorkerId ?? undefined,
+        });
+      } catch { /* non-critical */ }
+    }
+  }
+
   revalidateLogisticsPages();
   return { ok: true };
 }
