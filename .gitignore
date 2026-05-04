@@ -2,5 +2,44 @@
 .next/
 node_modules/
 .DS_Store
+
+# Legacy / unrelated workspaces in this repo root
 sensaihack-idea1/
 warehouse-mission-control/
+
+# Ad-hoc analysis & data — never part of the WMS app
+mailroom-analytics/
+mujoco-warehouse/
+agentrun-spec/.venv/
+agentrun-spec/.pytest_cache/
+agentrun-spec/examples/
+
+# Local-only scratch
+.tmp/
+.wms-3d-clone/
+images/
+scripts/
+.cursor/
+
+# Pre-rotation deploy notes (contain rotated AWS keys + the MongoDB
+# password). The sanitized canonical versions live in `infra/`.
+.deploy/
+
+# Env files — never commit. Use `.env.example` as the template.
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+
+# Editor
+*.swp
+*.swo
+.vscode/
+.idea/

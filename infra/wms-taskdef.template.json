@@ -1,0 +1,69 @@
+{
+  "_comment": "ECS task definition template for nventr-wms. Run-time secrets are placeholders — substitute via your shell or a secrets manager BEFORE registering the task definition. NEVER commit a rendered version to git. Account / role ARN are real because they're not secret.",
+
+  "family": "nventr-wms",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::788658419055:role/ecsTaskExecutionRole",
+  "taskRoleArn":      "arn:aws:iam::788658419055:role/ecsTaskExecutionRole",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+
+  "containerDefinitions": [
+    {
+      "name": "wms",
+      "image": "788658419055.dkr.ecr.us-east-1.amazonaws.com/nventr-wms:latest",
+      "essential": true,
+      "portMappings": [
+        { "containerPort": 3000, "hostPort": 3000, "protocol": "tcp" }
+      ],
+      "environment": [
+        { "name": "NODE_ENV",                          "value": "production" },
+        { "name": "PORT",                              "value": "3000" },
+        { "name": "HOSTNAME",                          "value": "0.0.0.0" },
+        { "name": "NEXT_TELEMETRY_DISABLED",           "value": "1" },
+
+        { "name": "DATABASE_URL",                      "value": "__DATABASE_URL__" },
+        { "name": "NEXT_PUBLIC_SUPABASE_URL",          "value": "__SUPABASE_URL__" },
+        { "name": "NEXT_PUBLIC_SUPABASE_ANON_KEY",     "value": "__SUPABASE_ANON_KEY__" },
+        { "name": "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY","value": "__NEXT_SERVER_ACTIONS_ENCRYPTION_KEY__" },
+
+        { "name": "OLLAMA_BASE_URL", "value": "http://172.31.45.113:11434/v1" },
+        { "name": "OLLAMA_MODEL",    "value": "llama3.1:8b-instruct-q4_K_M" },
+        { "name": "OLLAMA_TOOLS",    "value": "false" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group":         "/ecs/nventr-wms",
+          "awslogs-region":        "us-east-1",
+          "awslogs-stream-prefix": "wms"
+        }
+      }
+    },
+    {
+      "name": "cloudflared",
+      "image": "cloudflare/cloudflared:2026.3.0",
+      "essential": true,
+      "command": ["tunnel", "--no-autoupdate", "--metrics", "0.0.0.0:2000", "run"],
+      "environment": [
+        { "name": "TUNNEL_TOKEN", "value": "__CF_TUNNEL_TOKEN__" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group":         "/ecs/nventr-wms-cloudflared",
+          "awslogs-region":        "us-east-1",
+          "awslogs-stream-prefix": "cloudflared"
+        }
+      },
+      "dependsOn": [
+        { "containerName": "wms", "condition": "START" }
+      ]
+    }
+  ]
+}
